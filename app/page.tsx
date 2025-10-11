@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import useSWR from "swr"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -62,6 +62,11 @@ function formatDate(d: string | Date) {
   const m = String(date.getMonth() + 1).padStart(2, "0")
   const dd = String(date.getDate()).padStart(2, "0")
   return `${y}-${m}-${dd}`
+}
+
+function toHexId(n: number) {
+  const hex = Math.max(1, Number(n)).toString(16).toUpperCase().padStart(7, "0")
+  return `#${hex}`
 }
 
 export default function PRDDashboardPage() {
@@ -262,7 +267,10 @@ export default function PRDDashboardPage() {
                     return (
                       <tr key={it.id} className="border-t border-border hover:bg-muted/40">
                         <td className="px-4 py-3 font-medium">
-                          <div className="truncate">{it.link}</div>
+                          <div className="text-xs text-foreground/50 mb-0.5">{toHexId(it.id)}</div>
+                          <div className="truncate" title={it.link}>
+                            {it.link}
+                          </div>
                         </td>
                         <td className="px-4 py-3">{it.jenis}</td>
                         <td className="px-4 py-3">
@@ -402,7 +410,8 @@ function FilterMenu({
           <Button
             key={o}
             size="sm"
-            variant={active ? "default" : "outline"}
+            variant={active ? "secondary" : "outline"}
+            className={active ? "bg-muted text-foreground" : "border-border text-foreground/80"}
             onClick={() => {
               if (active) onApply(value.filter((v) => v !== o))
               else onApply([...value, o])
@@ -536,23 +545,54 @@ function DetailModal({
 }) {
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
-  const [chat, setChat] = useState<{ role: "user" | "assistant"; text: string }[]>([
-    ...(item
-      ? [
-          {
-            role: "assistant" as const,
-            text: "Halo, saya siap membantu menganalisis kasus ini. Apa yang ingin Anda ketahui?",
-          },
-        ]
-      : []),
-  ])
+
+  type ChatMsg = { role: "user" | "assistant"; text: string; ts: number; link: string }
+  const [chat, setChat] = useState<ChatMsg[]>([])
+  const chatKey = item ? `prd-chat-${item.id}` : ""
+
+  useEffect(() => {
+    if (!item) return
+    const saved = localStorage.getItem(chatKey)
+    if (saved) {
+      try {
+        setChat(JSON.parse(saved) as ChatMsg[])
+        return
+      } catch { }
+    }
+    setChat([
+      {
+        role: "assistant",
+        text: "Halo, saya siap membantu menganalisis kasus ini. Apa yang ingin Anda ketahui?",
+        ts: Date.now(),
+        link: item.link,
+      },
+    ])
+  }, [chatKey, item])
+
+  useEffect(() => {
+    if (!item) return
+    try {
+      localStorage.setItem(chatKey, JSON.stringify(chat))
+    } catch { }
+  }, [chat, chatKey, item])
+
+  const [flaggedLocal, setFlaggedLocal] = useState<boolean>(!!item?.flagged)
+  useEffect(() => {
+    if (item) setFlaggedLocal(item.flagged)
+  }, [item])
+
+  const { data: history, mutate: mutateHistory } = useSWR<{ events: { time: string; text: string }[] }>(
+    item ? `/api/links/history?id=${item.id}` : null,
+    fetcher,
+    { refreshInterval: 0, revalidateOnFocus: false },
+  )
 
   if (!item) return null
 
   async function send() {
     const content = message.trim()
     if (!content) return
-    setChat((c) => [...c, { role: "user", text: content }])
+    setChat((c) => [...c, { role: "user", text: content, ts: Date.now(), link: item.link }])
     setMessage("")
     setLoading(true)
     try {
@@ -562,9 +602,15 @@ function DetailModal({
         body: JSON.stringify({ question: content, item }),
       })
       const data = await res.json()
-      setChat((c) => [...c, { role: "assistant", text: data.reply ?? "Maaf, tidak ada balasan." }])
+      setChat((c) => [
+        ...c,
+        { role: "assistant", text: data.reply ?? "Maaf, tidak ada balasan.", ts: Date.now(), link: item.link },
+      ])
     } catch (e) {
-      setChat((c) => [...c, { role: "assistant", text: "Terjadi kesalahan saat menghubungi AI." }])
+      setChat((c) => [
+        ...c,
+        { role: "assistant", text: "Terjadi kesalahan saat menghubungi AI.", ts: Date.now(), link: item.link },
+      ])
     } finally {
       setLoading(false)
     }
@@ -577,23 +623,27 @@ function DetailModal({
       body: JSON.stringify({ id: item.id, patch: { status: next, lastModified: formatDate(new Date()) } }),
     })
     onMutate()
+    await mutateHistory()
     onClose()
   }
 
   async function toggleFlag() {
+    const nextVal = !flaggedLocal
     await fetch("/api/links/update", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: item.id, patch: { flagged: !item.flagged, lastModified: formatDate(new Date()) } }),
+      body: JSON.stringify({ id: item.id, patch: { flagged: nextVal, lastModified: formatDate(new Date()) } }),
     })
+    setFlaggedLocal(nextVal)
     onMutate()
+    await mutateHistory()
   }
 
   return (
     <Dialog open={!!item} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Info Detail</DialogTitle>
+          <DialogTitle>{toHexId(item.id)} · Info Detail</DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left */}
@@ -601,7 +651,7 @@ function DetailModal({
             <div>
               <div className="text-xs font-semibold mb-2">Link</div>
               <div className="flex items-center gap-2">
-                <Input readOnly value={item.link} className="text-xs" />
+                <Input readOnly value={item.link} className="text-xs" title={item.link} />
                 <Button
                   variant="outline"
                   size="icon"
@@ -613,8 +663,13 @@ function DetailModal({
                     <path d="M8 16h8a2 2 0 002-2v-8" stroke="currentColor" strokeWidth="2" />
                   </svg>
                 </Button>
-                <Button variant={item.flagged ? "default" : "outline"} size="sm" onClick={toggleFlag}>
-                  {item.flagged ? "Unflag" : "Flag"}
+                <Button
+                  variant={flaggedLocal ? "default" : "outline"}
+                  size="sm"
+                  className="text-xs"
+                  onClick={toggleFlag}
+                >
+                  {flaggedLocal ? "Unflag" : "Flag"}
                 </Button>
               </div>
             </div>
@@ -622,6 +677,24 @@ function DetailModal({
             <div>
               <div className="text-xs font-semibold mb-2">Reasoning</div>
               <div className="text-sm border border-border rounded-md p-3 bg-card">{item.reasoning}</div>
+            </div>
+
+            <div>
+              <div className="text-xs font-semibold mb-2">Riwayat Aktivitas</div>
+              <div className="border border-border rounded-md p-3 bg-card max-h-40 overflow-auto">
+                {history?.events?.length ? (
+                  <ul className="space-y-1">
+                    {history.events.map((ev, idx) => (
+                      <li key={idx} className="text-xs">
+                        <span className="text-foreground/50 mr-2">{new Date(ev.time).toLocaleString()}</span>
+                        {ev.text}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-xs text-foreground/60">Memuat riwayat...</div>
+                )}
+              </div>
             </div>
 
             <div>
@@ -637,25 +710,42 @@ function DetailModal({
               <div className="text-xs font-semibold mb-2">Verifikasi Status Laporan Mesin</div>
               {item.status === "unverified" ? (
                 <div className="grid grid-cols-2 gap-2">
-                  <Button className="w-full" onClick={() => updateStatus("verified")}>
+                  <Button className="w-full text-xs md:text-sm" size="sm" onClick={() => updateStatus("verified")}>
                     Confirm
                   </Button>
-                  <Button className="w-full" variant="destructive" onClick={() => updateStatus("false-positive")}>
+                  <Button
+                    className="w-full text-xs md:text-sm"
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => updateStatus("false-positive")}
+                  >
                     False Positive
                   </Button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                   {item.status !== "false-positive" && (
-                    <Button variant="destructive" onClick={() => updateStatus("false-positive")}>
+                    <Button
+                      className="text-xs md:text-sm"
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => updateStatus("false-positive")}
+                    >
                       Ubah ke False Positive
                     </Button>
                   )}
                   {item.status !== "verified" && (
-                    <Button onClick={() => updateStatus("verified")}>Ubah ke Verified</Button>
+                    <Button className="text-xs md:text-sm" size="sm" onClick={() => updateStatus("verified")}>
+                      Ubah ke Verified
+                    </Button>
                   )}
                   {item.status !== "unverified" && (
-                    <Button variant="outline" onClick={() => updateStatus("unverified")}>
+                    <Button
+                      className="text-xs md:text-sm bg-transparent"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => updateStatus("unverified")}
+                    >
                       Ubah ke Unverified
                     </Button>
                   )}
@@ -674,7 +764,9 @@ function DetailModal({
                       "rounded-lg px-3 py-2 max-w-[75%]",
                       m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted",
                     )}
+                    title={`Link: ${m.link} • ${new Date(m.ts).toLocaleString()}`}
                   >
+                    <div className="text-[10px] opacity-70 mb-1">{new Date(m.ts).toLocaleTimeString()}</div>
                     {m.text}
                   </div>
                 </div>

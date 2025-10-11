@@ -24,7 +24,7 @@ ${question}
 
   const { text } = await generateText({
     // Uses Vercel AI Gateway default providers
-    model: "openai/gpt-5-mini",
+    model: "google/gemini-1.5-flash",
     prompt,
   })
 
