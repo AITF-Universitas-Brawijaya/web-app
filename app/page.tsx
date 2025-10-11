@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useEffect } from "react"
+import { useMemo, useState, useEffect, useRef } from "react"
 import useSWR from "swr"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -130,7 +130,7 @@ export default function PRDDashboardPage() {
         <div className="p-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-primary" />
-            <h1 className="text-base font-semibold text-balance">PRD Engine</h1>
+            <h1 className="text-base font-semibold text-balance">PRD Analyst</h1>
           </div>
         </div>
         <nav className="p-2 space-y-1">
@@ -220,7 +220,7 @@ export default function PRDDashboardPage() {
                   }}
                 />
 
-                <Button size="sm" variant="default">
+                <Button size="sm" variant="outline" className="bg-card text-foreground/80 border border-border">
                   Crawling
                 </Button>
               </div>
@@ -268,7 +268,7 @@ export default function PRDDashboardPage() {
                       <tr key={it.id} className="border-t border-border hover:bg-muted/40">
                         <td className="px-4 py-3 font-medium">
                           <div className="text-xs text-foreground/50 mb-0.5">{toHexId(it.id)}</div>
-                          <div className="truncate" title={it.link}>
+                          <div className="truncate max-w-[28ch]" title={it.link}>
                             {it.link}
                           </div>
                         </td>
@@ -410,8 +410,8 @@ function FilterMenu({
           <Button
             key={o}
             size="sm"
-            variant={active ? "secondary" : "outline"}
-            className={active ? "bg-muted text-foreground" : "border-border text-foreground/80"}
+            variant="secondary"
+            className={active ? "bg-muted text-foreground" : "bg-card text-foreground/80 border border-border"}
             onClick={() => {
               if (active) onApply(value.filter((v) => v !== o))
               else onApply([...value, o])
@@ -545,6 +545,7 @@ function DetailModal({
 }) {
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
+  const chatScrollRef = useRef<HTMLDivElement | null>(null)
 
   type ChatMsg = { role: "user" | "assistant"; text: string; ts: number; link: string }
   const [chat, setChat] = useState<ChatMsg[]>([])
@@ -587,7 +588,11 @@ function DetailModal({
     { refreshInterval: 0, revalidateOnFocus: false },
   )
 
-  if (!item) return null
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight
+    }
+  }, [chat])
 
   async function send() {
     const content = message.trim()
@@ -639,17 +644,18 @@ function DetailModal({
     await mutateHistory()
   }
 
+  if (!item) return null
+
   return (
     <Dialog open={!!item} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-[min(95vw,1000px)] sm:max-w-[min(95vw,1000px)] max-h-[100vh]">
         <DialogHeader>
           <DialogTitle>{toHexId(item.id)} · Info Detail</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-6 h-[80vh]">
           {/* Left */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 md:col-span-4 overflow-y-auto thin-scroll pr-1">
             <div>
-              <div className="text-xs font-semibold mb-2">Link</div>
               <div className="flex items-center gap-2">
                 <Input readOnly value={item.link} className="text-xs" title={item.link} />
                 <Button
@@ -666,7 +672,7 @@ function DetailModal({
                 <Button
                   variant={flaggedLocal ? "default" : "outline"}
                   size="sm"
-                  className="text-xs"
+                  className="text-xs md:text-sm whitespace-nowrap leading-tight"
                   onClick={toggleFlag}
                 >
                   {flaggedLocal ? "Unflag" : "Flag"}
@@ -677,6 +683,15 @@ function DetailModal({
             <div>
               <div className="text-xs font-semibold mb-2">Reasoning</div>
               <div className="text-sm border border-border rounded-md p-3 bg-card">{item.reasoning}</div>
+            </div>
+
+            <div>
+              <div className="text-xs font-semibold mb-2">Gambar Terkait</div>
+              <img
+                src={`/placeholder.svg?height=240&width=360&query=Gambar%20terkait%20kasus`}
+                alt="Gambar terkait kasus"
+                className="rounded-md mx-auto w-full max-w-md h-auto object-contain"
+              />
             </div>
 
             <div>
@@ -697,24 +712,19 @@ function DetailModal({
               </div>
             </div>
 
-            <div>
-              <div className="text-xs font-semibold mb-2">Gambar Terkait</div>
-              <img
-                src={`/placeholder.svg?height=240&width=360&query=Gambar%20terkait%20kasus`}
-                alt="Gambar terkait kasus"
-                className="rounded-md w-full h-auto object-cover"
-              />
-            </div>
-
             <div className="mt-auto">
               <div className="text-xs font-semibold mb-2">Verifikasi Status Laporan Mesin</div>
               {item.status === "unverified" ? (
                 <div className="grid grid-cols-2 gap-2">
-                  <Button className="w-full text-xs md:text-sm" size="sm" onClick={() => updateStatus("verified")}>
+                  <Button
+                    className="w-full text-xs md:text-sm whitespace-nowrap leading-tight"
+                    size="sm"
+                    onClick={() => updateStatus("verified")}
+                  >
                     Confirm
                   </Button>
                   <Button
-                    className="w-full text-xs md:text-sm"
+                    className="w-full text-xs md:text-sm whitespace-nowrap leading-tight"
                     size="sm"
                     variant="destructive"
                     onClick={() => updateStatus("false-positive")}
@@ -723,10 +733,10 @@ function DetailModal({
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {item.status !== "false-positive" && (
                     <Button
-                      className="text-xs md:text-sm"
+                      className="text-xs md:text-sm whitespace-nowrap leading-tight"
                       size="sm"
                       variant="destructive"
                       onClick={() => updateStatus("false-positive")}
@@ -735,13 +745,17 @@ function DetailModal({
                     </Button>
                   )}
                   {item.status !== "verified" && (
-                    <Button className="text-xs md:text-sm" size="sm" onClick={() => updateStatus("verified")}>
+                    <Button
+                      className="text-xs md:text-sm whitespace-nowrap leading-tight"
+                      size="sm"
+                      onClick={() => updateStatus("verified")}
+                    >
                       Ubah ke Verified
                     </Button>
                   )}
                   {item.status !== "unverified" && (
                     <Button
-                      className="text-xs md:text-sm bg-transparent"
+                      className="text-xs md:text-sm bg-transparent whitespace-nowrap leading-tight"
                       size="sm"
                       variant="outline"
                       onClick={() => updateStatus("unverified")}
@@ -755,8 +769,8 @@ function DetailModal({
           </div>
 
           {/* Right: Chat */}
-          <div className="flex flex-col border border-border rounded-md overflow-hidden">
-            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          <div className="flex flex-col border border-border rounded-md overflow-hidden md:col-span-3 h-full">
+            <div ref={chatScrollRef} className="flex-1 overflow-y-auto thin-scroll p-3 space-y-2">
               {chat.map((m, i) => (
                 <div key={i} className={cn("text-sm flex", m.role === "user" ? "justify-end" : "justify-start")}>
                   <div

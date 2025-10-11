@@ -26,6 +26,7 @@ ${question}
     // Uses Vercel AI Gateway default providers
     model: "google/gemini-1.5-flash",
     prompt,
+    apiKey: process.env.GEMINI_API_KEY, // Added line to include API key from environment
   })
 
   return NextResponse.json({ reply: text })
