@@ -29,11 +29,38 @@ export type LinkRecord = {
   flagged: boolean
 }
 
-const fetcher = (url: string) =>
-  fetch(url, { cache: "no-store" }).then((r) => {
-    if (!r.ok) throw new Error(`Failed to fetch ${url}`)
-    return r.json()
-  })
+// const fetcher = (url: string) =>
+//   fetch(url, { cache: "no-store" }).then((r) => {
+//     if (!r.ok) throw new Error(`Failed to fetch ${url}`)
+//     return r.json()
+//   })
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+
+const fetcher = (path: string) => {
+  const useProxy = !process.env.NEXT_PUBLIC_API_BASE_URL
+  let url: string
+  if (useProxy) {
+    url = `/api${path}`
+  } else {
+    // map frontend paths to backend equivalents
+    const backendBase = API_BASE.replace(/\/$/, '')
+    // common mapping: frontend '/links' -> backend '/crawled'
+    if (path === '/links') url = `${backendBase}/crawled`
+    else if (path.startsWith('/links/')) url = `${backendBase}/crawled/${path.slice('/links/'.length)}`
+    else url = `${backendBase}${path}`
+  }
+
+  return fetch(url, { cache: 'no-store' })
+    .then((r) => {
+      if (!r.ok) throw new Error(`Failed to fetch ${url}`)
+      return r.json()
+    })
+    .catch((err) => {
+      console.error('Fetch error:', err)
+      throw err
+    })
+}
 
 const STATUS_LABEL: Record<Status, { label: string; className: string }> = {
   verified: { label: "Verified", className: "bg-secondary text-foreground" },
@@ -80,7 +107,7 @@ export default function PRDDashboardPage() {
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(20)
 
-  const { data, error, isLoading, mutate } = useSWR<LinkRecord[]>("/api/links", fetcher, {
+  const { data, error, isLoading, mutate } = useSWR<LinkRecord[]>("/links", fetcher, {
     refreshInterval: 4000,
     revalidateOnFocus: true,
   })
