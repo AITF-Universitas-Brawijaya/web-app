@@ -186,7 +186,27 @@ export default function DetailModal({
               <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => navigator.clipboard.writeText(item.link)}
+                  onClick={() => {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(item.link)
+      .then(() => console.log("Link copied:", item.link))
+      .catch((err) => console.error("Clipboard error:", err));
+  } else {
+    // fallback untuk browser lama
+    const textarea = document.createElement("textarea");
+    textarea.value = item.link;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      console.log("Fallback copy success:", item.link);
+    } catch (err) {
+      console.error("Fallback copy failed:", err);
+    }
+    document.body.removeChild(textarea);
+  }
+}}
+
                   aria-label="Copy link"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">

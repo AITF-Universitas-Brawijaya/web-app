@@ -124,12 +124,12 @@ export default function PRDDashboardPage() {
                     />
                     <FilterMenu value={jenisFilter} onApply={setJenisFilter} />
                     <Button
-                      size="sm"
-                      variant="outline"
-                      className="bg-black text-white border h-8 px-3"
-                    >
-                      Crawling
-                    </Button>
+                    size="sm"
+                    variant="outline"
+                    className="bg-black text-white hover:bg-[rgba(0, 0, 0, 0.30)] border border-border h-8 px-3"
+                  >
+                    Crawling
+                  </Button>
                   </div>
                 </div>
               </Card>
