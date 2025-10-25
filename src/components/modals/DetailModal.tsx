@@ -183,9 +183,17 @@ export default function DetailModal({
             {/* Link */}
             <div className="flex items-center gap-2">
               <Input readOnly value={item.link} className="text-xs" title={item.link} />
-              <Button variant="outline" size="icon" onClick={() => navigator.clipboard.writeText(item.link)}>
-                📋
-              </Button>
+              <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => navigator.clipboard.writeText(item.link)}
+                  aria-label="Copy link"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2" stroke="currentColor" strokeWidth="2" />
+                    <path d="M8 16h8a2 2 0 002-2v-8" stroke="currentColor" strokeWidth="2" />
+                  </svg>
+                </Button>
               <Button
                 variant={flaggedLocal ? "default" : "outline"}
                 size="sm"
