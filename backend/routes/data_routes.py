@@ -1,51 +1,63 @@
-from fastapi import APIRouter, HTTPException
-from utils.csv_parser import parse_csv
-from stores.overrides_store import overrides
-from pathlib import Path
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+from backend.db import get_db
 from datetime import datetime
 
-router = APIRouter(prefix="/api/data", tags=["data"])
-
-CSV_PATH = Path(__file__).resolve().parent.parent / "public" / "data" / "links.csv"
-
-# Helper untuk ambil kolom tanpa peduli huruf besar kecil
-def get_case_insensitive(row, *keys):
-    for k in row.keys():
-        if k.lower() in [key.lower() for key in keys]:
-            return row[k]
-    return ""
+router = APIRouter(prefix="/api/data", tags=["Data"])
 
 @router.get("/")
-def get_all_data():
+def get_all_data(db: Session = Depends(get_db)):
     try:
-        records = parse_csv(str(CSV_PATH))
+        query = text("""
+            SELECT
+                id_result,
+                id_crawling,
+                id_reasoning,
+                id_detection,
+                url,
+                keywords,
+                reasoning_text,
+                image_final_path,
+                label_final,
+                final_confidence,
+                created_at,
+                status,
+                flagged,
+                updated_at
+            FROM results
+            ORDER BY id_result DESC
+        """)
+        result = db.execute(query)
+        rows = [dict(r._mapping) for r in result]
+
         formatted = []
-        for i, row in enumerate(records):
+        for row in rows:
             formatted.append({
-                "id": i + 1,
-                "link": get_case_insensitive(row, "link", "url"), 
-                "jenis": row.get("jenis", "Judi"),
-                "kepercayaan": float(row.get("kepercayaan") or 90),
-                "status": row.get("status", "unverified"),
-                "tanggal": row.get("tanggal") or datetime.utcnow().date().isoformat(),
-                "lastModified": row.get("lastmodified") or datetime.utcnow().date().isoformat(),
-                "reasoning": row.get("reasoning") or "-",
-                "image": row.get("image") or "",
-                "flagged": str(row.get("flagged")).lower() == "true"
+                "id": row["id_result"],
+                "link": row["url"],
+               "jenis": row["keywords"] or "Judi",
+                "kepercayaan": float(row.get("final_confidence")) if row.get("final_confidence") else 90.0,
+                "status": (row.get("status") or "unverified").lower(),
+                "tanggal": (
+                    row.get("created_at").isoformat()
+                    if row.get("created_at")
+                    else datetime.utcnow().isoformat()
+                        ),
+                "lastModified": (
+                    row.get("updated_at").isoformat()
+                    if row.get("updated_at")
+                    else datetime.utcnow().isoformat()
+                ),
+                "reasoning": row.get("reasoning_text") or "-",
+                "image": row.get("image_final_path") or "",
+                "flagged": bool(row.get("flagged")) if row.get("flagged") is not None else False
             })
+        return formatted
 
-        # Apply overrides (patch sementara)
-        merged = [
-            {**item, **overrides.get(item["id"], {})} for item in formatted
-        ]
-        return merged
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error reading CSV: {e}")
+        raise HTTPException(status_code=500, detail=f"Database query error: {e}")
 
-@router.get("/{id}")
-def get_data_by_id(id: int):
-    data = get_all_data()
-    for item in data:
-        if item["id"] == id:
-            return item
-    raise HTTPException(status_code=404, detail="Not found")
+
+
+

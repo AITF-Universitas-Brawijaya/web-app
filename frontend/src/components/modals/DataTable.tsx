@@ -10,6 +10,12 @@ const STATUS_LABEL = {
   "false-positive": { label: "False Positive", className: "bg-destructive/10 text-destructive-foreground" },
 }
 
+function formatDateOnly(d: string) {
+  const date = new Date(d)
+  return date.toISOString().split("T")[0]
+}
+
+
 function confidenceBarColor(v: number) {
   if (v >= 95) return "bg-primary"
   if (v >= 85) return "bg-foreground/60"
@@ -84,8 +90,8 @@ export default function DataTable({
                   </div>
                 </div>
               </td>
-              <td className="px-4 py-3">{it.tanggal}</td>
-              <td className="px-4 py-3">{it.lastModified}</td>
+              <td className="px-4 py-3">{formatDateOnly(it.tanggal)}</td>
+              <td className="px-4 py-3">{formatDateOnly(it.lastModified)}</td>
               <td className="px-4 py-3">
                 <Badge className={cn("font-semibold", STATUS_LABEL[it.status].className)}>
                   {STATUS_LABEL[it.status].label}

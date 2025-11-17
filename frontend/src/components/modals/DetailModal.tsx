@@ -142,31 +142,80 @@ export default function DetailModal({
     }
   }
 
-  async function updateStatus(next: Status) {
-    if (!item) return
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/update`, {
+async function updateStatus(next: Status) {
+  if (!item) return
+  setLoading(true)
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/update/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: item.id, patch: { status: next, lastModified: formatDate(new Date()) } }),
+      body: JSON.stringify({
+        id: item.id,
+        patch: { status: next},
+      }),
     })
-    
-    await mutateHistory()
-    onMutate()
-    onClose()
-  }
 
-  async function toggleFlag() {
-    if (!item) return
-    const nextVal = !flaggedLocal
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/update`, {
+    const json = await res.json().catch(() => null)
+    console.log("[updateStatus] response:", res.status, json)
+
+    if (!res.ok) {
+      console.error("Update status failed:", res.status, json)
+      alert("Gagal update status. Cek console (Network) untuk detail.")
+      return
+    }
+
+    await mutateHistory()
+    try {
+      onMutate() 
+    } catch (err) {
+      console.warn("onMutate failed or not provided:", err)
+    }
+    onClose()
+  } catch (err) {
+    console.error("Network error updateStatus:", err)
+    alert("Kesalahan jaringan saat mengupdate status.")
+  } finally {
+    setLoading(false)
+  }
+}
+
+async function toggleFlag() {
+  if (!item) return
+  const nextVal = !flaggedLocal
+  setFlaggedLocal(nextVal)
+
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/update/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: item.id, patch: { flagged: nextVal, lastModified: formatDate(new Date()) } }),
+      body: JSON.stringify({
+        id: item.id,
+        patch: { flagged: nextVal},
+      }),
     })
-    setFlaggedLocal(nextVal)
+    const json = await res.json().catch(() => null)
+    console.log("[toggleFlag] response:", res.status, json)
+
+    if (!res.ok) {
+      console.error("Toggle flag failed:", res.status, json)
+      setFlaggedLocal(!nextVal)
+      alert("Gagal mengubah flag. Cek console.")
+      return
+    }
+
     await mutateHistory()
-    onMutate()
+    try {
+      onMutate()
+    } catch (err) {
+      console.warn("onMutate failed or not provided:", err)
+    }
+  } catch (err) {
+    console.error("Network error toggleFlag:", err)
+    setFlaggedLocal(!nextVal)
+    alert("Kesalahan jaringan saat mengubah flag.")
   }
+}
+
 
   if (!item) return null
 

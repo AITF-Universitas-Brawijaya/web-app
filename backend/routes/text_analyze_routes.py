@@ -1,11 +1,10 @@
 from fastapi import APIRouter, HTTPException, Request
-from stores.overrides_store import apply_override
-from stores.history_store import add_history
+from backend.stores.overrides_store import apply_override
+from backend.stores.history_store import add_history
 import os, aiohttp, asyncio
 
 router = APIRouter(prefix="/api/text-analyze", tags=["text-analyze"])
 
-# URL API eksternal (placeholder)
 TEXT_MODEL_URL = os.getenv("TEXT_MODEL_URL", "")
 IMAGE_ANALYZE_URL = os.getenv("IMAGE_ANALYZE_URL", "http://localhost:8000/api/image-analyze")
 LAW_RAG_URL = os.getenv("LAW_RAG_URL", "http://localhost:8000/api/law-rag")
@@ -69,16 +68,13 @@ async def analyze_text(request: Request):
     if not url:
         raise HTTPException(status_code=400, detail="Parameter 'url' wajib diisi.")
 
-    # run parallel tasks
     text_task = asyncio.create_task(simulate_text_classification(title, content, description, keywords))
     image_task = asyncio.create_task(call_image_analyze(image_url))
     text_result, image_result = await asyncio.gather(text_task, image_task)
 
-    # run law rag after getting reasoning text
     reasoning_text = text_result.get("reasoning", "")
     law_context = await call_law_rag(keywords, reasoning_text)
 
-     # combine text & image analysis
     label_text = text_result.get("label", "tidak diketahui")
     conf_text = text_result.get("confidence", 0.0)
     label_image = image_result.get("label", label_text)
@@ -101,17 +97,18 @@ async def analyze_text(request: Request):
         f"'{label_image}' dengan tingkat keyakinan {conf_image}, {law_text}"
     )
 
-    # Simpan hasil analisis ke store
+    # Simpan hasil analisis ke database
     item_id = body.get("id")
     if item_id:
-        apply_override(int(item_id), {
+        patch = {
             "reasoning": reasoning_final,
             "kepercayaan": final_confidence,
-            "jenis": final_label
-        })
+            "jenis": final_label,
+            "status": "unverified",
+        }
+        apply_override(int(item_id), patch)
         add_history(int(item_id), "AI analysis updated (text+image+law)")
 
-    # Return hasil lengkap ---
     return {
         "url": url,
         "title": title,

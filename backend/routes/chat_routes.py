@@ -5,14 +5,12 @@ import os
 
 router = APIRouter(prefix="/api", tags=["chat"])
 
-# Ambil konfigurasi dari .env
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
 MODEL_NAME = os.getenv("MODEL_NAME", "mistral")
 
-# Struktur request dari frontend
 class ChatRequest(BaseModel):
     question: str
-    item: dict  # data kasus dari frontend (link, jenis, reasoning, dll)
+    item: dict
 
 
 @router.post("/chat")

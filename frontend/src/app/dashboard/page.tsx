@@ -27,6 +27,8 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 const fetcher = (url: string) =>
   fetch(`${API_BASE}${url}`, { cache: "no-store" }).then((r) => r.json())
+console.log("🧠 NEXT_PUBLIC_API_URL:", API_BASE)
+
 
 const TAB_ORDER = [
   { key: "all", label: "All" },
@@ -50,8 +52,14 @@ export default function PRDDashboardPage() {
 
   const { data, error, isLoading, mutate } = useSWR<LinkRecord[]>("/api/data/", fetcher, {
     refreshInterval: 4000,
-    revalidateOnFocus: true,
+    revalidateOnFocus: true, 
   })
+
+console.log("🔍 DEBUG API_BASE:", API_BASE)
+console.log("🔍 SWR Data:", data)
+console.log("🔍 SWR Error:", error)
+console.log("🔍 SWR Loading:", isLoading)
+
 
   const filtered = useMemo(() => {
     const list = data ?? []
