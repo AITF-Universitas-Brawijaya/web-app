@@ -10,6 +10,7 @@ export type LinkRecord = {
   tanggal: string
   lastModified: string
   reasoning: string
+  reasoningadmin: string
   image: string
   flagged: boolean
 }

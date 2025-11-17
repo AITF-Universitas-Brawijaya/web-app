@@ -10,6 +10,7 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import DataTable from "./DataTable"
 import { LinkRecord, Status } from "@/types/linkRecord"
+import type { Jenis } from "@/types/linkRecord"
 
 const fetcher = (url: string) => fetch(url, { cache: "no-store" }).then((r) => r.json())
 
@@ -81,6 +82,22 @@ export default function DetailModal({
   }, [chat, chatKey, item])
 
   const [flaggedLocal, setFlaggedLocal] = useState<boolean>(!!item?.flagged)
+  const [pendingLabel, setPendingLabel] = useState<Jenis | null>(null)
+  const [overrideReason, setOverrideReason] = useState("")
+
+  const overrideRef = useRef<HTMLDivElement | null>(null)
+
+  function scrollToOverride() {
+    setTimeout(() => {
+      overrideRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }, 100)
+  }
+
+  useEffect(() => {
+    setPendingLabel(null)
+    setOverrideReason("")
+  }, [item])
+
   useEffect(() => {
     if (item) setFlaggedLocal(item.flagged)
   }, [item])
@@ -99,9 +116,7 @@ export default function DetailModal({
 
   function toggleContext(text: string) {
     if (!contextMode) return
-    setSelectedContexts((prev) =>
-      prev.includes(text) ? prev.filter((x) => x !== text) : [...prev, text]
-    )
+    setSelectedContexts((prev) => (prev.includes(text) ? prev.filter((x) => x !== text) : [...prev, text]))
   }
 
   async function send() {
@@ -149,8 +164,8 @@ export default function DetailModal({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: item.id, patch: { status: next, lastModified: formatDate(new Date()) } }),
     })
-    
-    await mutateHistory()
+
+    await mutateHistory?.()
     onMutate()
     onClose()
   }
@@ -164,23 +179,41 @@ export default function DetailModal({
       body: JSON.stringify({ id: item.id, patch: { flagged: nextVal, lastModified: formatDate(new Date()) } }),
     })
     setFlaggedLocal(nextVal)
-    await mutateHistory()
+
+    if (nextVal) {
+      scrollToOverride()
+    }
+
+    await mutateHistory?.()
     onMutate()
   }
 
   if (!item) return null
 
   return (
-    <Dialog open={!!item} onOpenChange={(v) => !v && onClose()}>
+    <Dialog
+      open={!!item}
+      onOpenChange={(v) => {
+        if (!v) {
+          setPendingLabel(null)
+          setOverrideReason("")
+        }
+        if (!v) onClose()
+      }}
+    >
       <DialogContent className="max-w-[min(95vw,1200px)] sm:max-w-[min(95vw,1200px)] max-h-screen">
         <DialogHeader>
-          <DialogTitle>{toHexId(item.id)} · Info Detail</DialogTitle>
+          <DialogTitle>
+            {toHexId(item.id)} · Info Detail
+            <span className="ml-2 text-xs font-normal text-foreground/60">
+              | Label: <b>{item.jenis}</b> • Status: <b>{item.status}</b>
+            </span>
+          </DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-7 gap-6 h-[80vh]">
           {/* LEFT */}
           <div className="flex flex-col gap-4 md:col-span-4 overflow-y-auto thin-scroll pr-1">
-
             {/* Link */}
             <div className="flex items-center gap-2">
               <Input readOnly value={item.link} className="text-xs" title={item.link} />
@@ -189,31 +222,31 @@ export default function DetailModal({
                 size="icon"
                 onClick={() => {
                   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-                    navigator.clipboard.writeText(item.link)
+                    navigator.clipboard
+                      .writeText(item.link)
                       .then(() => console.log("Link copied:", item.link))
-                      .catch((err) => console.error("Clipboard error:", err));
+                      .catch((err) => console.error("Clipboard error:", err))
                   } else {
-                    // fallback untuk browser lama
-                    const textarea = document.createElement("textarea");
-                    textarea.value = item.link;
-                    document.body.appendChild(textarea);
-                    textarea.select();
+                    const textarea = document.createElement("textarea")
+                    textarea.value = item.link
+                    document.body.appendChild(textarea)
+                    textarea.select()
                     try {
-                      document.execCommand("copy");
-                      console.log("Fallback copy success:", item.link);
+                      document.execCommand("copy")
+                      console.log("Fallback copy success:", item.link)
                     } catch (err) {
-                      console.error("Fallback copy failed:", err);
+                      console.error("Fallback copy failed:", err)
                     }
-                    document.body.removeChild(textarea);
+                    document.body.removeChild(textarea)
                   }
                 }}
-                  aria-label="Copy link"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2" stroke="currentColor" strokeWidth="2" />
-                    <path d="M8 16h8a2 2 0 002-2v-8" stroke="currentColor" strokeWidth="2" />
-                  </svg>
-                </Button>
+                aria-label="Copy link"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2" stroke="currentColor" strokeWidth="2" />
+                  <path d="M8 16h8a2 2 0 002-2v-8" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </Button>
               <Button
                 variant={flaggedLocal ? "default" : "outline"}
                 size="sm"
@@ -224,18 +257,143 @@ export default function DetailModal({
               </Button>
             </div>
 
-            {/* Reasoning */}
-            <div
-              className={cn(
-                "border border-border rounded-md p-3 bg-card",
-                contextMode && "cursor-pointer hover:bg-muted",
-                selectedContexts.includes(item.reasoning) && "bg-muted border-primary"
+            {/* Verifikasi */}
+            <div className="mt-auto space-y-3" ref={overrideRef}>
+              <div className="text-xs font-semibold mb-2">Label Prediksi</div>
+
+              {/* Dropdown Label – selaras dengan tipe lama */}
+              <select
+                className="border border-border rounded-md text-sm p-2 w-full"
+                value={pendingLabel ?? item.jenis}
+                onChange={(e) => {
+                  const newLabel = e.target.value as Jenis
+                  if (newLabel !== item.jenis) {
+                    setPendingLabel(newLabel)
+                  } else {
+                    setPendingLabel(null)
+                    setOverrideReason("")
+                  }
+                }}
+              >
+                <option value="Judi">Judi</option>
+                <option value="Pornografi">Pornografi</option>
+                <option value="Penipuan">Penipuan</option>
+              </select>
+              
+              {/* Override Reason Input */}
+              {pendingLabel && (
+                <div className="border border-border rounded-md p-3 bg-card space-y-2">
+                  <div className="text-xs font-semibold">Alasan Override</div>
+
+                  <textarea
+                    className="border border-border rounded-md text-sm p-2 h-20 w-full"
+                    value={overrideReason}
+                    onChange={(e) => setOverrideReason(e.target.value)}
+                    placeholder={`Kenapa label AI diubah dari "${item.jenis}" ke "${pendingLabel}"?`}
+                  />
+
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="text-xs"
+                      onClick={async () => {
+                        if (!overrideReason.trim()) return alert("Tulis alasan override dulu.")
+                        if (!item) return
+
+                        // 1️⃣ Update ke backend
+                        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/update`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            id: item.id,
+                            patch: {
+                              jenis: pendingLabel,
+                              reasoningadmin: overrideReason,
+                              lastModified: formatDate(new Date()),
+                            },
+                          }),
+                        })
+
+                        // 2️⃣ (Opsional) Simpan event ke riwayat
+                        try {
+                          const form = new URLSearchParams()
+                          form.set("id", String(item.id))
+                          form.set("text", `Override label: ${item.jenis} → ${pendingLabel}. Alasan: ${overrideReason}`)
+
+                          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history/`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: form.toString(),
+                          })
+                        } catch {}
+
+                        // 3️⃣ Update state lokal biar UI langsung berubah
+                        item.jenis = pendingLabel!
+                        item.reasoningadmin = overrideReason
+                        item.lastModified = formatDate(new Date())
+
+                        // 4️⃣ Refresh riwayat dan tabel
+                        await mutateHistory?.()
+                        onMutate()
+
+                        // 5️⃣ Reset form override
+                        setPendingLabel(null)
+                        setOverrideReason("")
+                      }}
+                    >
+                      Simpan Override
+                    </Button>
+
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs"
+                      onClick={() => {
+                        setPendingLabel(null)
+                        setOverrideReason("")
+                      }}
+                    >
+                      Batal
+                    </Button>
+                  </div>
+                </div>
               )}
-              onClick={() => toggleContext(item.reasoning)}
-            >
-              <div className="text-xs font-semibold mb-2">Reasoning</div>
-              <div className="text-sm">{item.reasoning}</div>
-            </div>
+
+            {/* === Reasoning Admin (muncul hanya setelah submit override) === */}
+{Boolean(item.reasoningadmin?.trim()) ? (
+  <div>
+    <div className="text-xs font-semibold mb-2">Reasoning Admin</div>
+    <div
+      className={cn(
+        "border border-border rounded-md p-3 bg-card",
+        contextMode && "cursor-pointer hover:bg-muted",
+        selectedContexts.includes(item.reasoningadmin) && "bg-muted border-primary"
+      )}
+      onClick={() => toggleContext(item.reasoningadmin!)}
+    >
+      <div className="text-sm">{item.reasoningadmin}</div>
+    </div>
+  </div>
+) : null}
+
+{/* === Reasoning (model) — juga conditional biar gak ada kotak kosong === */}
+{Boolean(item.reasoning?.trim()) ? (
+  <div>
+    <div className="text-xs font-semibold mb-2">Reasoning</div>
+    <div
+      className={cn(
+        "border border-border rounded-md p-3 bg-card",
+        contextMode && "cursor-pointer hover:bg-muted",
+        selectedContexts.includes(item.reasoning) && "bg-muted border-primary"
+      )}
+      onClick={() => toggleContext(item.reasoning!)}
+    >
+      <div className="text-sm">{item.reasoning}</div>
+    </div>
+  </div>
+) : null}
+
 
             {/* Gambar */}
             <div
@@ -248,11 +406,7 @@ export default function DetailModal({
             >
               <div className="text-xs font-semibold mb-2">Gambar Terkait</div>
               <img
-                src={
-                  item.image
-                    ? item.image
-                    : `assets/placeholder.svg?height=240&width=360&query=Gambar%20terkait%20kasus`
-                }
+                src={item.image ? item.image : `assets/placeholder.svg?height=240&width=360&query=Gambar%20terkait%20kasus`}
                 alt="Hasil deteksi gambar"
                 className="rounded-md mx-auto w-full max-w-md h-auto object-contain border"
               />
@@ -298,39 +452,40 @@ export default function DetailModal({
               </div>
             </div>
 
-            {/* Verifikasi */}
-            <div className="mt-auto">
-              <div className="text-xs font-semibold mb-2">Verifikasi Status Laporan Mesin</div>
-              {item.status === "unverified" ? (
-                <div className="grid grid-cols-2 gap-2">
-                  <Button className="w-full text-xs" onClick={() => updateStatus("verified")}>
-                    Confirm
-                  </Button>
-                  <Button
-                    className="w-full text-xs"
-                    variant="destructive"
-                    onClick={() => updateStatus("false-positive")}
-                  >
-                    False Positive
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {item.status !== "false-positive" && (
-                    <Button className="text-xs" variant="destructive" onClick={() => updateStatus("false-positive")}>
-                      Ubah ke False Positive
+              {/* Status Mesin */}
+              <div>
+                <div className="text-xs font-semibold mb-2">Status Laporan Mesin</div>
+                {item.status === "unverified" ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button className="w-full text-xs" onClick={() => updateStatus("verified")}>
+                      Confirm
                     </Button>
-                  )}
-                  {item.status !== "verified" && (
-                    <Button className="text-xs" onClick={() => updateStatus("verified")}>
-                      Ubah ke Verified
+                    <Button
+                      className="w-full text-xs"
+                      variant="destructive"
+                      onClick={() => updateStatus("false-positive")}
+                    >
+                      False Positive
                     </Button>
-                  )}
-                  <Button className="text-xs" variant="outline" onClick={() => updateStatus("unverified")}>
-                    Ubah ke Unverified
-                  </Button>
-                </div>
-              )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {item.status !== "false-positive" && (
+                      <Button className="text-xs" variant="destructive" onClick={() => updateStatus("false-positive")}>
+                        Ubah ke False Positive
+                      </Button>
+                    )}
+                    {item.status !== "verified" && (
+                      <Button className="text-xs" onClick={() => updateStatus("verified")}>
+                        Ubah ke Verified
+                      </Button>
+                    )}
+                    <Button className="text-xs" variant="outline" onClick={() => updateStatus("unverified")}>
+                      Ubah ke Unverified
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -342,7 +497,6 @@ export default function DetailModal({
                 size="sm"
                 variant={contextMode ? "default" : "outline"}
                 onClick={() => {
-                  // toggle context mode, reset selections if turned off
                   if (contextMode) setSelectedContexts([])
                   setContextMode(!contextMode)
                 }}

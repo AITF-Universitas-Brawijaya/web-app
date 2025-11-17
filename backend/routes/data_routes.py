@@ -30,6 +30,7 @@ def get_all_data():
                 "tanggal": row.get("tanggal") or datetime.utcnow().date().isoformat(),
                 "lastModified": row.get("lastmodified") or datetime.utcnow().date().isoformat(),
                 "reasoning": row.get("reasoning") or "-",
+                "reasoningadmin": row.get("reasoningadmin"),
                 "image": row.get("image") or "",
                 "flagged": str(row.get("flagged")).lower() == "true"
             })

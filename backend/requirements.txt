@@ -4,4 +4,10 @@ python-dotenv
 pydantic
 requests
 aiohttp
+python-multipart
+playwright
+ddgs
+beautifulsoup4
+lxml
+pandas
 
