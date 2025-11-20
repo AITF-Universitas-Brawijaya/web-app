@@ -70,7 +70,9 @@ console.log("🔍 SWR Loading:", isLoading)
           : activeTab === "flagged"
           ? it.flagged
           : (it.status as string) === activeTab
-      const matchJenis = jenisFilter.includes(it.jenis)
+      const matchJenis = jenisFilter.some(filter => 
+        it.jenis.toLowerCase().includes(filter.toLowerCase())
+      )
       const matchSearch = it.link.toLowerCase().includes(search.toLowerCase())
       return matchTab && matchJenis && matchSearch
     })

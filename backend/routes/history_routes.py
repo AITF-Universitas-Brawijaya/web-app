@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from backend.stores.history_store import get_history, add_history, ensure_init
+from stores.history_store import get_history, add_history, ensure_init
 
 router = APIRouter(prefix="/api/history", tags=["history"])
 

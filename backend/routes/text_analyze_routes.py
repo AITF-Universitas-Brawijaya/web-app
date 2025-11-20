@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
-from backend.stores.overrides_store import apply_override
-from backend.stores.history_store import add_history
+from stores.overrides_store import apply_override
+from stores.history_store import add_history
 import os, aiohttp, asyncio
 
 router = APIRouter(prefix="/api/text-analyze", tags=["text-analyze"])

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from backend.db import get_db
-from backend.stores.history_store import add_history
+from db import get_db
+from stores.history_store import add_history
 import traceback
 
 router = APIRouter(prefix="/api/update", tags=["update"])

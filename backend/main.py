@@ -3,9 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 
-from backend import db
-from backend.routes import data_routes
-from backend.routes import chat_routes, history_routes, update_routes, text_analyze_routes, image_analyze_routes, law_rag_routes 
+import db
+from routes import data_routes
+from routes import chat_routes, history_routes, update_routes, text_analyze_routes, image_analyze_routes, law_rag_routes 
 
 
 load_dotenv()
