@@ -1,27 +1,53 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
+### Frontend - Next.js ###
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/coverage/
+frontend/.turbo/
+frontend/.pnp*
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+frontend/.vercel/
+frontend/.env*
+frontend/.env*.local
 
-# next.js
-/.next/
-/out/
+### Backend - Python (FastAPI) ###
+# Virtualenv
+backend/.venv/
+backend/venv/
+backend/ENV/
+backend/env/
 
-# production
-/build
+# Python bytecode / cache
+backend/__pycache__/
+__pycache__/
+*.py[cod]
+*$py.class
 
-# debug
+# Distribution / packaging
+backend/.Python
+backend/build/
+backend/develop-eggs/
+backend/dist/
+backend/downloads/
+
+# Environment files
+backend/.env*
+backend/.env.*.local
+
+### General ###
+# Misc
+.env*
+.env.*.local
+*.pem
+*.log
+.DS_Store
+
+# Log files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
-
-# env files
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+pnpm-debug.log*
