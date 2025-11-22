@@ -25,6 +25,8 @@ OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
 OUTPUT_IMG_DIR = os.path.join(OUTPUT_DIR, "img")
 LAST_ID_FILE = os.path.join(OUTPUT_DIR, "last_id.txt")
 ALL_DOMAINS_FILE = os.path.join(OUTPUT_DIR, "all_domains.txt")
+LAST_KEYWORDS_FILE = os.path.join(OUTPUT_DIR, "last_keywords.txt")
+BLOCKED_KEYWORDS_FILE = os.path.join(os.path.dirname(__file__), "blocked_keywords.txt")
 BLOCKED_DOMAINS_FILE = os.path.join(OUTPUT_DIR, "..", "blocked_domains.txt")  # Relative to crawler root
 
 # Database configuration
@@ -101,6 +103,56 @@ def load_blocked_domains():
             print(f"[WARNING] Failed to load blocked domains: {str(e)}")
     else:
         print(f"[WARNING] Blocked domains file not found at {blocked_file}. Continuing without blocked list.")
+
+
+def load_blocked_keywords():
+    """Load blocked keywords from file and return as list."""
+    blocked_keywords = []
+    
+    # Convert relative path to absolute
+    blocked_file = os.path.abspath(BLOCKED_KEYWORDS_FILE)
+    
+    if os.path.exists(blocked_file):
+        try:
+            with open(blocked_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    keyword = line.strip()
+                    if keyword:
+                        blocked_keywords.append(keyword)
+            print(f"[INFO] Loaded {len(blocked_keywords)} blocked keywords from {blocked_file}")
+        except Exception as e:
+            print(f"[WARNING] Failed to load blocked keywords: {str(e)}")
+    else:
+        print(f"[INFO] No blocked keywords file found at {blocked_file}. Continuing without keyword exclusions.")
+    
+    return blocked_keywords
+
+
+def save_last_keywords(keywords):
+    """Save keywords list to file."""
+    if not keywords:
+        return
+    
+    try:
+        with open(LAST_KEYWORDS_FILE, "w", encoding="utf-8") as f:
+            f.write(", ".join(keywords))
+        print(f"[INFO] Saved {len(keywords)} keywords to {LAST_KEYWORDS_FILE}")
+    except Exception as e:
+        print(f"[ERROR] Failed to save keywords: {str(e)}")
+
+
+def load_last_keywords():
+    """Load last used keywords from file."""
+    if os.path.exists(LAST_KEYWORDS_FILE):
+        try:
+            with open(LAST_KEYWORDS_FILE, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if content:
+                    keywords = [k.strip() for k in content.split(',') if k.strip()]
+                    return keywords
+        except Exception as e:
+            print(f"[WARNING] Failed to load last keywords: {str(e)}")
+    return None
 
 
 def save_last_id(last_id):
@@ -378,18 +430,30 @@ def main():
     # Track start time
     start_time = time.time()
     
-    # Load existing domains and blocked domains first
-    print("[INIT] Loading existing domains and blocked domains...", flush=True)
+    # Load existing domains, blocked domains, and blocked keywords first
+    print("[INIT] Loading existing domains, blocked domains, and blocked keywords...", flush=True)
     load_seen_domains()
     load_blocked_domains()
-    print(f"[INIT] Loaded {len(SEEN_DOMAINS)} existing domains, {len(BLOCKED_DOMAINS)} blocked domains", flush=True)
+    blocked_keywords = load_blocked_keywords()
+    print(f"[INIT] Loaded {len(SEEN_DOMAINS)} existing domains, {len(BLOCKED_DOMAINS)} blocked domains, {len(blocked_keywords)} blocked keywords", flush=True)
     
-    # Get keywords - either from args or stdin
+    # Get keywords - either from args, last keywords, or stdin
     if args.keywords:
         keywords = [k.strip() for k in args.keywords.split(',') if k.strip()]
     else:
-        keyword_input = input("Masukkan keyword (pisahkan dengan koma): ")
-        keywords = [k.strip() for k in keyword_input.split(',') if k.strip()]
+        # Try to load last keywords first
+        last_keywords = load_last_keywords()
+        if last_keywords:
+            print(f"[INIT] Last used keywords: {', '.join(last_keywords)}", flush=True)
+            use_last = input("Use these keywords? (y/n): ").lower().strip()
+            if use_last == 'y':
+                keywords = last_keywords
+            else:
+                keyword_input = input("Masukkan keyword (pisahkan dengan koma): ")
+                keywords = [k.strip() for k in keyword_input.split(',') if k.strip()]
+        else:
+            keyword_input = input("Masukkan keyword (pisahkan dengan koma): ")
+            keywords = [k.strip() for k in keyword_input.split(',') if k.strip()]
     
     if not keywords:
         print("[ERROR] No keywords provided", flush=True)
@@ -403,8 +467,11 @@ def main():
     print(f"[CONFIG] Keywords: {', '.join(keywords)}", flush=True)
     print(f"[CONFIG] Target domains: {target_domains}", flush=True)
     
-    # Combine all keywords for search
+    # Combine all keywords for search and add blocked keywords with minus operator
     query = ' OR '.join(keywords)
+    if blocked_keywords:
+        query += ' ' + ' '.join(f'-{kw}' for kw in blocked_keywords)
+        print(f"[CONFIG] Blocked keywords: {', '.join(blocked_keywords)}", flush=True)
     print(f"[SEARCH] Starting search with query: {query}", flush=True)
     
     # Get search results
@@ -519,6 +586,10 @@ def main():
     # Save new domains to file
     save_new_domains(new_domains_list)
     print(f"[SAVE] Saved {len(new_domains_list)} new domains to tracking file", flush=True)
+    
+    # Save keywords for next use
+    save_last_keywords(keywords)
+    print(f"[SAVE] Saved keywords for future use", flush=True)
     
     # Save to database
     print(f"[DATABASE] Saving {len(all_results)} records to database...", flush=True)

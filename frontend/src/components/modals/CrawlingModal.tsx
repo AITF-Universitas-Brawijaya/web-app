@@ -40,6 +40,9 @@ export default function CrawlingModal({
     const [timeElapsed, setTimeElapsed] = useState(0)
     const [jobId, setJobId] = useState<string | null>(null)
     const [isMinimized, setIsMinimized] = useState(false)
+    const [isCompleted, setIsCompleted] = useState(false)
+    const [countdown, setCountdown] = useState(3)
+    const [isCancelling, setIsCancelling] = useState(false)
 
     // Result tab state
     const [summary, setSummary] = useState<CrawlerSummary | null>(null)
@@ -81,6 +84,29 @@ export default function CrawlingModal({
         }
     }, [])
 
+    // Auto-transition countdown after completion
+    useEffect(() => {
+        if (isCompleted && countdown > 0) {
+            const timer = setTimeout(() => {
+                setCountdown(c => c - 1)
+                // Update the last log line with new countdown
+                setLogs((prev) => {
+                    const newLogs = [...prev]
+                    if (newLogs.length > 0 && newLogs[newLogs.length - 1].includes("automatically continue")) {
+                        newLogs[newLogs.length - 1] = `[INFO] Crawling completed! This will automatically continue in ${countdown - 1} seconds...`
+                    }
+                    return newLogs
+                })
+            }, 1000)
+            return () => clearTimeout(timer)
+        } else if (isCompleted && countdown === 0) {
+            // Auto-transition to result tab
+            setActiveTab("result")
+            setIsCompleted(false)
+            setCountdown(3)
+        }
+    }, [isCompleted, countdown])
+
     // Request notification permission
     useEffect(() => {
         if (open && "Notification" in window && Notification.permission === "default") {
@@ -105,6 +131,8 @@ export default function CrawlingModal({
             setLogs([])
             setTimeElapsed(0)
             setSummary(null)
+            setIsCompleted(false)
+            setCountdown(3)
             setActiveTab("generating")
 
             // Start crawler
@@ -163,7 +191,8 @@ export default function CrawlingModal({
                     try {
                         const parsedSummary = JSON.parse(summaryJson)
                         setSummary(parsedSummary)
-                        setActiveTab("result")
+                        setIsCompleted(true)
+                        setLogs((prev) => [...prev, "", `[INFO] Crawling completed! This will automatically continue in ${countdown} seconds...`])
                     } catch (e) {
                         console.error("Failed to parse summary:", e)
                     }
@@ -188,6 +217,9 @@ export default function CrawlingModal({
         if (!jobId) return
 
         try {
+            setIsCancelling(true)
+            setLogs((prev) => [...prev, "[INFO] Cancelling crawling process..."])
+
             await fetch(`${API_BASE}/api/crawler/cancel/${jobId}`, {
                 method: "POST",
             })
@@ -199,13 +231,22 @@ export default function CrawlingModal({
 
             setLogs((prev) => [...prev, "[CANCELLED] Crawling process cancelled by user"])
 
-            // Reset to detail tab
+            // Wait 1.5 seconds before closing
             setTimeout(() => {
+                setIsCancelling(false)
                 handleClose()
-            }, 1000)
+            }, 1500)
         } catch (err) {
             console.error("Failed to cancel:", err)
+            setIsCancelling(false)
         }
+    }
+
+    function handleContinue() {
+        // Skip countdown and go directly to result
+        setIsCompleted(false)
+        setCountdown(3)
+        setActiveTab("result")
     }
 
     function handleMinimize() {
@@ -214,14 +255,17 @@ export default function CrawlingModal({
     }
 
     function handleClose() {
-        // Only allow close if not generating
-        if (activeTab !== "generating") {
+        // Only allow close if not generating or if cancelling
+        if (activeTab !== "generating" || isCancelling) {
             setActiveTab("detail")
             setLogs([])
             setTimeElapsed(0)
             setSummary(null)
             setJobId(null)
             setIsMinimized(false)
+            setIsCompleted(false)
+            setCountdown(3)
+            setIsCancelling(false)
             onClose()
         }
     }
@@ -237,8 +281,20 @@ export default function CrawlingModal({
     }
 
     return (
-        <Dialog open={open && !isMinimized} onOpenChange={(v) => !v && activeTab !== "generating" && handleClose()}>
-            <DialogContent className="max-w-2xl max-h-[80vh]">
+        <Dialog
+            open={open && !isMinimized}
+            onOpenChange={(v) => {
+                if (!v) {
+                    if (activeTab === "generating" && !isCancelling) {
+                        // Minimize instead of closing when generating
+                        handleMinimize()
+                    } else if (activeTab !== "generating") {
+                        handleClose()
+                    }
+                }
+            }}
+        >
+            <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Crawler</DialogTitle>
                 </DialogHeader>
@@ -247,8 +303,8 @@ export default function CrawlingModal({
                 <div className="flex border-b border-border">
                     <button
                         className={`px-4 py-2 text-sm font-medium ${activeTab === "detail"
-                                ? "border-b-2 border-primary text-primary"
-                                : "text-muted-foreground hover:text-foreground"
+                            ? "border-b-2 border-primary text-primary"
+                            : "text-muted-foreground hover:text-foreground"
                             }`}
                         onClick={() => activeTab !== "generating" && setActiveTab("detail")}
                         disabled={activeTab === "generating"}
@@ -257,8 +313,8 @@ export default function CrawlingModal({
                     </button>
                     <button
                         className={`px-4 py-2 text-sm font-medium ${activeTab === "generating"
-                                ? "border-b-2 border-primary text-primary"
-                                : "text-muted-foreground hover:text-foreground"
+                            ? "border-b-2 border-primary text-primary"
+                            : "text-muted-foreground hover:text-foreground"
                             }`}
                         disabled
                     >
@@ -266,8 +322,8 @@ export default function CrawlingModal({
                     </button>
                     <button
                         className={`px-4 py-2 text-sm font-medium ${activeTab === "result"
-                                ? "border-b-2 border-primary text-primary"
-                                : "text-muted-foreground hover:text-foreground"
+                            ? "border-b-2 border-primary text-primary"
+                            : "text-muted-foreground hover:text-foreground"
                             }`}
                         disabled
                     >
@@ -276,7 +332,7 @@ export default function CrawlingModal({
                 </div>
 
                 {/* Tab Content */}
-                <div className="flex-1 overflow-y-auto py-4">
+                <div className="flex-1 overflow-y-auto py-4" style={{ minHeight: "400px", maxHeight: "400px" }}>
                     {/* Tab 1: Crawling Detail */}
                     {activeTab === "detail" && (
                         <div className="space-y-4">
@@ -328,11 +384,12 @@ export default function CrawlingModal({
                                     <textarea
                                         value={tempKeywords}
                                         onChange={(e) => setTempKeywords(e.target.value)}
-                                        className="w-full min-h-[120px] p-3 text-sm border border-border rounded-md bg-background"
+                                        className="w-full p-3 text-sm border border-border rounded-md bg-background resize-none"
+                                        style={{ height: "168px" }}
                                         placeholder="Masukkan keyword-keyword untuk mencari domain, pisahkan dengan koma atau baris baru"
                                     />
                                 ) : (
-                                    <div className="p-3 border border-border rounded-md bg-muted/30 min-h-[120px] text-sm">
+                                    <div className="p-3 border border-border rounded-md bg-muted/30 text-sm" style={{ height: "170px", overflowY: "auto" }}>
                                         {keywords}
                                     </div>
                                 )}
@@ -343,7 +400,7 @@ export default function CrawlingModal({
                             </div>
 
                             {/* Actions */}
-                            <div className="flex justify-end gap-2 pt-4">
+                            <div className="flex justify-end gap-2">
                                 <Button variant="outline" onClick={handleClose}>
                                     Cancel
                                 </Button>
@@ -376,9 +433,15 @@ export default function CrawlingModal({
                                 <Button variant="outline" onClick={handleMinimize}>
                                     Minimize
                                 </Button>
-                                <Button variant="destructive" onClick={handleCancel}>
-                                    Cancel
-                                </Button>
+                                {isCompleted ? (
+                                    <Button onClick={handleContinue}>
+                                        Continue ({countdown}s)
+                                    </Button>
+                                ) : (
+                                    <Button variant="destructive" onClick={handleCancel} disabled={isCancelling}>
+                                        {isCancelling ? "Cancelling..." : "Cancel"}
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     )}
