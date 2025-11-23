@@ -9,12 +9,11 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 type Tab = "detail" | "generating" | "result"
 
-interface CrawlerSummary {
+interface GeneratorSummary {
     status: string
     timestamp: string
     time_elapsed: string
-    fetch_domain: { success: number; total: number }
-    fetch_og_metadata: { success: number; total: number }
+    domains_generated: { success: number; total: number }
     screenshot: { success: number; failed: number; skipped: number; total: number }
     domains_inserted: number
     keywords: string[]
@@ -45,7 +44,7 @@ export default function CrawlingModal({
     const [isCancelling, setIsCancelling] = useState(false)
 
     // Result tab state
-    const [summary, setSummary] = useState<CrawlerSummary | null>(null)
+    const [summary, setSummary] = useState<GeneratorSummary | null>(null)
 
     const logsEndRef = useRef<HTMLDivElement>(null)
     const eventSourceRef = useRef<EventSource | null>(null)
@@ -166,8 +165,8 @@ export default function CrawlingModal({
 
                     // Show notification
                     if ("Notification" in window && Notification.permission === "granted") {
-                        const notification = new Notification("Crawling Complete", {
-                            body: `Successfully crawled ${domainCount} domains`,
+                        const notification = new Notification("Generation Complete", {
+                            body: `Successfully generated ${domainCount} domains`,
                             icon: "/favicon.ico"
                         })
 
@@ -192,7 +191,7 @@ export default function CrawlingModal({
                         const parsedSummary = JSON.parse(summaryJson)
                         setSummary(parsedSummary)
                         setIsCompleted(true)
-                        setLogs((prev) => [...prev, "", `[INFO] Crawling completed! This will automatically continue in ${countdown} seconds...`])
+                        setLogs((prev) => [...prev, "", `[INFO] Generation completed! This will automatically continue in ${countdown} seconds...`])
                     } catch (e) {
                         console.error("Failed to parse summary:", e)
                     }
@@ -218,7 +217,7 @@ export default function CrawlingModal({
 
         try {
             setIsCancelling(true)
-            setLogs((prev) => [...prev, "[INFO] Cancelling crawling process..."])
+            setLogs((prev) => [...prev, "[INFO] Cancelling generation process..."])
 
             await fetch(`${API_BASE}/api/crawler/cancel/${jobId}`, {
                 method: "POST",
@@ -229,7 +228,7 @@ export default function CrawlingModal({
                 eventSourceRef.current = null
             }
 
-            setLogs((prev) => [...prev, "[CANCELLED] Crawling process cancelled by user"])
+            setLogs((prev) => [...prev, "[CANCELLED] Generation process cancelled by user"])
 
             // Wait 1.5 seconds before closing
             setTimeout(() => {
@@ -296,7 +295,7 @@ export default function CrawlingModal({
         >
             <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
                 <DialogHeader>
-                    <DialogTitle>Crawler</DialogTitle>
+                    <DialogTitle>Domain Generator</DialogTitle>
                 </DialogHeader>
 
                 {/* Tabs */}
@@ -309,7 +308,7 @@ export default function CrawlingModal({
                         onClick={() => activeTab !== "generating" && setActiveTab("detail")}
                         disabled={activeTab === "generating"}
                     >
-                        Crawling Detail
+                        Generation Detail
                     </button>
                     <button
                         className={`px-4 py-2 text-sm font-medium ${activeTab === "generating"
@@ -462,10 +461,7 @@ export default function CrawlingModal({
                                         <strong>Time Elapsed:</strong> {summary.time_elapsed}
                                     </div>
                                     <div>
-                                        <strong>Fetch Domain:</strong> {summary.fetch_domain.success}/{summary.fetch_domain.total} Success
-                                    </div>
-                                    <div>
-                                        <strong>Fetch OG Metadata:</strong> {summary.fetch_og_metadata.success}/{summary.fetch_og_metadata.total} Success
+                                        <strong>Domains Generated:</strong> {summary.domains_generated.success}/{summary.domains_generated.total} Success
                                     </div>
                                     <div>
                                         <strong>Screenshot:</strong> {summary.screenshot.success}/{summary.screenshot.total} Success

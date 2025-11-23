@@ -1,41 +1,39 @@
-CREATE TABLE IF NOT EXISTS crawling_data (
-    id_crawling SERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS generated_domains (
+    id_domain SERIAL PRIMARY KEY,
     url TEXT,
     title VARCHAR(255),
-    description TEXT,
     domain VARCHAR(255),
-    og_metadata JSONB,
     image_path TEXT,
-    date_crawled TIMESTAMPTZ DEFAULT now(),
+    date_generated TIMESTAMPTZ DEFAULT now(),
     status VARCHAR(20) DEFAULT 'pending'
 );
 
 CREATE TABLE IF NOT EXISTS reasoning (
     id_reasoning SERIAL PRIMARY KEY,
-    id_crawling INT NOT NULL REFERENCES crawling_data(id_crawling) ON DELETE CASCADE,
+    id_domain INT NOT NULL REFERENCES generated_domains(id_domain) ON DELETE CASCADE,
     label BOOLEAN,
     context TEXT,
     confidence_score NUMERIC(5,4),
     model_version TEXT,
     processed_at TIMESTAMPTZ DEFAULT now(),
-    UNIQUE (id_crawling)
+    UNIQUE (id_domain)
 );
 
 CREATE TABLE IF NOT EXISTS object_detection (
     id_detection SERIAL PRIMARY KEY,
-    id_crawling INT NOT NULL REFERENCES crawling_data(id_crawling) ON DELETE CASCADE,
+    id_domain INT NOT NULL REFERENCES generated_domains(id_domain) ON DELETE CASCADE,
     label BOOLEAN,
     confidence_score NUMERIC(5,4),
     image_detected_path VARCHAR(512),
     bounding_box JSONB,
     model_version TEXT,
     processed_at TIMESTAMPTZ DEFAULT now(),
-    UNIQUE (id_crawling)
+    UNIQUE (id_domain)
 );
 
 CREATE TABLE IF NOT EXISTS results (
     id_results SERIAL PRIMARY KEY,
-    id_crawling INT NOT NULL REFERENCES crawling_data(id_crawling) ON DELETE CASCADE,
+    id_domain INT NOT NULL REFERENCES generated_domains(id_domain) ON DELETE CASCADE,
     id_reasoning INT REFERENCES reasoning(id_reasoning),
     id_detection INT REFERENCES object_detection(id_detection),
     url TEXT,
@@ -45,7 +43,7 @@ CREATE TABLE IF NOT EXISTS results (
     label_final BOOLEAN,
     final_confidence NUMERIC(5,4),
     created_at TIMESTAMPTZ DEFAULT now(),
-    UNIQUE (id_crawling)
+    UNIQUE (id_domain)
 );
 
 CREATE INDEX IF NOT EXISTS idx_results_conf ON results(final_confidence);

@@ -38,7 +38,7 @@ async def start_crawler(request: CrawlerRequest):
         job_id = str(uuid.uuid4())
         
         # Path to crawler script
-        crawler_path = os.path.join(os.path.dirname(__file__), "..", "keyword-based-crawler", "crawler.py")
+        crawler_path = os.path.join(os.path.dirname(__file__), "..", "domain-generator", "crawler.py")
         
         # Prepare command
         keywords_str = ','.join(request.keywords)

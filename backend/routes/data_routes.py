@@ -12,7 +12,7 @@ def get_all_data(db: Session = Depends(get_db)):
         query = text("""
             SELECT
                 id_result,
-                id_crawling,
+                id_domain,
                 id_reasoning,
                 id_detection,
                 url,

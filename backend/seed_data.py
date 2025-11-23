@@ -23,42 +23,38 @@ df = df[df["url"] != ""].drop_duplicates(subset=["url"])
 print(f"After cleaning: {len(df)} rows")
 
 with engine.begin() as conn:
-    # First, insert into crawling_data
+    # First, insert into generated_domains
     for idx, row in df.iterrows():
         url = row.get("url", "")
         title = row.get("title", "")[:255] if pd.notna(row.get("title")) else ""
-        description = row.get("description", "") if pd.notna(row.get("description")) else ""
         
         # Extract domain from URL
         parsed_url = urlparse(url)
         domain = parsed_url.netloc if parsed_url.netloc else None
         
-        # Initialize og_metadata as None (or an empty JSON string if preferred)
-        og_metadata = None # This would typically be populated by a crawler
-        
         status = 'processed' # Maintain original status
         
-        # Insert into crawling_data
+        # Insert into generated_domains
         result = conn.execute(text("""
-            INSERT INTO crawling_data (url, title, description, domain, og_metadata, status)
-            VALUES (:url, :title, :description, :domain, :og_metadata, :status)
-            RETURNING id_crawling
-        """), {"url": url, "title": title, "description": description, "domain": domain, "og_metadata": og_metadata, "status": status})
+            INSERT INTO generated_domains (url, title, domain, status)
+            VALUES (:url, :title, :domain, :status)
+            RETURNING id_domain
+        """), {"url": url, "title": title, "domain": domain, "status": status})
         
-        id_crawling = result.fetchone()[0]
+        id_domain = result.fetchone()[0]
         
-        # Insert into results with the crawling_data id
+        # Insert into results with the generated_domains id
         conn.execute(text("""
             INSERT INTO results (
-                id_crawling, url, keywords, reasoning_text, 
+                id_domain, url, keywords, reasoning_text, 
                 label_final, final_confidence, status, flagged
             )
             VALUES (
-                :id_crawling, :url, 'judi online', 
+                :id_domain, :url, 'judi online', 
                 'Situs terdeteksi mengandung konten perjudian online berdasarkan analisis URL dan konten.',
                 true, 0.85, 'unverified', false
             )
-        """), {"id_crawling": id_crawling, "url": url})
+        """), {"id_domain": id_domain, "url": url})
         
         if (idx + 1) % 50 == 0:
             print(f"Processed {idx + 1} rows...")

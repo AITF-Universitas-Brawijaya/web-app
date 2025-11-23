@@ -145,7 +145,7 @@ export default function PRDDashboardPage() {
                       className="bg-black text-white hover:bg-[rgba(0, 0, 0, 0.30)] border border-border h-8 px-3"
                       onClick={() => setCrawlingModalOpen(true)}
                     >
-                      Crawling
+                      Generate
                     </Button>
                   </div>
                 </div>
