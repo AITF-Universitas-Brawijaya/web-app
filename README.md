@@ -47,7 +47,48 @@ git clone <repository-url>
 cd prototype-dashboard-chatbot
 ```
 
-### **2. Setup Database**
+---
+
+## 🐳 Docker Setup (Recommended)
+
+Cara tercepat untuk menjalankan aplikasi dengan semua dependencies terisolasi.
+
+### **Quick Start**
+
+```bash
+# 1. Buat file .env
+cat > .env << 'EOF'
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=prd
+DB_URL=postgresql://postgres:postgres@db:5432/prd
+FRONTEND_URL=http://localhost:3000
+GEMINI_API_KEY=your_gemini_api_key_here
+NEXT_PUBLIC_API_URL=http://localhost:8000
+EOF
+
+# 2. Build dan run
+docker-compose up -d
+
+# 3. Akses aplikasi
+# Frontend: http://localhost:3000
+# Backend: http://localhost:8000
+# API Docs: http://localhost:8000/docs
+```
+
+📚 **Panduan lengkap**: Lihat [DOCKER_GUIDE.md](./DOCKER_GUIDE.md) untuk dokumentasi detail, troubleshooting, dan production deployment.
+
+---
+
+## 🛠️ Manual Setup (Alternative)
+
+Jika tidak menggunakan Docker, ikuti langkah berikut:
+
+### **Prerequisites**
+- Node.js 18+ dan pnpm
+- Python 3.9+
+- PostgreSQL 14+
+
 ```bash
 # Buat database PostgreSQL
 createdb prd

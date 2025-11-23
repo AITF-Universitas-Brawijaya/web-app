@@ -11,22 +11,22 @@ def get_all_data(db: Session = Depends(get_db)):
     try:
         query = text("""
             SELECT
-                id_result,
-                id_domain,
-                id_reasoning,
-                id_detection,
-                url,
-                keywords,
-                reasoning_text,
-                image_final_path,
-                label_final,
-                final_confidence,
-                created_at,
-                status,
-                flagged,
-                updated_at
-            FROM results
-            ORDER BY id_result DESC
+                r.id_results,
+                r.id_domain,
+                r.id_reasoning,
+                r.id_detection,
+                r.url,
+                r.keywords,
+                r.reasoning_text,
+                r.image_final_path,
+                r.label_final,
+                r.final_confidence,
+                r.created_at,
+                gd.status,
+                gd.date_generated
+            FROM results r
+            LEFT JOIN generated_domains gd ON r.id_domain = gd.id_domain
+            ORDER BY r.id_results DESC
         """)
         result = db.execute(query)
         rows = [dict(r._mapping) for r in result]
@@ -34,8 +34,8 @@ def get_all_data(db: Session = Depends(get_db)):
         formatted = []
         for row in rows:
             formatted.append({
-                "id": row["id_result"],
-                "link": row["url"],
+                "id": row["id_results"],
+                "link": row["url"] or "",
                "jenis": row["keywords"] or "Judi",
                 "kepercayaan": float(row.get("final_confidence")) if row.get("final_confidence") else 90.0,
                 "status": (row.get("status") or "unverified").lower(),
@@ -45,13 +45,13 @@ def get_all_data(db: Session = Depends(get_db)):
                     else datetime.utcnow().isoformat()
                         ),
                 "lastModified": (
-                    row.get("updated_at").isoformat()
-                    if row.get("updated_at")
+                    row.get("date_generated").isoformat()
+                    if row.get("date_generated")
                     else datetime.utcnow().isoformat()
                 ),
                 "reasoning": row.get("reasoning_text") or "-",
                 "image": row.get("image_final_path") or "",
-                "flagged": bool(row.get("flagged")) if row.get("flagged") is not None else False
+                "flagged": False  # Default value since column doesn't exist
             })
         return formatted
 

@@ -213,32 +213,44 @@ def take_screenshot_worker(url, output_path, item_id):
     """Worker function for taking screenshot (must be picklable for multiprocessing)."""
     try:
         options = Options()
-        options.binary_location = "/usr/bin/chromium-browser"
+        options.binary_location = "/usr/bin/google-chrome"
+        
+        # Essential headless arguments
         options.add_argument("--headless=new")
-        options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
+        
+        # Additional stability arguments
+        options.add_argument("--disable-gpu")
         options.add_argument("--disable-software-rasterizer")
         options.add_argument("--disable-extensions")
+        options.add_argument("--disable-setuid-sandbox")
+        options.add_argument("--disable-web-security")
+        options.add_argument("--disable-features=VizDisplayCompositor")
         options.add_argument("--window-size=1920,1080")
-        options.add_argument("--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
+        options.add_argument("--start-maximized")
+        options.add_argument("--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+        
+        # Disable logging
+        options.add_argument("--log-level=3")
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
         
         service = Service("/usr/bin/chromedriver")
         driver = webdriver.Chrome(service=service, options=options)
         
-        # Set timeouts from configuration
-        driver.set_page_load_timeout(SCREENSHOT_TIMEOUT)
-        driver.set_script_timeout(SCREENSHOT_TIMEOUT)
+        # Increased timeout
+        driver.set_page_load_timeout(30)
+        driver.set_script_timeout(30)
         
         driver.get(url)
-        time.sleep(2)
+        time.sleep(3)  # Wait for page to fully load
         driver.save_screenshot(output_path)
         driver.quit()
         
         return True
         
     except Exception as e:
-        # No retry on timeout - just return False and continue
+        print(f"[SCREENSHOT ERROR] {item_id}: {str(e)[:100]}")
         return False
 
 
@@ -246,32 +258,44 @@ def take_screenshot(url, output_path, retries=2):
     """Take screenshot of the URL (no retries on timeout)."""
     try:
         options = Options()
-        options.binary_location = "/usr/bin/chromium-browser"
+        options.binary_location = "/usr/bin/google-chrome"
+        
+        # Essential headless arguments
         options.add_argument("--headless=new")
-        options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
+        
+        # Additional stability arguments
+        options.add_argument("--disable-gpu")
         options.add_argument("--disable-software-rasterizer")
         options.add_argument("--disable-extensions")
+        options.add_argument("--disable-setuid-sandbox")
+        options.add_argument("--disable-web-security")
+        options.add_argument("--disable-features=VizDisplayCompositor")
         options.add_argument("--window-size=1920,1080")
-        options.add_argument("--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
+        options.add_argument("--start-maximized")
+        options.add_argument("--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+        
+        # Disable logging
+        options.add_argument("--log-level=3")
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
         
         service = Service("/usr/bin/chromedriver")
         driver = webdriver.Chrome(service=service, options=options)
         
-        # Set timeouts from configuration
-        driver.set_page_load_timeout(SCREENSHOT_TIMEOUT)
-        driver.set_script_timeout(SCREENSHOT_TIMEOUT)
+        # Increased timeout
+        driver.set_page_load_timeout(30)
+        driver.set_script_timeout(30)
         
         driver.get(url)
-        time.sleep(2)
+        time.sleep(3)  # Wait for page to fully load
         driver.save_screenshot(output_path)
         driver.quit()
         
         return True
         
     except Exception as e:
-        # No retry on timeout - just return False
+        print(f"[SCREENSHOT ERROR]: {str(e)[:100]}")
         return False
 
 
