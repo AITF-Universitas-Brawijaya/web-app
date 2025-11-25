@@ -54,19 +54,49 @@ apt-get install -y \
     unzip \
     ca-certificates
 
-# Install Python 3.11
-print_info "Installing Python 3.11..."
-add-apt-repository -y ppa:deadsnakes/ppa
-apt-get update
-apt-get install -y \
-    python3.11 \
-    python3.11-venv \
-    python3.11-dev \
-    python3-pip
+# Check if Conda is installed (check common installation paths)
+print_info "Checking Conda installation..."
 
-# Set Python 3.11 as default
-update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-update-alternatives --set python3 /usr/bin/python3.11
+# Detect conda installation path
+CONDA_BASE=""
+if [ -d "/home/$ACTUAL_USER/miniconda3" ]; then
+    CONDA_BASE="/home/$ACTUAL_USER/miniconda3"
+elif [ -d "/home/$ACTUAL_USER/anaconda3" ]; then
+    CONDA_BASE="/home/$ACTUAL_USER/anaconda3"
+elif [ -d "/opt/conda" ]; then
+    CONDA_BASE="/opt/conda"
+fi
+
+if [ -z "$CONDA_BASE" ] || [ ! -f "$CONDA_BASE/bin/conda" ]; then
+    print_error "Conda is not installed for user $ACTUAL_USER. Please install Miniconda or Anaconda first."
+    print_info "You can install Miniconda with:"
+    print_info "  wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+    print_info "  bash Miniconda3-latest-Linux-x86_64.sh"
+    print_info "  source ~/.bashrc"
+    exit 1
+fi
+
+print_info "Found Conda at: $CONDA_BASE"
+
+# Get conda version for verification
+CONDA_VERSION=$($CONDA_BASE/bin/conda --version)
+print_info "Conda version: $CONDA_VERSION"
+
+# Initialize conda for bash if not already done
+print_info "Initializing Conda..."
+sudo -u $ACTUAL_USER $CONDA_BASE/bin/conda init bash || true
+
+# Create or update conda environment 'prd6' with Python 3.11
+print_info "Setting up Conda environment 'prd6' with Python 3.11..."
+if sudo -u $ACTUAL_USER $CONDA_BASE/bin/conda env list | grep -q "^prd6 "; then
+    print_info "Environment 'prd6' already exists, updating..."
+    sudo -u $ACTUAL_USER $CONDA_BASE/bin/conda install -n prd6 python=3.11 -y
+else
+    print_info "Creating new environment 'prd6'..."
+    sudo -u $ACTUAL_USER $CONDA_BASE/bin/conda create -n prd6 python=3.11 -y
+fi
+
+print_info "Conda environment 'prd6' is ready!"
 
 # Install Node.js 20
 print_info "Installing Node.js 20..."
@@ -88,7 +118,7 @@ apt-get install -y postgresql-14 postgresql-client-14
 print_info "Installing Chrome dependencies..."
 apt-get install -y \
     fonts-liberation \
-    libasound2 \
+    libasound2t64 \
     libatk-bridge2.0-0 \
     libatk1.0-0 \
     libatspi2.0-0 \
@@ -109,8 +139,7 @@ apt-get install -y \
 
 # Install Google Chrome
 print_info "Installing Google Chrome..."
-wget -q -O /tmp/google-chrome-key.pub https://dl-ssl.google.com/linux/linux_signing_key.pub
-gpg --dearmor -o /usr/share/keyrings/google-chrome-keyring.gpg /tmp/google-chrome-key.pub
+wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/google-chrome-keyring.gpg
 echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
 apt-get update
 apt-get install -y google-chrome-stable
@@ -137,11 +166,11 @@ print_info "Creating log directory..."
 mkdir -p /var/log/prd-analyst
 chown -R $ACTUAL_USER:$ACTUAL_USER /var/log/prd-analyst
 
-# Install Python dependencies
-print_info "Installing Python dependencies..."
+# Install Python dependencies in conda environment
+print_info "Installing Python dependencies in 'prd6' environment..."
 cd "$PROJECT_DIR/backend"
-sudo -u $ACTUAL_USER python3 -m pip install --upgrade pip
-sudo -u $ACTUAL_USER python3 -m pip install -r requirements.txt
+sudo -u $ACTUAL_USER $CONDA_BASE/envs/prd6/bin/pip install --upgrade pip
+sudo -u $ACTUAL_USER $CONDA_BASE/envs/prd6/bin/pip install -r requirements.txt
 
 # Install Node.js dependencies
 print_info "Installing Node.js dependencies..."
@@ -156,11 +185,14 @@ sudo -u $ACTUAL_USER pnpm build
 print_info "Setting up environment file..."
 cd "$PROJECT_DIR"
 if [ ! -f .env ]; then
-    cp .env.example .env
+    cp env.example .env
     print_warning "Created .env file from template. Please update with your actual values!"
 else
     print_info ".env file already exists, skipping..."
 fi
+
+# Verify conda installation path for systemd service
+print_info "Using Conda base directory: $CONDA_BASE"
 
 # Install systemd services
 print_info "Installing systemd services..."
@@ -172,14 +204,22 @@ sed -i "s|/path/to/project|$PROJECT_DIR|g" /etc/systemd/system/prd-backend.servi
 sed -i "s|/path/to/project|$PROJECT_DIR|g" /etc/systemd/system/prd-frontend.service
 sed -i "s|User=ubuntu|User=$ACTUAL_USER|g" /etc/systemd/system/prd-backend.service
 sed -i "s|User=ubuntu|User=$ACTUAL_USER|g" /etc/systemd/system/prd-frontend.service
+sed -i "s|/home/ubuntu/miniconda3|$CONDA_BASE|g" /etc/systemd/system/prd-backend.service
 
-# Reload systemd
-systemctl daemon-reload
-
-# Enable services
-print_info "Enabling services..."
-systemctl enable prd-backend
-systemctl enable prd-frontend
+# Reload systemd and enable services if available
+if command -v systemctl &> /dev/null && systemctl is-system-running &> /dev/null; then
+    print_info "Reloading systemd..."
+    systemctl daemon-reload
+    
+    print_info "Enabling services..."
+    systemctl enable prd-backend
+    systemctl enable prd-frontend
+else
+    print_warning "Systemd not available. Skipping service registration."
+    print_info "You can start the services manually using:"
+    print_info "  backend: cd backend && $CONDA_BASE/envs/prd6/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000"
+    print_info "  frontend: cd frontend && pnpm start"
+fi
 
 print_info "Setup completed successfully!"
 echo ""

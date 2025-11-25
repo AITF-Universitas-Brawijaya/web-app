@@ -9,6 +9,14 @@ Panduan lengkap untuk deploy aplikasi PRD Analyst Dashboard di VPS tanpa menggun
 - Minimal 2GB RAM
 - Minimal 10GB disk space
 - Internet connection untuk download dependencies
+- **Conda (Miniconda atau Anaconda) sudah terinstall**
+
+> **Note**: Jika belum install Conda, install terlebih dahulu:
+> ```bash
+> wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+> bash Miniconda3-latest-Linux-x86_64.sh
+> source ~/.bashrc
+> ```
 
 ## Quick Start
 
@@ -27,12 +35,13 @@ sudo bash setup-native-vps.sh
 ```
 
 Script ini akan:
-- Install Python 3.11, Node.js 20, PostgreSQL 14
+- Verify Conda installation dan setup environment `prd6` dengan Python 3.11
+- Install Node.js 20, PostgreSQL 14
 - Install Chrome dan ChromeDriver untuk Selenium
 - Setup database dan import schema
-- Install semua dependencies (Python dan Node.js)
+- Install semua dependencies (Python di conda env `prd6` dan Node.js)
 - Build frontend untuk production
-- Setup systemd services
+- Setup systemd services dengan conda environment
 - Create log directory
 
 ### 3. Configure Environment
@@ -72,6 +81,27 @@ Atau gunakan script:
 sudo bash scripts/start-services.sh
 ```
 
+### Manual Start (Non-Systemd Environments)
+
+Jika VPS/Container Anda tidak menggunakan systemd, gunakan script berikut untuk menjalankan service di background:
+
+**Start Services:**
+```bash
+bash scripts/start-manual-bg.sh
+```
+Script ini akan menjalankan Backend dan Frontend menggunakan `nohup` dan menyimpan logs di `/var/log/prd-analyst` (atau `./logs` jika permission denied).
+
+**Stop Services:**
+```bash
+bash scripts/stop-manual.sh
+```
+
+**View Logs:**
+```bash
+tail -f logs/backend.log
+tail -f logs/frontend.log
+```
+
 ### Stop Services
 
 ```bash
@@ -106,6 +136,42 @@ Services sudah di-enable secara otomatis oleh setup script. Untuk verify:
 ```bash
 sudo systemctl is-enabled prd-backend
 sudo systemctl is-enabled prd-frontend
+```
+
+## Conda Environment Management
+
+### Activate Environment
+
+```bash
+conda activate prd6
+```
+
+### Deactivate Environment
+
+```bash
+conda deactivate
+```
+
+### List Installed Packages
+
+```bash
+conda activate prd6
+pip list
+```
+
+### Update Dependencies
+
+```bash
+conda activate prd6
+cd /home/ubuntu/tim6_prd_workdir/backend
+pip install -r requirements.txt --upgrade
+```
+
+### Check Python Version
+
+```bash
+conda activate prd6
+python --version  # Should be 3.11.x
 ```
 
 ## Logging
@@ -231,7 +297,8 @@ Jika ingin mengubah port default:
 
 2. Verify dependencies installed:
    ```bash
-   python3 --version  # Should be 3.11.x
+   conda activate prd6
+   python --version   # Should be 3.11.x (in prd6 environment)
    node --version     # Should be v20.x
    psql --version     # Should be 14.x
    ```
@@ -375,6 +442,7 @@ git pull origin main
 ### Update Backend
 
 ```bash
+conda activate prd6
 cd backend
 pip install -r requirements.txt
 sudo systemctl restart prd-backend
