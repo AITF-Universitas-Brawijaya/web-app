@@ -15,6 +15,7 @@ from selenium.webdriver.chrome.options import Options
 from multiprocessing import Pool, cpu_count
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
+import requests
 
 
 # Load environment variables
@@ -37,10 +38,15 @@ engine = create_engine(DATABASE_URL)
 FETCH_TIMEOUT = 10
 OG_TIMEOUT = 10
 SCREENSHOT_TIMEOUT = 20
+DETECTION_API_TIMEOUT = 30
 
 # Processing configuration
 MAX_WORKERS_FETCH = 5
 MAX_WORKERS_SCREENSHOT = max(2, cpu_count() - 1)  # Use multiple CPU cores for screenshots
+MAX_WORKERS_DETECTION = 3  # Limit concurrent API calls to detection service
+
+# Detection API configuration
+DETECTION_API_URL = "http://localhost:9090/predict"
 MAX_RESULT = 10  # Maximum number of valid domains to process per run
 VERSION = "1.4"
 
@@ -315,7 +321,7 @@ def fetch_url_data(url_item, item_index, current_id):
 
 def process_screenshots_parallel(all_results):
     """Process screenshots in parallel using multiprocessing."""
-    print(f"\n=== TAKING SCREENSHOTS (Parallel - {MAX_WORKERS_SCREENSHOT} processes) ===")
+    print(f"\n[SCREENSHOT] Taking screenshots with {MAX_WORKERS_SCREENSHOT} processes")
     
     # Prepare screenshot tasks
     screenshot_tasks = []
@@ -359,6 +365,94 @@ def process_screenshots_parallel(all_results):
             result["screenshot_status"] = "skipped"
 
 
+def send_to_detection_api(screenshot_path, item_id):
+    """Send screenshot to object detection API and return response."""
+    try:
+        if not os.path.exists(screenshot_path):
+            print(f"[DETECTION API] {item_id}: Screenshot file not found")
+            return None
+        
+        with open(screenshot_path, 'rb') as img_file:
+            files = {'file': ('screenshot.png', img_file, 'image/png')}
+            response = requests.post(
+                DETECTION_API_URL,
+                files=files,
+                timeout=DETECTION_API_TIMEOUT
+            )
+            
+            if response.status_code == 200:
+                api_response = response.json()
+                if api_response.get('success'):
+                    result = api_response.get('result', {})
+                    status = result.get('status', 'unknown')
+                    confidence = result.get('classification_confidence', 0.0)
+                    print(f"[DETECTION API] {item_id}: ✓ {status} (confidence: {confidence:.4f})")
+                    return api_response
+                else:
+                    print(f"[DETECTION API] {item_id}: API returned success=false")
+                    return None
+            else:
+                print(f"[DETECTION API] {item_id}: HTTP {response.status_code}")
+                return None
+                
+    except requests.exceptions.Timeout:
+        print(f"[DETECTION API] {item_id}: Timeout after {DETECTION_API_TIMEOUT}s")
+        return None
+    except requests.exceptions.ConnectionError:
+        print(f"[DETECTION API] {item_id}: Connection failed (is API running on port 9090?)")
+        return None
+    except Exception as e:
+        print(f"[DETECTION API] {item_id}: Error - {str(e)[:100]}")
+        return None
+
+
+def process_detection_api_parallel(all_results):
+    """Process detection API calls in parallel for successful screenshots."""
+    # Filter only successful screenshots
+    detection_tasks = []
+    for result in all_results:
+        if result.get('screenshot_status') == 'success':
+            item_id = result.get('id', 'unknown')
+            screenshot_path = os.path.join(OUTPUT_IMG_DIR, f"{item_id}.png")
+            detection_tasks.append((screenshot_path, item_id, result))
+    
+    if not detection_tasks:
+        print("[DETECTION API] No successful screenshots to process")
+        return
+    
+    print(f"\n[DETECTION API] Sending {len(detection_tasks)} screenshots to API with {MAX_WORKERS_DETECTION} workers")
+    
+    # Use ThreadPoolExecutor for API calls
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS_DETECTION) as executor:
+        futures = {
+            executor.submit(send_to_detection_api, path, item_id): (item_id, result)
+            for path, item_id, result in detection_tasks
+        }
+        
+        completed = 0
+        for future in as_completed(futures):
+            item_id, result = futures[future]
+            try:
+                api_response = future.result()
+                if api_response:
+                    result['detection_api_response'] = api_response
+                    result['detection_status'] = 'success'
+                else:
+                    result['detection_status'] = 'failed'
+                completed += 1
+                status_symbol = "✓" if api_response else "✗"
+                print(f"[{completed}/{len(detection_tasks)}] {item_id} {status_symbol}")
+            except Exception as e:
+                result['detection_status'] = 'failed'
+                completed += 1
+                print(f"[{completed}/{len(detection_tasks)}] {item_id} ✗ (Exception: {str(e)[:50]})")
+    
+    # Print summary
+    success_count = sum(1 for r in all_results if r.get('detection_status') == 'success')
+    failed_count = sum(1 for r in all_results if r.get('detection_status') == 'failed')
+    print(f"[DETECTION API] Complete: {success_count} success, {failed_count} failed")
+
+
 def save_to_database(all_results, keyword):
     """Save crawled results to database."""
     print("[DATABASE] Starting database save...", flush=True)
@@ -366,14 +460,17 @@ def save_to_database(all_results, keyword):
     try:
         with engine.begin() as conn:
             saved_count = 0
+            detection_saved_count = 0
+            
             for result in all_results:
                 # Prepare image path in the format: domain-generator/output/img/<id>.png
                 image_path = f"domain-generator/output/img/{result['id']}.png" if result.get('screenshot_status') == 'success' else None
                 
-                # Insert into generated_domains table
-                conn.execute(text("""
+                # Insert into generated_domains table and get the id_domain
+                insert_result = conn.execute(text("""
                     INSERT INTO generated_domains (url, title, domain, image_path, status)
                     VALUES (:url, :title, :domain, :image_path, :status)
+                    RETURNING id_domain
                 """), {
                     "url": result.get('url', ''),
                     "title": result.get('title', '')[:255],  # Limit to 255 chars
@@ -381,9 +478,73 @@ def save_to_database(all_results, keyword):
                     "image_path": image_path,
                     "status": "pending"
                 })
+                
+                id_domain = insert_result.fetchone()[0]
                 saved_count += 1
+                
+                # If detection API was successful, save to object_detection table
+                if result.get('detection_status') == 'success' and result.get('detection_api_response'):
+                    api_response = result['detection_api_response']
+                    api_result = api_response.get('result', {})
+                    
+                    # Transform data
+                    status = api_result.get('status', '')
+                    label = True if status == 'gambling' else False
+                    
+                    confidence = api_result.get('classification_confidence', 0.0)
+                    confidence_score = round(confidence, 1)
+                    
+                    visualization_path = api_result.get('visualization_path', '')
+                    if visualization_path:
+                        visualization_path = visualization_path.lstrip('/')
+                        image_detected_path = f"~/tim5_prd_workdir/{visualization_path}"
+                    else:
+                        image_detected_path = None
+                    
+                    # Insert into object_detection table
+                    conn.execute(text("""
+                        INSERT INTO object_detection (
+                            id_detection,
+                            id_domain,
+                            label,
+                            confidence_score,
+                            image_detected_path,
+                            bounding_box,
+                            ocr,
+                            model_version
+                        ) VALUES (
+                            :id_detection,
+                            :id_domain,
+                            :label,
+                            :confidence_score,
+                            :image_detected_path,
+                            :bounding_box,
+                            :ocr,
+                            :model_version
+                        )
+                        ON CONFLICT (id_domain) DO UPDATE SET
+                            id_detection = EXCLUDED.id_detection,
+                            label = EXCLUDED.label,
+                            confidence_score = EXCLUDED.confidence_score,
+                            image_detected_path = EXCLUDED.image_detected_path,
+                            bounding_box = EXCLUDED.bounding_box,
+                            ocr = EXCLUDED.ocr,
+                            model_version = EXCLUDED.model_version,
+                            processed_at = now()
+                    """), {
+                        "id_detection": api_result.get('id'),
+                        "id_domain": id_domain,
+                        "label": label,
+                        "confidence_score": confidence_score,
+                        "image_detected_path": image_detected_path,
+                        "bounding_box": json.dumps(api_result.get('detections', [])),
+                        "ocr": json.dumps(api_result.get('ocr', [])),
+                        "model_version": None
+                    })
+                    detection_saved_count += 1
             
-            print(f"[DATABASE] Successfully saved {saved_count} records to database", flush=True)
+            print(f"[DATABASE] Successfully saved {saved_count} domains to database", flush=True)
+            print(f"[DATABASE] Successfully saved {detection_saved_count} detection results to database", flush=True)
             return True
             
     except Exception as e:
@@ -524,6 +685,10 @@ def main():
     print(f"[SCREENSHOT] Starting screenshot capture for {len(all_results)} URLs...", flush=True)
     process_screenshots_parallel(all_results)
     
+    # Process detection API calls for successful screenshots
+    print(f"[DETECTION API] Starting object detection for successful screenshots...", flush=True)
+    process_detection_api_parallel(all_results)
+    
     # Generate timestamp
     now = datetime.utcnow()
     timestamp_iso = now.isoformat() + "Z"
@@ -571,6 +736,10 @@ def main():
     screenshot_failed = sum(1 for r in all_results if r.get("screenshot_status") == "failed")
     screenshot_skipped = sum(1 for r in all_results if r.get("screenshot_status") == "skipped")
     
+    # Count detection API results
+    detection_success = sum(1 for r in all_results if r.get("detection_status") == "success")
+    detection_failed = sum(1 for r in all_results if r.get("detection_status") == "failed")
+    
     # Calculate elapsed time
     elapsed_time = int(time.time() - start_time)
     elapsed_minutes = elapsed_time // 60
@@ -591,6 +760,11 @@ def main():
             "failed": screenshot_failed,
             "skipped": screenshot_skipped,
             "total": len(all_results)
+        },
+        "detection_api": {
+            "success": detection_success,
+            "failed": detection_failed,
+            "total": screenshot_success
         },
         "domains_inserted": len(all_results) if db_success else 0,
         "keywords": keywords

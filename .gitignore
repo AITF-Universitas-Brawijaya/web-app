@@ -54,3 +54,5 @@ pnpm-debug.log*
 
 # Others
 archives
+prompt.txt
+db_information.txt

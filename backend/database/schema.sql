@@ -20,12 +20,13 @@ CREATE TABLE IF NOT EXISTS reasoning (
 );
 
 CREATE TABLE IF NOT EXISTS object_detection (
-    id_detection SERIAL PRIMARY KEY,
+    id_detection TEXT PRIMARY KEY,
     id_domain INT NOT NULL REFERENCES generated_domains(id_domain) ON DELETE CASCADE,
     label BOOLEAN,
-    confidence_score NUMERIC(5,4),
+    confidence_score NUMERIC(4,1),
     image_detected_path VARCHAR(512),
     bounding_box JSONB,
+    ocr JSONB,
     model_version TEXT,
     processed_at TIMESTAMPTZ DEFAULT now(),
     UNIQUE (id_domain)
