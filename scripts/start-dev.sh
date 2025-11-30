@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script untuk menjalankan aplikasi PRD Analyst Dashboard
-# Usage: ./start-app.sh [dev|prod]
+# Usage: ./start-dev.sh [dev|prod]
 
 # Color definitions
 GREEN='\033[0;32m'
@@ -103,5 +103,5 @@ echo "Logs:"
 echo "   Frontend: tail -f /tmp/frontend.log"
 echo "   Backend:  tail -f /tmp/backend.log"
 echo ""
-echo "To stop all processes: ./stop-app.sh"
+echo "To stop all processes: ./stop-dev.sh"
 echo ""

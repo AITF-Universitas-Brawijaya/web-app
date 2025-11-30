@@ -111,6 +111,18 @@ bash "$PROJECT_DIR/scripts/setup-local-postgres.sh"
 print_header "Installing Node.js 20 and pnpm"
 bash "$PROJECT_DIR/scripts/setup-local-nodejs.sh"
 
+# Install PM2 globally
+print_info "Installing PM2 globally..."
+export NVM_DIR="/home/$ACTUAL_USER/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+sudo -u $ACTUAL_USER bash -c "source $NVM_DIR/nvm.sh && npm install -g pm2"
+print_info "PM2 installed successfully"
+
+# Install Nginx
+print_info "Installing Nginx..."
+apt-get install -y nginx
+print_info "Nginx installed successfully"
+
 # Install Chrome and ChromeDriver
 print_header "Installing Chrome and ChromeDriver"
 bash "$PROJECT_DIR/scripts/setup-local-chrome.sh"
@@ -118,13 +130,6 @@ bash "$PROJECT_DIR/scripts/setup-local-chrome.sh"
 # Setup database
 print_header "Setting up Database"
 bash "$PROJECT_DIR/scripts/setup-database.sh"
-
-# Create log and pid directories
-print_info "Creating log and pid directories..."
-mkdir -p "$PROJECT_DIR/logs"
-mkdir -p "$PROJECT_DIR/pids"
-chown -R $ACTUAL_USER:$ACTUAL_USER "$PROJECT_DIR/logs" 2>/dev/null || true
-chown -R $ACTUAL_USER:$ACTUAL_USER "$PROJECT_DIR/pids" 2>/dev/null || true
 
 # Install Python dependencies in conda environment
 print_header "Installing Python Dependencies"
@@ -163,39 +168,6 @@ fi
 print_info "Making scripts executable..."
 chmod +x "$PROJECT_DIR/scripts/"*.sh
 
-# Install systemd services (optional)
-print_header "Installing Systemd Services (Optional)"
-if command -v systemctl &> /dev/null && systemctl is-system-running &> /dev/null; then
-    print_info "Installing systemd services..."
-    
-    # Update service files with correct user and conda path
-    sed -i "s|User=ubuntu|User=$ACTUAL_USER|g" "$PROJECT_DIR/systemd/"*.service
-    sed -i "s|Group=ubuntu|Group=$ACTUAL_USER|g" "$PROJECT_DIR/systemd/"*.service
-    sed -i "s|/home/ubuntu|/home/$ACTUAL_USER|g" "$PROJECT_DIR/systemd/"*.service
-    sed -i "s|/home/$ACTUAL_USER/miniconda3|$CONDA_BASE|g" "$PROJECT_DIR/systemd/"*.service
-    
-    # Copy service files
-    cp "$PROJECT_DIR/systemd/prd-postgres.service" /etc/systemd/system/
-    cp "$PROJECT_DIR/systemd/prd-backend.service" /etc/systemd/system/
-    cp "$PROJECT_DIR/systemd/prd-frontend.service" /etc/systemd/system/
-    
-    # Reload systemd
-    systemctl daemon-reload
-    
-    # Enable services
-    systemctl enable prd-postgres
-    systemctl enable prd-backend
-    systemctl enable prd-frontend
-    
-    print_info "Systemd services installed and enabled"
-    print_info "To start services: sudo systemctl start prd-postgres prd-backend prd-frontend"
-else
-    print_warning "Systemd not available. Use manual scripts instead:"
-    print_info "  Start:  bash scripts/start-services.sh"
-    print_info "  Stop:   bash scripts/stop-services.sh"
-    print_info "  Status: bash scripts/status-services.sh"
-fi
-
 # Print completion message
 print_header "Setup Completed Successfully!"
 echo ""
@@ -206,22 +178,8 @@ echo "  ✓ Chrome and ChromeDriver installed in /home/$ACTUAL_USER/chrome"
 echo "  ✓ Database 'prd' created and schema imported"
 echo "  ✓ Python dependencies installed in conda env 'prd6'"
 echo "  ✓ Node.js dependencies installed"
+echo "  ✓ Nginx installed"
+echo "  ✓ PM2 installed"
 echo "  ✓ Frontend built for production"
 echo ""
-print_info "Next Steps:"
-echo "1. Edit .env file with your configuration:"
-echo "   nano .env"
-echo "   (Update GEMINI_API_KEY with your actual API key)"
-echo ""
-echo "2. Start services:"
-echo "   bash scripts/start-services.sh"
-echo ""
-echo "3. Check service status:"
-echo "   bash scripts/status-services.sh"
-echo ""
-echo "4. Access the application:"
-echo "   Frontend: http://localhost:3000"
-echo "   Backend:  http://localhost:8000"
-echo "   API Docs: http://localhost:8000/docs"
-echo ""
-print_info "For detailed documentation, see NATIVE_DEPLOYMENT.md"
+print_info "For detailed documentation, see GUIDES.md"

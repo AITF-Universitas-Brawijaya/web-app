@@ -1,192 +1,81 @@
-# PRD Analyst Dashboard v2
+# PRD Analyst
 
-Dashboard analisis untuk review dan triage hasil deteksi konten. Dibangun dengan arsitektur full-stack menggunakan **Next.js** (App Router) + **FastAPI** backend, dengan integrasi database PostgreSQL dan AI assistant powered by Google Gemini.
+AI-powered dashboard for Product Requirement Document (PRD) analysis with intelligent chatbot.
 
-## 📋 Tech Stack
+**Public URL**: https://p5of745zrn7l3a-80.proxy.runpod.net/
 
-### **Frontend**
-- Next.js 16 (App Router) + React 19 + TypeScript
-- TailwindCSS v4 + Radix UI + Lucide Icons
-- SWR untuk data fetching
-- Recharts untuk visualisasi
+## Documentation
 
-### **Backend**
-- FastAPI (Python) + SQLAlchemy
-- PostgreSQL Database
-- Google Gemini API
-- Uvicorn (ASGI Server)
+**[Complete Guide](GUIDES.md)** - Comprehensive deployment, troubleshooting, and command reference
 
-## 🛠️ Setup & Installation
+## Architecture
 
-### **Prerequisites**
-- VPS dengan Ubuntu 20.04+
-- Conda (Miniconda/Anaconda) sudah terinstall
-- Minimal 2GB RAM, 10GB disk space
-
-### **Quick Start**
-
-```bash
-# 1. Clone repository
-cd /home/ubuntu
-git clone <repository-url> tim6_prd_workdir
-cd tim6_prd_workdir
-
-# 2. Run setup script (requires sudo)
-sudo bash setup-native-vps.sh
-
-# 3. Configure environment
-nano .env  # Update GEMINI_API_KEY dan konfigurasi lainnya
+```
+Internet (HTTPS)
+    ↓
+RunPod Proxy: https://p5of745zrn7l3a-80.proxy.runpod.net/
+    ↓
+Container Port 80 → Nginx (Reverse Proxy)
+    ├─ /api/ → Backend (Port 8000) - FastAPI
+    └─ /     → Frontend (Port 3000) - Next.js
 ```
 
-Setup script akan menginstall:
-- ✅ Conda environment `prd6` dengan Python 3.11
-- ✅ Node.js 20 + pnpm
-- ✅ PostgreSQL 14
-- ✅ Chrome + ChromeDriver
-- ✅ Semua dependencies dan database schema
+## Tech Stack
 
-## 🎯 Menjalankan Aplikasi
+### Frontend
+- **Next.js** 16.0.0 - React framework
+- **React** 19.2.0 - UI library
+- **TailwindCSS** 4 - Styling framework
+- **TypeScript** - Type-safe JavaScript
+- **Radix UI** - Accessible component primitives
+- **Recharts** - Data visualization
+- **React Markdown** - Markdown rendering
 
-### **Start Application**
+### Backend
+- **FastAPI** - Modern Python web framework
+- **Python** 3.11 - Programming language
+- **Uvicorn** - ASGI server
+- **PostgreSQL** 14 - Relational database
+- **SQLAlchemy** - ORM (if used)
+- **Pydantic** - Data validation
+- **Google Gemini API** - AI/LLM integration
 
-```bash
-# Development mode (default)
-./start-app.sh
+### Infrastructure & DevOps
+- **PM2** - Process manager for Node.js and Python
+- **Nginx** - Reverse proxy server
+- **RunPod** - Container hosting platform
+- **Conda** - Python environment manager (prd6)
+- **nvm** - Node.js version manager
 
-# atau
-./start-app.sh dev
+### Development Tools
+- **pnpm** - Fast package manager
+- **Chrome** - Web browser for testing
+- **ChromeDriver** - Browser automation
+- **Selenium** (if used) - Web scraping/automation
 
-# Production mode
-./start-app.sh prod
-```
+### Database & Storage
+- **PostgreSQL** 14 - Primary database
+- Local file storage for screenshots and assets
 
-Script akan:
-- ✅ Mengaktifkan conda environment `prd6`
-- ✅ Membersihkan port yang sudah digunakan (3000, 8000)
-- ✅ Menjalankan backend (FastAPI) di port 8000
-- ✅ Menjalankan frontend (Next.js) di port 3000
-- ✅ Menampilkan informasi PID dan lokasi log
-
-### **Stop Application**
-
-```bash
-./stop-app.sh
-```
-
-Script akan:
-- ✅ Menghentikan frontend (port 3000)
-- ✅ Menghentikan backend (port 8000)
-- ✅ Memverifikasi semua proses sudah berhenti
-
-### **View Logs**
-
-```bash
-# Backend logs
-tail -f /tmp/backend.log
-
-# Frontend logs
-tail -f /tmp/frontend.log
-
-# Follow both logs
-tail -f /tmp/backend.log /tmp/frontend.log
-```
-
-## 📁 Struktur Project
+## Project Structure
 
 ```
 tim6_prd_workdir/
-├── backend/                    # FastAPI backend
-│   ├── main.py                # Entry point
-│   ├── db.py                  # Database connection
-│   ├── routes/                # API endpoints
-│   ├── database/schema.sql    # Database schema
-│   └── requirements.txt
-├── frontend/                   # Next.js frontend
-│   ├── src/app/               # App Router pages
-│   ├── src/components/        # React components
-│   └── package.json
-├── start-app.sh               # Start application script
-├── stop-app.sh                # Stop application script
-├── setup-native-vps.sh        # VPS setup script
-├── .env                       # Environment config
-└── README.md
+├── frontend/              # Next.js application
+├── backend/               # FastAPI application
+├── scripts/               # Deployment & utility scripts
+│   ├── deploy.sh
+│   ├── update-app.sh
+│   ├── restart-nginx.sh
+│   ├── start-dev.sh
+│   └── stop-dev.sh
+├── guides/                # Documentation guides
+├── ecosystem.config.js    # PM2 configuration
+├── nginx.conf             # Nginx configuration
+├── setup-native-vps.sh    # VPS setup script
+├── GUIDES.md              # Complete documentation
+└── README.md              # This file
 ```
 
-## 💻 Development Commands
-
-### **Database Management**
-```bash
-# Access PostgreSQL
-/home/ubuntu/postgresql/bin/psql -U postgres -d prd
-
-# Seed data dari CSV
-cd backend
-conda activate prd6
-python seed_data.py
-
-# Backup database
-/home/ubuntu/postgresql/bin/pg_dump -U postgres prd > backup_$(date +%Y%m%d).sql
-```
-
-### **Manual Development**
-```bash
-# Activate conda environment
-conda activate prd6
-
-# Run backend manually
-cd backend
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-
-# Run frontend manually (in another terminal)
-cd frontend
-pnpm run dev
-```
-
-## 🐛 Troubleshooting
-
-### **Port sudah digunakan**
-```bash
-# Kill port 8000 (backend)
-lsof -ti:8000 | xargs kill -9
-
-# Kill port 3000 (frontend)
-lsof -ti:3000 | xargs kill -9
-```
-
-### **Backend tidak bisa connect ke database**
-```bash
-# Start PostgreSQL
-/home/ubuntu/postgresql/bin/pg_ctl -D /home/ubuntu/postgresql/data start
-
-# Test koneksi
-/home/ubuntu/postgresql/bin/psql -U postgres -d prd
-```
-
-### **Module not found di backend**
-```bash
-conda activate prd6
-cd backend
-pip install -r requirements.txt
-```
-
-### **pnpm command not found**
-```bash
-source ~/.bashrc
-# atau
-npm install -g pnpm
-```
-
-📚 **Troubleshooting lengkap**: Lihat [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
-
-## 📝 Environment Variables
-
-Copy dari `env.example` dan sesuaikan:
-
-```bash
-cp env.example .env
-nano .env
-```
-
-**Required variables:**
-- `DB_URL` - PostgreSQL connection string
-- `FRONTEND_URL` - Frontend URL (untuk CORS)
+**Last Updated**: 2025-12-01  
+**Team**: AITF Universitas Brawijaya
