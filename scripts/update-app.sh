@@ -52,7 +52,7 @@ echo -e "${GREEN}[OK] Build completed${NC}"
 # Restart PM2 application
 echo "[INFO] Restarting application..."
 cd "$PROJECT_DIR"
-pm2 restart prd-analyst-dashboard
+pm2 restart prd-analyst-frontend
 echo -e "${GREEN}[OK] Application restarted${NC}"
 
 # Show recent logs
@@ -60,7 +60,7 @@ echo ""
 echo "========================================="
 echo "Recent Logs (last 20 lines)"
 echo "========================================="
-pm2 logs prd-analyst-dashboard --lines 20 --nostream
+pm2 logs prd-analyst-frontend --lines 20 --nostream
 
 echo ""
 echo "========================================="
@@ -68,8 +68,8 @@ echo "Update Complete!"
 echo "========================================="
 echo ""
 echo "Application Status:"
-pm2 status prd-analyst-dashboard
+pm2 status prd-analyst-frontend
 echo ""
-echo "To view live logs: pm2 logs prd-analyst-dashboard"
+echo "To view live logs: pm2 logs prd-analyst-frontend"
 echo "To monitor: pm2 monit"
 echo ""
