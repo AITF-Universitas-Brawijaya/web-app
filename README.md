@@ -1,12 +1,12 @@
 # PRD Analyst
 
-AI-powered dashboard for Product Requirement Document (PRD) analysis with intelligent chatbot.
+AI-powered dashboard for Pengawasan Ruang Digital (PRD) analysis with intelligent chatbot.
 
 **Public URL**: https://p5of745zrn7l3a-80.proxy.runpod.net/
 
 ## Documentation
 
-**[Complete Guide](GUIDES.md)** - Comprehensive deployment, troubleshooting, and command reference
+**[Complete Guide](GUIDES.md)** - Comprehensive setup and deployment, troubleshooting, and command reference
 
 ## Architecture
 
@@ -78,4 +78,4 @@ tim6_prd_workdir/
 ```
 
 **Last Updated**: 2025-12-01  
-**Team**: AITF Universitas Brawijaya
+**Team**: PRD Analyst Team - AITF Universitas Brawijaya 2025
