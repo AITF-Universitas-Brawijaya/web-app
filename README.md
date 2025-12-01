@@ -2,7 +2,7 @@
 
 Pengawasan Ruang Digital (PRD) Analyst is a monitoring system designed to detect, verify, and block online-gambling content across websites, social media, and public reports using AI-powered classification with human-in-the-loop validation.
 
-**Public URL**: https://p5of745zrn7l3a-80.proxy.runpod.net/
+**Public URL**: https://nghbz6f39eg4xx-80.proxy.runpod.net/login
 
 ## Documentation
 
@@ -13,7 +13,7 @@ Pengawasan Ruang Digital (PRD) Analyst is a monitoring system designed to detect
 ```
 Internet (HTTPS)
     ↓
-RunPod Proxy: https://p5of745zrn7l3a-80.proxy.runpod.net/
+RunPod Proxy: https://nghbz6f39eg4xx-80.proxy.runpod.net/login
     ↓
 Container Port 80 → Nginx (Reverse Proxy)
     ├─ /api/ → Backend (Port 8000) - FastAPI
