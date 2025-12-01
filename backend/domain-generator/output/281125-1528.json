@@ -1,0 +1,477 @@
+{
+  "metadata": {
+    "total_records": 15,
+    "generated_at": "2025-11-28T15:28:33.270606Z",
+    "version": "1.4",
+    "keywords": [
+      "togel88",
+      "gacor"
+    ]
+  },
+  "data": [
+    {
+      "id": "00000379",
+      "title": "The Slot Gacor Phenomenon: Myths and Realities Uncovered",
+      "url": "https://guruhitech.com/the-slot-gacor-phenomenon-myths-and-realities-uncovered/",
+      "domain": "guruhitech.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9818,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/5c9f0de0-30f2-4406-b53d-7981d9500b01.jpg",
+          "id": "f2011c93-de34-4e85-bd6a-235feed10e85",
+          "timestamp": "2025-11-28T15:28:26.715130"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000380",
+      "title": "Super88 and Slot Gacor: The Winning Formula for Online Slot Enthusiasts",
+      "url": "https://duereply.com/super88-and-slot-gacor-the-winning-formula-for-online-slot/",
+      "domain": "duereply.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9922,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/15d3cb9a-e606-4063-9294-323ea2ca8374.jpg",
+          "id": "4513cffa-7985-47af-ba5c-4287241ad5c4",
+          "timestamp": "2025-11-28T22:28:30.571779"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000381",
+      "title": "Secrets of Slot Gacor for Winning Big in Online Gambling",
+      "url": "https://www.pwinsider.com/article/190545/secrets-of-slot-gacor-for-winning-big-in-online-gambling.html",
+      "domain": "www.pwinsider.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "gambling",
+          "classification_confidence": 0.9923,
+          "detections": [
+            {
+              "class": "cta_button",
+              "confidence": 0.11375795304775238,
+              "bbox": [
+                -620.8116455078125,
+                878.7112426757812,
+                787.0040283203125,
+                954.1028442382812
+              ]
+            }
+          ],
+          "ocr": [],
+          "visualization_path": "/results/inference/fd069b4e-82cd-45dc-9c48-41d173aaba99.jpg",
+          "id": "f70ebb7c-f602-4a43-a2c6-bbbd0978de7d",
+          "timestamp": "2025-11-28T22:28:30.470897"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000382",
+      "title": "Gacor 88: What Makes It a Go-To Port Destination - openperipheral",
+      "url": "https://openperipheral.info/gacor-88-what-makes-it-a-go-to-port-destination/",
+      "domain": "openperipheral.info",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9796,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/267e2fff-d371-47d4-acc9-6348c1decf4d.jpg",
+          "id": "f573bb7a-a4dc-44cf-b0af-dddf312e3f95",
+          "timestamp": "2025-11-28T22:28:30.756881"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000383",
+      "title": "togel gacor 88 - Gacor 88 : Akses Link Login Alternatif Slot Gacor Anti...",
+      "url": "https://togel-gacor88.konsof.org/",
+      "domain": "togel-gacor88.konsof.org",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9891,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/93de1201-80d7-4cac-bae5-2fb41fb9126f.jpg",
+          "id": "7cc53aed-afff-41b8-8793-34c9a4eedfea",
+          "timestamp": "2025-11-28T22:28:30.835023"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000384",
+      "title": "Bettogel88: Bet Togel 88 Gacor Dengan Hadiah Besar Setiap Hari",
+      "url": "https://bettogel88slot.org/",
+      "domain": "bettogel88slot.org",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "gambling",
+          "classification_confidence": 0.9954,
+          "detections": [
+            {
+              "class": "cta_button",
+              "confidence": 0.19786442816257477,
+              "bbox": [
+                1329.03125,
+                5.069095611572266,
+                1437.03466796875,
+                41.69322967529297
+              ]
+            },
+            {
+              "class": "menu_nav",
+              "confidence": 0.1956876963376999,
+              "bbox": [
+                676.8456420898438,
+                66.29390716552734,
+                1518.4373779296875,
+                117.52313232421875
+              ]
+            },
+            {
+              "class": "cta_button",
+              "confidence": 0.16937772929668427,
+              "bbox": [
+                1443.060546875,
+                5.199661731719971,
+                1537.6695556640625,
+                42.09893798828125
+              ]
+            },
+            {
+              "class": "banner_promo",
+              "confidence": 0.1462426483631134,
+              "bbox": [
+                15.182018280029297,
+                140.14260864257812,
+                1886.8662109375,
+                733.6282958984375
+              ]
+            },
+            {
+              "class": "logo",
+              "confidence": 0.1366645246744156,
+              "bbox": [
+                374.0931701660156,
+                72.84060668945312,
+                557.1825561523438,
+                113.18212890625
+              ]
+            }
+          ],
+          "ocr": [
+            {
+              "class": "menu_nav",
+              "bbox": [
+                676.8456420898438,
+                66.29390716552734,
+                1518.4373779296875,
+                117.52313232421875
+              ],
+              "ocr_text": "620 Eo POKER BERANDA SLOT ONLINE LIVE CASINO SPORTSBOOK ARCADE TOGEL ONLINE"
+            },
+            {
+              "class": "banner_promo",
+              "bbox": [
+                15.182018280029297,
+                140.14260864257812,
+                1886.8662109375,
+                733.6282958984375
+              ],
+              "ocr_text": "SItus SLOT RESMI TERBESAR DI INDONESIA US DAFTAR SEKARANG SLOT 2TS 100% 6 9 % 24/1 LIVE CHAT PvP JUPPORT GACOR SLOT MAXWIN 3B9SDOCt5) Hn 44d In"
+            }
+          ],
+          "visualization_path": "/results/inference/dcadb7ff-21b2-45ff-b8f8-6fc9608452b2.jpg",
+          "id": "9ebed343-b377-4454-b9d9-799361e7ef28",
+          "timestamp": "2025-11-28T22:28:32.453781"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000385",
+      "title": "Jam Hoki Main Slot88 Gacor untuk... | Com Emperors Vigortonic",
+      "url": "https://com-emperorsvigortonic.com/jam-hoki-main-slot88-gacor-untuk-maksimalkan-kemenangan/",
+      "domain": "com-emperorsvigortonic.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9907,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/e2465433-2320-4020-bd38-0b0e49c1a3df.jpg",
+          "id": "1b230171-1852-4ae0-97f7-d0f6a1227f51",
+          "timestamp": "2025-11-28T22:28:30.937780"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000386",
+      "title": "Exploring the Benefits of Playing at Gacor 88 and Okesultan...",
+      "url": "https://chadanggou.com/exploring-the-benefits-of-playing-at-gacor88-and-okesultan/",
+      "domain": "chadanggou.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9766,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/b4c4d442-fe1b-421b-8b77-8f24efb9c66b.jpg",
+          "id": "c4081274-e0b9-42f3-9de7-502200f83ef9",
+          "timestamp": "2025-11-28T22:28:31.053480"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000387",
+      "title": "Discovering Gacor 88: An Increasing Star in Online Port Platforms...",
+      "url": "https://zabej.info/discovering-gacor88-an-increasing-star-in-online-port-platforms/",
+      "domain": "zabej.info",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.644,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/eff59a90-8fe0-4905-bdfd-957463ab47c2.jpg",
+          "id": "b79140ef-58ab-4158-9b0d-822da248935a",
+          "timestamp": "2025-11-28T22:28:31.197380"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000388",
+      "title": "Play Gacor 88 Slots to Win Big Prizes - Ponsel SAMSUNG",
+      "url": "https://ponselsamsung.com/play-gacor88-slots-to-win-big-prizes/",
+      "domain": "ponselsamsung.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.97,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/12017a61-a022-4649-85ca-86447e5b0d55.jpg",
+          "id": "136329fb-686e-4432-bcd9-85bd812c6a35",
+          "timestamp": "2025-11-28T22:28:31.305943"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000389",
+      "title": "4 Best Gacor 88 Slot Games from Pragmatic Play - Dead Celebs Book",
+      "url": "https://deadcelebsbook.com/4-best-gacor88-slot-games-from-pragmatic-play/",
+      "domain": "deadcelebsbook.com",
+      "screenshot_status": "failed"
+    },
+    {
+      "id": "00000390",
+      "title": "Alexistogel: Your Go-To Slot88 Gacor Jackpot Provider | Bresdel",
+      "url": "https://bresdel.com/blogs/736201/Alexistogel-Your-Go-To-Slot88-Gacor-Jackpot-Provider",
+      "domain": "bresdel.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.8135,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/4af9860e-b818-4a36-9f67-0135e59f439f.jpg",
+          "id": "88cf3a2d-1b22-4b80-bdcd-9c87c5a9423d",
+          "timestamp": "2025-11-28T22:28:32.527135"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000391",
+      "title": "Situs Agen Bandar Judi Bola Slot Togel Online Gacor Terpercaya...",
+      "url": "https://enteridn.com/",
+      "domain": "enteridn.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "gambling",
+          "classification_confidence": 0.9934,
+          "detections": [
+            {
+              "class": "cta_button",
+              "confidence": 0.1188935935497284,
+              "bbox": [
+                1335.2947998046875,
+                40.29141616821289,
+                1400.712890625,
+                69.92942810058594
+              ]
+            },
+            {
+              "class": "cta_button",
+              "confidence": 0.11381544172763824,
+              "bbox": [
+                1266.764892578125,
+                40.19969177246094,
+                1330.082763671875,
+                69.31025695800781
+              ]
+            }
+          ],
+          "ocr": [],
+          "visualization_path": "/results/inference/c05f8267-9b06-40f9-8384-1173a2d5f094.jpg",
+          "id": "430cda32-279e-4774-9085-a6f67115b92d",
+          "timestamp": "2025-11-28T22:28:32.711933"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000392",
+      "title": "RTP Togel 88 : Situs RTP Terampuh Kemenangan Hingga Maxwin",
+      "url": "https://multi-brands.com/",
+      "domain": "multi-brands.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "gambling",
+          "classification_confidence": 0.9952,
+          "detections": [
+            {
+              "class": "banner_promo",
+              "confidence": 0.14543363451957703,
+              "bbox": [
+                307.5838317871094,
+                165.44252014160156,
+                925.7429809570312,
+                785.5601196289062
+              ]
+            },
+            {
+              "class": "menu_nav",
+              "confidence": 0.11238139867782593,
+              "bbox": [
+                710.4984130859375,
+                9.534809112548828,
+                1197.201171875,
+                32.753868103027344
+              ]
+            }
+          ],
+          "ocr": [
+            {
+              "class": "banner_promo",
+              "bbox": [
+                307.5838317871094,
+                165.44252014160156,
+                925.7429809570312,
+                785.5601196289062
+              ],
+              "ocr_text": "TOGELE LASIA]"
+            },
+            {
+              "class": "menu_nav",
+              "bbox": [
+                710.4984130859375,
+                9.534809112548828,
+                1197.201171875,
+                32.753868103027344
+              ],
+              "ocr_text": "RTP Togel88: Situs RTP Terampuh Kemenangan Hingga Maxwin"
+            }
+          ],
+          "visualization_path": "/results/inference/d55906b2-9135-4c23-a417-59a858a39ec4.jpg",
+          "id": "c34e6c52-a790-4e0d-96b7-cfd4ec45df06",
+          "timestamp": "2025-11-28T22:28:33.072458"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000393",
+      "title": "DEWALIVE - Agen Bandar Togel Singapore & HK Terpercaya",
+      "url": "https://lettres-motivation.com/",
+      "domain": "lettres-motivation.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "gambling",
+          "classification_confidence": 0.9945,
+          "detections": [
+            {
+              "class": "logo",
+              "confidence": 0.14316029846668243,
+              "bbox": [
+                679.4505004882812,
+                299.2041931152344,
+                868.1153564453125,
+                408.9820556640625
+              ]
+            },
+            {
+              "class": "cta_button",
+              "confidence": 0.13165779411792755,
+              "bbox": [
+                550.64990234375,
+                435.51507568359375,
+                766.6431274414062,
+                495.3629455566406
+              ]
+            },
+            {
+              "class": "cta_button",
+              "confidence": 0.10539022833108902,
+              "bbox": [
+                782.51025390625,
+                435.08056640625,
+                996.9202270507812,
+                495.7381896972656
+              ]
+            }
+          ],
+          "ocr": [],
+          "visualization_path": "/results/inference/2fa595f1-03d7-44b1-9a21-8471abd3a510.jpg",
+          "id": "57c81f34-7a34-46eb-b9bd-e52c56eb48b8",
+          "timestamp": "2025-11-28T22:28:33.259631"
+        }
+      },
+      "detection_status": "success"
+    }
+  ]
+}

@@ -19,6 +19,7 @@ import JenisChart from "@/components/charts/JenisChart"
 import TpFpChart from "@/components/charts/TpFpChart"
 import ConfidenceChart from "@/components/charts/ConfidenceChart"
 import DetailModal from "@/components/modals/DetailModal"
+import CrawlingModal from "@/components/modals/CrawlingModal"
 
 import { LinkRecord } from "@/types/linkRecord"
 
@@ -49,28 +50,29 @@ export default function PRDDashboardPage() {
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(20)
   const [detail, setDetail] = useState<LinkRecord | null>(null)
+  const [crawlingModalOpen, setCrawlingModalOpen] = useState(false)
 
   const { data, error, isLoading, mutate } = useSWR<LinkRecord[]>("/api/data/", fetcher, {
     refreshInterval: 4000,
-    revalidateOnFocus: true, 
+    revalidateOnFocus: true,
   })
 
-console.log("🔍 DEBUG API_BASE:", API_BASE)
-console.log("🔍 SWR Data:", data)
-console.log("🔍 SWR Error:", error)
-console.log("🔍 SWR Loading:", isLoading)
+  console.log("🔍 DEBUG API_BASE:", API_BASE)
+  console.log("🔍 SWR Data:", data)
+  console.log("🔍 SWR Error:", error)
+  console.log("🔍 SWR Loading:", isLoading)
 
 
   const filtered = useMemo(() => {
-    const list = data ?? []
+    const list = Array.isArray(data) ? data : []
     return list.filter((it) => {
       const matchTab =
         activeTab === "all"
           ? true
           : activeTab === "flagged"
-          ? it.flagged
-          : (it.status as string) === activeTab
-      const matchJenis = jenisFilter.some(filter => 
+            ? it.flagged
+            : (it.status as string) === activeTab
+      const matchJenis = jenisFilter.some(filter =>
         it.jenis.toLowerCase().includes(filter.toLowerCase())
       )
       const matchSearch = it.link.toLowerCase().includes(search.toLowerCase())
@@ -138,12 +140,13 @@ console.log("🔍 SWR Loading:", isLoading)
                     />
                     <FilterMenu value={jenisFilter} onApply={setJenisFilter} />
                     <Button
-                    size="sm"
-                    variant="outline"
-                    className="bg-black text-white hover:bg-[rgba(0, 0, 0, 0.30)] border border-border h-8 px-3"
-                  >
-                    Crawling
-                  </Button>
+                      size="sm"
+                      variant="outline"
+                      className="bg-black text-white hover:bg-[rgba(0, 0, 0, 0.30)] border border-border h-8 px-3"
+                      onClick={() => setCrawlingModalOpen(true)}
+                    >
+                      Generate
+                    </Button>
                   </div>
                 </div>
               </Card>
@@ -197,6 +200,9 @@ console.log("🔍 SWR Loading:", isLoading)
 
         {/* Detail Modal */}
         <DetailModal item={detail} onClose={() => setDetail(null)} onMutate={mutate} />
+
+        {/* Crawling Modal */}
+        <CrawlingModal open={crawlingModalOpen} onClose={() => setCrawlingModalOpen(false)} />
       </div>
     </ProtectedRoute>
   )

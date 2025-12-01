@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation"
+import { redirect, RedirectType } from "next/navigation"
 
 export default function HomePage() {
-  redirect("/login")
+  redirect("/login", RedirectType.replace)
 }

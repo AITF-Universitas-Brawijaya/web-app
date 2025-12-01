@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "total_records": 7,
+    "generated_at": "2025-11-22T03:52:25.275089Z",
+    "version": "1.4",
+    "keywords": [
+      "zeus",
+      "gacor"
+    ]
+  },
+  "data": [
+    {
+      "id": "00000139",
+      "title": "⚡ Zeus :: Greek God of the Sky and Thunder, King of the Gods",
+      "url": "https://www.greekmythology.com/Olympians/Zeus/zeus.html",
+      "domain": "www.greekmythology.com",
+      "screenshot_status": "failed"
+    },
+    {
+      "id": "00000140",
+      "title": "Zeus – Mythopedia",
+      "url": "https://mythopedia.com/topics/zeus/",
+      "domain": "mythopedia.com",
+      "screenshot_status": "failed"
+    },
+    {
+      "id": "00000141",
+      "title": "Zeus – Greek God Of The Sky and King of the Gods Why Zeus Was Chosen As The King Of The Greek Gods - MSN Zeus: Greek God of Thunder - History Cooperative The Role of Zeus: King of the Gods in the Greek Pantheon Zeus: King of the Gods and Master of Lightning in Greek ...",
+      "url": "https://greekgodsandgoddesses.net/gods/zeus/",
+      "domain": "greekgodsandgoddesses.net",
+      "screenshot_status": "failed"
+    },
+    {
+      "id": "00000142",
+      "title": "Why Zeus Was Chosen As The King Of The Greek Gods - MSN",
+      "url": "https://www.msn.com/en-us/society-culture-and-history/history/why-zeus-was-chosen-as-the-king-of-the-greek-gods/ar-AA1QCrvO",
+      "domain": "www.msn.com",
+      "screenshot_status": "success"
+    },
+    {
+      "id": "00000143",
+      "title": "Zeus: Greek God of Thunder - History Cooperative",
+      "url": "https://historycooperative.org/zeus-greek-god-of-thunder/",
+      "domain": "historycooperative.org",
+      "screenshot_status": "success"
+    },
+    {
+      "id": "00000144",
+      "title": "The Role of Zeus: King of the Gods in the Greek Pantheon",
+      "url": "https://greek.mythologyworldwide.com/the-role-of-zeus-king-of-the-gods-in-the-greek-pantheon/",
+      "domain": "greek.mythologyworldwide.com",
+      "screenshot_status": "success"
+    },
+    {
+      "id": "00000145",
+      "title": "Zeus: King of the Gods and Master of Lightning in Greek ...",
+      "url": "https://www.thecollector.com/zeus/",
+      "domain": "www.thecollector.com",
+      "screenshot_status": "success"
+    }
+  ]
+}

@@ -1,0 +1,366 @@
+{
+  "metadata": {
+    "total_records": 15,
+    "generated_at": "2025-11-25T10:41:26.238445Z",
+    "version": "1.4",
+    "keywords": [
+      "zeus88",
+      "toto"
+    ]
+  },
+  "data": [
+    {
+      "id": "00000347",
+      "title": "Toto Was The Studio Band For Steely Dan, Boz Scaggs and ...",
+      "url": "https://gooseneckmusic.com/blogs/post-1/posts/4314034/toto-was-the-studio-band-for-tons-of-other-artists",
+      "domain": "gooseneckmusic.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.93,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/6aeedadc-de6f-4c5b-bea8-0361cf565884.jpg",
+          "id": "776042aa-5097-4511-942e-75bcd8941fb9",
+          "timestamp": "2025-11-25T10:41:24.179995"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000348",
+      "title": "TOTO Casino Review – Expert & Player Ratings [2025]",
+      "url": "https://casino.guru/toto-casino-review",
+      "domain": "casino.guru",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.6441,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/7c294162-72cc-4ac1-a2c5-345ba0b29b1a.jpg",
+          "id": "c15839c3-5ebc-4ba2-bc8e-6d9982f92969",
+          "timestamp": "2025-11-25T10:41:24.275498"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000349",
+      "title": "The Complete Guide To Playing Zeus88 With Confidence",
+      "url": "https://whatnetworksph.com/zeus88/",
+      "domain": "whatnetworksph.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "gambling",
+          "classification_confidence": 0.987,
+          "detections": [
+            {
+              "class": "menu_nav",
+              "confidence": 0.12982051074504852,
+              "bbox": [
+                357.96185302734375,
+                25.352100372314453,
+                1673.2969970703125,
+                53.28205871582031
+              ]
+            },
+            {
+              "class": "banner_promo",
+              "confidence": 0.11561997979879379,
+              "bbox": [
+                42.92747497558594,
+                322.0157470703125,
+                1013.624755859375,
+                939.3458251953125
+              ]
+            }
+          ],
+          "ocr": [
+            {
+              "class": "menu_nav",
+              "bbox": [
+                357.96185302734375,
+                25.352100372314453,
+                1673.2969970703125,
+                53.28205871582031
+              ],
+              "ocr_text": "Networks f Home Globe Prefix Smart Prefix Sun Cellular Tnt Prefix Dito Prefix Privacy Policy Crpto Blog Contact Us Q"
+            },
+            {
+              "class": "banner_promo",
+              "bbox": [
+                42.92747497558594,
+                322.0157470703125,
+                1013.624755859375,
+                939.3458251953125
+              ],
+              "ocr_text": "SLOTZEUS88 ZEUS88 PLAY ZEUS88 SECURE DEPOSITS FAST PAYOUTS BONUSES J"
+            }
+          ],
+          "visualization_path": "/results/inference/9f37d0a3-11db-4f9c-9b92-a1186efed17f.jpg",
+          "id": "b1506ca2-46fe-4505-a347-bbd7c54e0652",
+          "timestamp": "2025-11-25T10:41:25.091227"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000350",
+      "title": "What You Need to Know Before Playing on Zeus88 – Flix Toto",
+      "url": "https://flixtoto.com/what-you-need-to-know-before-playing-on-zeus88/",
+      "domain": "flixtoto.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9895,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/6f0f4001-85c5-49c3-a29b-51563e95818f.jpg",
+          "id": "243244ad-74ec-46d9-a2bc-54eb33a6d33f",
+          "timestamp": "2025-11-25T10:41:24.353435"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000351",
+      "title": "How Toto had the idea for their name - Rock And Roll Garage",
+      "url": "https://rockandrollgarage.com/how-toto-had-the-idea-for-their-name/",
+      "domain": "rockandrollgarage.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9915,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/dc56bb30-49b0-4012-8263-04f458b6a962.jpg",
+          "id": "e7468a24-5c1e-448b-85e6-973e9897f8bd",
+          "timestamp": "2025-11-25T10:41:24.431173"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000352",
+      "title": "Toto Biography, Top Songs, Discography, Albums & Awards",
+      "url": "https://toptunetales.com/toto/",
+      "domain": "toptunetales.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.991,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/f07185be-704b-4aaa-bb2f-8d949865960d.jpg",
+          "id": "0dec13dc-350e-4657-bfc7-5960d19962e1",
+          "timestamp": "2025-11-25T10:41:24.495456"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000353",
+      "title": "TOTO - The official TOTO website",
+      "url": "https://totoofficial.com/",
+      "domain": "totoofficial.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.993,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/b70fd20c-3c2a-4721-bc30-e5f0d11fb1af.jpg",
+          "id": "207247d1-93c9-4bbd-b303-fbe5d08aacf2",
+          "timestamp": "2025-11-25T10:41:25.727384"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000354",
+      "title": "Steve Lukather and Joseph Williams AKA The Dogz Of Oz Announce Toto ...",
+      "url": "https://rockandbluesmuse.com/2024/01/11/steve-lukather-and-joseph-williams-aka-the-dogz-of-oz-announce-toto-band-line-up-for-massive-tour/",
+      "domain": "rockandbluesmuse.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.8248,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/194924b0-040c-4872-a30a-5d76571d5d2c.jpg",
+          "id": "bcc68722-3af2-4092-a5c2-b75b460f6d1e",
+          "timestamp": "2025-11-25T10:41:25.177429"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000355",
+      "title": "Toto Songs, Albums, Reviews, Bio & More | AllM... | AllMusic",
+      "url": "https://www.allmusic.com/artist/toto-mn0000006320",
+      "domain": "www.allmusic.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9926,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/68ed0821-74e1-4d76-b622-80f3e8210775.jpg",
+          "id": "036b1858-2932-4524-ace9-90a4aae022f7",
+          "timestamp": "2025-11-25T10:41:25.251200"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000356",
+      "title": "Toto (band) - Alchetron, The Free Social Encyclopedia",
+      "url": "https://alchetron.com/Toto-(band)",
+      "domain": "alchetron.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9938,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/60820d61-85b1-403d-a62d-bd5884658c37.jpg",
+          "id": "029ad8ca-1077-4303-90e3-18804b4b8a8f",
+          "timestamp": "2025-11-25T10:41:25.324492"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000357",
+      "title": "Toto biography | Last.fm",
+      "url": "https://www.last.fm/music/Toto/+wiki",
+      "domain": "www.last.fm",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9761,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/050f3803-1513-4e4b-97f3-833a9a47e454.jpg",
+          "id": "198efd0b-a418-48ff-b46a-2892670e5390",
+          "timestamp": "2025-11-25T10:41:25.392219"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000358",
+      "title": "v88 toto - v88 toto Link Alternatif: Bocoran Situs Terbaik Di Jamin...",
+      "url": "https://abtfisioterapia.com/v88toto/",
+      "domain": "abtfisioterapia.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9892,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/dcd9d435-2dce-4cc2-a17e-155509a97a2c.jpg",
+          "id": "2504087a-1603-4a40-9269-328e02fa2172",
+          "timestamp": "2025-11-25T10:41:25.606431"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000359",
+      "title": "toto 88slot - TOTO 88SLOT LOGIN ALTERNATIF RESMI pagoda168",
+      "url": "https://toto88slot.countriestotravel.com/",
+      "domain": "toto88slot.countriestotravel.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "gambling",
+          "classification_confidence": 0.9949,
+          "detections": [
+            {
+              "class": "logo",
+              "confidence": 0.15965814888477325,
+              "bbox": [
+                850.9976806640625,
+                40.756893157958984,
+                1057.14208984375,
+                99.80814361572266
+              ]
+            }
+          ],
+          "ocr": [],
+          "visualization_path": "/results/inference/39e81397-4c6c-4835-9ccb-e78eced26843.jpg",
+          "id": "afb1acd6-104b-4e9a-87cc-dc78593d29dd",
+          "timestamp": "2025-11-25T10:41:25.887315"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000360",
+      "title": "En İyi 3.000+ Toto 88 Rtp 【copy Url：777rich.com】 Toto 88...",
+      "url": "https://www.pexels.com/tr-tr/arama/videos/toto88+rtp💬+【copy+url：777rich.com】💬+toto88+rtp-qsx/",
+      "domain": "www.pexels.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9937,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/28fe33f6-9a76-492b-ae75-93229bafa398.jpg",
+          "id": "f2c766bc-5984-4682-91fc-b3fcbe193f5b",
+          "timestamp": "2025-11-25T10:41:26.216968"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000361",
+      "title": "v88 toto - V88 Toto • Login • Daftar • Link Alternatif mustang77",
+      "url": "https://coconadministratie.nl/v88toto/",
+      "domain": "coconadministratie.nl",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "gambling",
+          "classification_confidence": 0.9949,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/cdb734a4-9de5-4185-985e-445358e25a07.jpg",
+          "id": "fdae0fa6-64d4-4f58-8662-63201656a808",
+          "timestamp": "2025-11-25T10:41:26.118946"
+        }
+      },
+      "detection_status": "success"
+    }
+  ]
+}

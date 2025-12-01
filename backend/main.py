@@ -5,7 +5,7 @@ import os
 
 import db
 from routes import data_routes
-from routes import chat_routes, history_routes, update_routes, text_analyze_routes, image_analyze_routes, law_rag_routes 
+from routes import chat_routes, history_routes, update_routes, text_analyze_routes, image_analyze_routes, law_rag_routes, crawler_routes
 
 
 load_dotenv()
@@ -28,7 +28,8 @@ app.include_router(history_routes.router)
 app.include_router(chat_routes.router)
 app.include_router(text_analyze_routes.router)
 app.include_router(image_analyze_routes.router)
-app.include_router(law_rag_routes.router) 
+app.include_router(law_rag_routes.router)
+app.include_router(crawler_routes.router, prefix="/api/crawler", tags=["crawler"]) 
 
 @app.get("/")
 def root():
