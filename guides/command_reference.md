@@ -105,5 +105,5 @@ curl http://localhost:8000/
 curl http://localhost/api/
 
 # Test public URL
-curl -I https://p5of745zrn7l3a-80.proxy.runpod.net/
+curl -I https://nghbz6f39eg4xx-80.proxy.runpod.net/login
 ``

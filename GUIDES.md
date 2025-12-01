@@ -34,7 +34,7 @@ Architecture:
 ```
 Internet (HTTPS)
     ↓
-RunPod Proxy: https://p5of745zrn7l3a-80.proxy.runpod.net/
+RunPod Proxy: https://nghbz6f39eg4xx-80.proxy.runpod.net/login
     ↓
 Container Port 80 → Nginx (Reverse Proxy)
     ├─ /api/ → Backend (Port 8000) - FastAPI
@@ -65,7 +65,7 @@ scripts/deploy.sh
 
 Or manually and detailed: [Manual Deployment](guides/manual_deploy.md)
 
-Access Application: https://p5of745zrn7l3a-80.proxy.runpod.net/`
+Access Application: https://nghbz6f39eg4xx-80.proxy.runpod.net/login`
 
 ### Local Development
 
