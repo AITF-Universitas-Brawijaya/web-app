@@ -90,7 +90,8 @@ echo "[INFO] Starting application with PM2..."
 cd "$PROJECT_DIR"
 
 # Stop existing PM2 process if running
-pm2 delete prd-analyst-dashboard 2>/dev/null || true
+pm2 delete prd-analyst-frontend 2>/dev/null || true
+pm2 delete prd-analyst-backend 2>/dev/null || true
 
 # Start with ecosystem file
 pm2 start ecosystem.config.js
@@ -147,7 +148,7 @@ echo "Deployment Complete!"
 echo "========================================="
 echo ""
 echo "Next steps:"
-echo "1. Check PM2 logs: pm2 logs prd-analyst-dashboard"
+echo "1. Check PM2 logs: pm2 logs prd-analyst-frontend"
 echo "2. Monitor status: pm2 monit"
 echo "3. Access your app via RunPod proxy URL"
 echo ""

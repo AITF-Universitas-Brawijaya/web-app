@@ -10,6 +10,14 @@ const STATUS_LABEL = {
   "false-positive": { label: "False Positive", className: "bg-destructive/10 text-destructive-foreground" },
 }
 
+// Fallback untuk status yang tidak terdefinisi
+function getStatusLabel(status: string) {
+  return STATUS_LABEL[status as keyof typeof STATUS_LABEL] || {
+    label: "Unknown",
+    className: "bg-muted text-foreground/60"
+  }
+}
+
 function formatDateOnly(d: string) {
   const date = new Date(d)
   return date.toISOString().split("T")[0]
@@ -44,10 +52,10 @@ export default function DataTable({
       <thead className="bg-muted text-foreground/80">
         <tr>
           <th className="px-4 py-3 text-left font-medium w-[28%]">Link</th>
-          <th className="px-4 py-3 text-left font-medium">Jenis</th>
-          <th className="px-4 py-3 text-left font-medium">Kepercayaan</th>
           <th className="px-4 py-3 text-left font-medium">Tanggal</th>
           <th className="px-4 py-3 text-left font-medium">Tgl Berubah</th>
+          <th className="px-4 py-3 text-left font-medium">Modified By</th>
+          <th className="px-4 py-3 text-left font-medium">Kepercayaan</th>
           <th className="px-4 py-3 text-left font-medium">Status</th>
           <th className="px-4 py-3 text-left font-medium" />
         </tr>
@@ -78,7 +86,9 @@ export default function DataTable({
                 <div className="text-xs text-foreground/50 mb-0.5">{toHexId(it.id)}</div>
                 <div className="truncate max-w-[28ch]" title={it.link}>{it.link}</div>
               </td>
-              <td className="px-4 py-3">{it.jenis}</td>
+              <td className="px-4 py-3">{formatDateOnly(it.tanggal)}</td>
+              <td className="px-4 py-3">{formatDateOnly(it.lastModified)}</td>
+              <td className="px-4 py-3 text-foreground/70">{it.modifiedBy}</td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
                   <span className="w-10 text-right">{conf}%</span>
@@ -90,11 +100,9 @@ export default function DataTable({
                   </div>
                 </div>
               </td>
-              <td className="px-4 py-3">{formatDateOnly(it.tanggal)}</td>
-              <td className="px-4 py-3">{formatDateOnly(it.lastModified)}</td>
               <td className="px-4 py-3">
-                <Badge className={cn("font-semibold", STATUS_LABEL[it.status].className)}>
-                  {STATUS_LABEL[it.status].label}
+                <Badge className={cn("font-semibold", getStatusLabel(it.status).className)}>
+                  {getStatusLabel(it.status).label}
                 </Badge>
               </td>
               <td className="px-4 py-3">

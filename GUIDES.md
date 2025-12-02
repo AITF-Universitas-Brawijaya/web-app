@@ -91,29 +91,29 @@ scripts/stop-dev.sh
 
 Or manually: [Manual Local Development](guides/manual_local_development.md)
 
-Access Application: http://localhost:3000 (frontend), http://localhost:8000 (backend)
+Access Application: http://localhost:3001 (frontend), http://localhost:8001 (backend)
 
-If you use local browser then forward port 3000 to your local machine
+If you use local browser then forward port 3001 to your local machine
 
 ### Update & Maintenance
 
-Update Application Code:
+Update Frontend:
 
 ```bash
-cd /home/ubuntu/tim6_prd_workdir
 scripts/update-app.sh
 ```
 
 Or manually: [Manual Update](guides/manual_update.md)
 
-
-Update Backend Dependencies:
+Update Backend:
 
 ```bash
 conda activate prd6
+pm2 restart prd-analyst-backend
+
+# Update dependencies
 cd backend
 pip install -r requirements.txt
-pm2 restart prd-analyst-backend
 ```
 
 Update Nginx Configuration:
@@ -254,6 +254,7 @@ pkill -f "uvicorn"
 ## Other Guides
 
 - [Database Setup](guides/database_setup.md)
+- [Data Management](guides/data_management.md)
 - [Troubleshooting](guides/troubleshooting.md)
 - [Helper Scripts](guides/helper_scripts.md)
 - [Command Reference](guides/command_reference.md)

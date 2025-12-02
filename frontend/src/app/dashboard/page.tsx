@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/Input"
 import Sidebar from "@/components/layout/Sidebar"
 import ThemeToggle from "@/components/layout/ThemeToggle"
 import { SortMenu } from "@/components/controls/SortMenu"
-import { FilterMenu } from "@/components/controls/FilterMenu"
 import { PerPage } from "@/components/controls/PerPage"
 
 // charts & modal
@@ -44,7 +43,6 @@ type TabKey = (typeof TAB_ORDER)[number]["key"]
 export default function PRDDashboardPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("all")
   const [search, setSearch] = useState("")
-  const [jenisFilter, setJenisFilter] = useState<string[]>(["Judi", "Pornografi", "Penipuan"])
   const [sortCol, setSortCol] = useState<"tanggal" | "kepercayaan">("tanggal")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [page, setPage] = useState(1)
@@ -72,13 +70,10 @@ export default function PRDDashboardPage() {
           : activeTab === "flagged"
             ? it.flagged
             : (it.status as string) === activeTab
-      const matchJenis = jenisFilter.some(filter =>
-        it.jenis.toLowerCase().includes(filter.toLowerCase())
-      )
       const matchSearch = it.link.toLowerCase().includes(search.toLowerCase())
-      return matchTab && matchJenis && matchSearch
+      return matchTab && matchSearch
     })
-  }, [data, activeTab, jenisFilter, search])
+  }, [data, activeTab, search])
 
   const sorted = useMemo(() => {
     const list = [...filtered]
@@ -138,7 +133,6 @@ export default function PRDDashboardPage() {
                         setSortOrder(o)
                       }}
                     />
-                    <FilterMenu value={jenisFilter} onApply={setJenisFilter} />
                     <Button
                       size="sm"
                       variant="outline"
