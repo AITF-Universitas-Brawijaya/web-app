@@ -82,7 +82,7 @@ def load_seen_domains():
                     domain = line.strip()
                     if domain:
                         SEEN_DOMAINS.add(domain)
-            print(f"[INFO] Loaded {len(SEEN_DOMAINS)} existing domains from {ALL_DOMAINS_FILE}")
+            print(f"[INFO] Loaded {len(SEEN_DOMAINS)} existing domains")
         except Exception as e:
             print(f"[WARNING] Failed to load domains: {str(e)}")
     else:
@@ -104,11 +104,11 @@ def load_blocked_domains():
                     domain = line.strip()
                     if domain:
                         BLOCKED_DOMAINS.add(domain)
-            print(f"[INFO] Loaded {len(BLOCKED_DOMAINS)} blocked domains from {blocked_file}")
+            print(f"[INFO] Loaded {len(BLOCKED_DOMAINS)} blocked domains")
         except Exception as e:
             print(f"[WARNING] Failed to load blocked domains: {str(e)}")
     else:
-        print(f"[WARNING] Blocked domains file not found at {blocked_file}. Continuing without blocked list.")
+        print(f"[WARNING] Blocked domains file not found. Continuing without blocked list.")
 
 
 def load_blocked_keywords():
@@ -125,11 +125,11 @@ def load_blocked_keywords():
                     keyword = line.strip()
                     if keyword:
                         blocked_keywords.append(keyword)
-            print(f"[INFO] Loaded {len(blocked_keywords)} blocked keywords from {blocked_file}")
+            print(f"[INFO] Loaded {len(blocked_keywords)} blocked keywords")
         except Exception as e:
             print(f"[WARNING] Failed to load blocked keywords: {str(e)}")
     else:
-        print(f"[INFO] No blocked keywords file found at {blocked_file}. Continuing without keyword exclusions.")
+        print(f"[INFO] No blocked keywords file found. Continuing without keyword exclusions.")
     
     return blocked_keywords
 
@@ -142,7 +142,7 @@ def save_last_keywords(keywords):
     try:
         with open(LAST_KEYWORDS_FILE, "w", encoding="utf-8") as f:
             f.write(", ".join(keywords))
-        print(f"[INFO] Saved {len(keywords)} keywords to {LAST_KEYWORDS_FILE}")
+        print(f"[INFO] Saved {len(keywords)} keywords")
     except Exception as e:
         print(f"[ERROR] Failed to save keywords: {str(e)}")
 
@@ -209,7 +209,7 @@ def save_new_domains(new_domains):
         with open(ALL_DOMAINS_FILE, "a", encoding="utf-8") as f:
             for domain in new_domains:
                 f.write(domain + "\n")
-        print(f"[INFO] Saved {len(new_domains)} new domains to {ALL_DOMAINS_FILE}")
+        print(f"[INFO] Saved {len(new_domains)} new domains")
     except Exception as e:
         print(f"[ERROR] Failed to save new domains: {str(e)}")
 
@@ -607,8 +607,7 @@ def main():
     query = ' OR '.join(keywords)
     if blocked_keywords:
         query += ' ' + ' '.join(f'-{kw}' for kw in blocked_keywords)
-        print(f"[CONFIG] Blocked keywords: {', '.join(blocked_keywords)}", flush=True)
-    print(f"[SEARCH] Starting search with query: {query}", flush=True)
+    print(f"[SEARCH] Starting search with query: {keywords} + blocked domains", flush=True)
     
     # Get search results
     print("[SEARCH] Fetching search results from DuckDuckGo...", flush=True)
@@ -712,7 +711,7 @@ def main():
     with open(json_filepath, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
     
-    print(f"[SAVE] JSON saved: {json_filepath}", flush=True)
+    print(f"[SAVE] JSON saved", flush=True)
     
     # Update last ID
     final_id = current_id + len(all_results) - 1
@@ -721,11 +720,9 @@ def main():
     
     # Save new domains to file
     save_new_domains(new_domains_list)
-    print(f"[SAVE] Saved {len(new_domains_list)} new domains to tracking file", flush=True)
     
     # Save keywords for next use
     save_last_keywords(keywords)
-    print(f"[SAVE] Saved keywords for future use", flush=True)
     
     # Save to database
     print(f"[DATABASE] Saving {len(all_results)} records to database...", flush=True)

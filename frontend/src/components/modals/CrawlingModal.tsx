@@ -113,6 +113,14 @@ export default function CrawlingModal({
         }
     }, [open])
 
+    // Reset isMinimized when modal is reopened
+    useEffect(() => {
+        if (open) {
+            setIsMinimized(false)
+        }
+    }, [open])
+
+
     const keywordList = keywords.split(/[,\n]/).map(k => k.trim()).filter(k => k)
 
     function handleEditKeywords() {
@@ -133,6 +141,9 @@ export default function CrawlingModal({
             setIsCompleted(false)
             setCountdown(3)
             setActiveTab("generating")
+
+            // Add initial log
+            setLogs(["[INFO] Starting..."])
 
             // Start crawler
             const res = await fetch(`${API_BASE}/api/crawler/start`, {
@@ -298,47 +309,16 @@ export default function CrawlingModal({
                     <DialogTitle>Domain Generator</DialogTitle>
                 </DialogHeader>
 
-                {/* Tabs */}
-                <div className="flex border-b border-border">
-                    <button
-                        className={`px-4 py-2 text-sm font-medium ${activeTab === "detail"
-                            ? "border-b-2 border-primary text-primary"
-                            : "text-muted-foreground hover:text-foreground"
-                            }`}
-                        onClick={() => activeTab !== "generating" && setActiveTab("detail")}
-                        disabled={activeTab === "generating"}
-                    >
-                        Generation Detail
-                    </button>
-                    <button
-                        className={`px-4 py-2 text-sm font-medium ${activeTab === "generating"
-                            ? "border-b-2 border-primary text-primary"
-                            : "text-muted-foreground hover:text-foreground"
-                            }`}
-                        disabled
-                    >
-                        Generating
-                    </button>
-                    <button
-                        className={`px-4 py-2 text-sm font-medium ${activeTab === "result"
-                            ? "border-b-2 border-primary text-primary"
-                            : "text-muted-foreground hover:text-foreground"
-                            }`}
-                        disabled
-                    >
-                        Result
-                    </button>
-                </div>
 
                 {/* Tab Content */}
-                <div className="flex-1 overflow-y-auto py-4" style={{ minHeight: "400px", maxHeight: "400px" }}>
+                <div className="flex-1 overflow-y-auto pt-4" style={{ minHeight: "330px", maxHeight: "330px" }}>
                     {/* Tab 1: Crawling Detail */}
                     {activeTab === "detail" && (
                         <div className="space-y-4">
                             {/* Domain Count */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Jumlah Domain Generate</label>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 mt-1">
                                     <Button
                                         variant="outline"
                                         size="icon"
@@ -384,7 +364,7 @@ export default function CrawlingModal({
                                         value={tempKeywords}
                                         onChange={(e) => setTempKeywords(e.target.value)}
                                         className="w-full p-3 text-sm border border-border rounded-md bg-background resize-none"
-                                        style={{ height: "168px" }}
+                                        style={{ height: "165px" }}
                                         placeholder="Masukkan keyword-keyword untuk mencari domain, pisahkan dengan koma atau baris baru"
                                     />
                                 ) : (
@@ -397,14 +377,6 @@ export default function CrawlingModal({
                                     {keywordList.length} keywords
                                 </div>
                             </div>
-
-                            {/* Actions */}
-                            <div className="flex justify-end gap-2">
-                                <Button variant="outline" onClick={handleClose}>
-                                    Cancel
-                                </Button>
-                                <Button onClick={handleGenerate}>Generate</Button>
-                            </div>
                         </div>
                     )}
 
@@ -414,7 +386,7 @@ export default function CrawlingModal({
                             {/* Logs */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Log</label>
-                                <div className="bg-black text-green-400 p-4 rounded-md h-[400px] overflow-y-auto font-mono text-xs">
+                                <div className="mt-1 bg-black text-green-400 p-4 rounded-md h-[250px] overflow-y-auto font-mono text-xs">
                                     {logs.map((log, i) => (
                                         <div key={i}>{log}</div>
                                     ))}
@@ -426,22 +398,6 @@ export default function CrawlingModal({
                             <div className="text-sm text-muted-foreground">
                                 Time elapsed: {formatTime(timeElapsed)}
                             </div>
-
-                            {/* Actions */}
-                            <div className="flex justify-end gap-2">
-                                <Button variant="outline" onClick={handleMinimize}>
-                                    Minimize
-                                </Button>
-                                {isCompleted ? (
-                                    <Button onClick={handleContinue}>
-                                        Continue ({countdown}s)
-                                    </Button>
-                                ) : (
-                                    <Button variant="destructive" onClick={handleCancel} disabled={isCancelling}>
-                                        {isCancelling ? "Cancelling..." : "Cancel"}
-                                    </Button>
-                                )}
-                            </div>
                         </div>
                     )}
 
@@ -450,7 +406,7 @@ export default function CrawlingModal({
                         <div className="space-y-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Summary</label>
-                                <div className="p-4 border border-border rounded-md space-y-2 text-sm">
+                                <div className="mt-1 p-4 border border-border rounded-md space-y-2 text-sm">
                                     <div>
                                         <strong>Status:</strong> {summary.status === "success" ? "Success" : "Partial Success"}
                                     </div>
@@ -472,10 +428,41 @@ export default function CrawlingModal({
                             <div className="text-sm text-muted-foreground">
                                 {summary.domains_inserted} domain inserted
                             </div>
+                        </div>
+                    )}
+                </div>
 
-                            <div className="flex justify-end">
-                                <Button onClick={handleDone}>Done</Button>
-                            </div>
+                {/* Actions Footer - Fixed at bottom */}
+                <div className="pt-4 mt-4">
+                    {activeTab === "detail" && (
+                        <div className="flex justify-end gap-2">
+                            <Button variant="outline" onClick={handleClose}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleGenerate}>Generate</Button>
+                        </div>
+                    )}
+
+                    {activeTab === "generating" && (
+                        <div className="flex justify-end gap-2">
+                            <Button variant="outline" onClick={handleMinimize}>
+                                Minimize
+                            </Button>
+                            {isCompleted ? (
+                                <Button onClick={handleContinue}>
+                                    Continue ({countdown}s)
+                                </Button>
+                            ) : (
+                                <Button variant="destructive" onClick={handleCancel} disabled={isCancelling}>
+                                    {isCancelling ? "Cancelling..." : "Cancel"}
+                                </Button>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === "result" && (
+                        <div className="flex justify-end">
+                            <Button onClick={handleDone}>Done</Button>
                         </div>
                     )}
                 </div>

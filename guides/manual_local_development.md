@@ -10,7 +10,10 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8001
 
 # Terminal 2 - Frontend (port 3001)
 cd frontend
+```
+Change .env.local NEXT_PUBLIC_API_URL to http://localhost:8001
 
+```bash
 # Development
 PORT=3001 pnpm run dev
 

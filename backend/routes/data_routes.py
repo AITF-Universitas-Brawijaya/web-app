@@ -33,11 +33,19 @@ def get_all_data(db: Session = Depends(get_db)):
 
         formatted = []
         for row in rows:
+            # Extract first keyword as jenis, or default to "Judi"
+            keywords = row.get("keywords") or ""
+            jenis = keywords.split(",")[0].strip().title() if keywords else "Judi"
+            
+            # Convert confidence from decimal (0-1) to percentage (0-100)
+            confidence_decimal = float(row.get("final_confidence")) if row.get("final_confidence") else 0.90
+            kepercayaan = round(confidence_decimal * 100)
+            
             formatted.append({
                 "id": row["id_results"],
                 "link": row["url"] or "",
-               "jenis": row["keywords"] or "Judi",
-                "kepercayaan": float(row.get("final_confidence")) if row.get("final_confidence") else 90.0,
+                "jenis": jenis,
+                "kepercayaan": kepercayaan,
                 "status": (row.get("status") or "unverified").lower(),
                 "tanggal": (
                     row.get("created_at").isoformat()
@@ -49,6 +57,7 @@ def get_all_data(db: Session = Depends(get_db)):
                     if row.get("date_generated")
                     else datetime.utcnow().isoformat()
                 ),
+                "modifiedBy": "admin",  # Default value for all records
                 "reasoning": row.get("reasoning_text") or "-",
                 "image": row.get("image_final_path") or "",
                 "flagged": False  # Default value since column doesn't exist

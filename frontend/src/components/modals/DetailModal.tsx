@@ -64,7 +64,7 @@ export default function DetailModal({
       try {
         setChat(JSON.parse(saved))
         return
-      } catch {}
+      } catch { }
     }
     setChat([
       {
@@ -142,79 +142,79 @@ export default function DetailModal({
     }
   }
 
-async function updateStatus(next: Status) {
-  if (!item) return
-  setLoading(true)
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/update/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: item.id,
-        patch: { status: next},
-      }),
-    })
-
-    const json = await res.json().catch(() => null)
-    console.log("[updateStatus] response:", res.status, json)
-
-    if (!res.ok) {
-      console.error("Update status failed:", res.status, json)
-      alert("Gagal update status. Cek console (Network) untuk detail.")
-      return
-    }
-
-    await mutateHistory()
+  async function updateStatus(next: Status) {
+    if (!item) return
+    setLoading(true)
     try {
-      onMutate() 
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/update/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: item.id,
+          patch: { status: next },
+        }),
+      })
+
+      const json = await res.json().catch(() => null)
+      console.log("[updateStatus] response:", res.status, json)
+
+      if (!res.ok) {
+        console.error("Update status failed:", res.status, json)
+        alert("Gagal update status. Cek console (Network) untuk detail.")
+        return
+      }
+
+      await mutateHistory()
+      try {
+        onMutate()
+      } catch (err) {
+        console.warn("onMutate failed or not provided:", err)
+      }
+      onClose()
     } catch (err) {
-      console.warn("onMutate failed or not provided:", err)
+      console.error("Network error updateStatus:", err)
+      alert("Kesalahan jaringan saat mengupdate status.")
+    } finally {
+      setLoading(false)
     }
-    onClose()
-  } catch (err) {
-    console.error("Network error updateStatus:", err)
-    alert("Kesalahan jaringan saat mengupdate status.")
-  } finally {
-    setLoading(false)
   }
-}
 
-async function toggleFlag() {
-  if (!item) return
-  const nextVal = !flaggedLocal
-  setFlaggedLocal(nextVal)
+  async function toggleFlag() {
+    if (!item) return
+    const nextVal = !flaggedLocal
+    setFlaggedLocal(nextVal)
 
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/update/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: item.id,
-        patch: { flagged: nextVal},
-      }),
-    })
-    const json = await res.json().catch(() => null)
-    console.log("[toggleFlag] response:", res.status, json)
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/update/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: item.id,
+          patch: { flagged: nextVal },
+        }),
+      })
+      const json = await res.json().catch(() => null)
+      console.log("[toggleFlag] response:", res.status, json)
 
-    if (!res.ok) {
-      console.error("Toggle flag failed:", res.status, json)
+      if (!res.ok) {
+        console.error("Toggle flag failed:", res.status, json)
+        setFlaggedLocal(!nextVal)
+        alert("Gagal mengubah flag. Cek console.")
+        return
+      }
+
+      await mutateHistory()
+      try {
+        onMutate()
+      } catch (err) {
+        console.warn("onMutate failed or not provided:", err)
+      }
+    } catch (err) {
+      console.error("Network error toggleFlag:", err)
       setFlaggedLocal(!nextVal)
-      alert("Gagal mengubah flag. Cek console.")
-      return
+      alert("Kesalahan jaringan saat mengubah flag.")
     }
-
-    await mutateHistory()
-    try {
-      onMutate()
-    } catch (err) {
-      console.warn("onMutate failed or not provided:", err)
-    }
-  } catch (err) {
-    console.error("Network error toggleFlag:", err)
-    setFlaggedLocal(!nextVal)
-    alert("Kesalahan jaringan saat mengubah flag.")
   }
-}
 
 
   if (!item) return null
@@ -256,13 +256,13 @@ async function toggleFlag() {
                     document.body.removeChild(textarea);
                   }
                 }}
-                  aria-label="Copy link"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2" stroke="currentColor" strokeWidth="2" />
-                    <path d="M8 16h8a2 2 0 002-2v-8" stroke="currentColor" strokeWidth="2" />
-                  </svg>
-                </Button>
+                aria-label="Copy link"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2" stroke="currentColor" strokeWidth="2" />
+                  <path d="M8 16h8a2 2 0 002-2v-8" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </Button>
               <Button
                 variant={flaggedLocal ? "default" : "outline"}
                 size="sm"
@@ -305,27 +305,6 @@ async function toggleFlag() {
                 alt="Hasil deteksi gambar"
                 className="rounded-md mx-auto w-full max-w-md h-auto object-contain border"
               />
-            </div>
-
-            {/* Kontak */}
-            <div>
-              <div className="text-xs font-semibold mb-2">Kontak Terkait</div>
-              <div className="border border-border rounded-md p-3 bg-card flex flex-col gap-2">
-                {kontakList.map((k, idx) => (
-                  <div
-                    key={idx}
-                    className={cn(
-                      "flex justify-between items-center text-xs border border-muted-foreground/20 rounded-md px-3 py-1",
-                      contextMode && "cursor-pointer hover:bg-muted",
-                      selectedContexts.includes(`${k.type}: ${k.value}`) && "bg-muted border-primary"
-                    )}
-                    onClick={() => toggleContext(`${k.type}: ${k.value}`)}
-                  >
-                    <span>{k.type}</span>
-                    <span className="font-medium">{k.value}</span>
-                  </div>
-                ))}
-              </div>
             </div>
 
             {/* Riwayat */}

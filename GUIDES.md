@@ -254,6 +254,7 @@ pkill -f "uvicorn"
 ## Other Guides
 
 - [Database Setup](guides/database_setup.md)
+- [Data Management](guides/data_management.md)
 - [Troubleshooting](guides/troubleshooting.md)
 - [Helper Scripts](guides/helper_scripts.md)
 - [Command Reference](guides/command_reference.md)

@@ -49,6 +49,11 @@ kill_port $BACKEND_PORT  # Backend
 # Start backend
 echo -e "${BLUE}[INFO]${NC} Starting backend on port $BACKEND_PORT..."
 cd "$BACKEND_DIR"
+
+# Set FRONTEND_URL for local development (always 3001)
+# Port 3000 is reserved for actual deployment
+export FRONTEND_URL="http://localhost:3001"
+
 uvicorn main:app --reload --host 0.0.0.0 --port $BACKEND_PORT > /tmp/backend-$MODE.log 2>&1 &
 BACKEND_PID=$!
 echo -e "${GREEN}[SUCCESS]${NC} Backend started (PID: $BACKEND_PID)"
@@ -97,6 +102,7 @@ echo "=========================================="
 echo "Mode:     $MODE"
 echo "Frontend: http://localhost:$FRONTEND_PORT"
 echo "Backend:  http://localhost:$BACKEND_PORT"
+echo "CORS:     $FRONTEND_URL"
 echo "=========================================="
 echo ""
 echo "Process IDs:"
