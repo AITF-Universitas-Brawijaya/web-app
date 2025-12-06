@@ -2,12 +2,20 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from db import get_db
+from utils.auth_middleware import get_current_user
 from datetime import datetime
 
 router = APIRouter(prefix="/api/data", tags=["Data"])
 
 @router.get("/")
-def get_all_data(db: Session = Depends(get_db)):
+def get_all_data(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get all results data.
+    Requires authentication.
+    """
     try:
         query = text("""
             SELECT
@@ -22,6 +30,9 @@ def get_all_data(db: Session = Depends(get_db)):
                 r.label_final,
                 r.final_confidence,
                 r.created_at,
+                r.created_by,
+                r.verified_by,
+                r.verified_at,
                 r.modified_by,
                 r.modified_at,
                 r.status,
@@ -52,6 +63,13 @@ def get_all_data(db: Session = Depends(get_db)):
                     row.get("created_at").isoformat()
                     if row.get("created_at")
                     else datetime.utcnow().isoformat()
+                ),
+                "createdBy": row.get("created_by") or "-",
+                "verifiedBy": row.get("verified_by") or "-",
+                "verifiedAt": (
+                    row.get("verified_at").isoformat()
+                    if row.get("verified_at")
+                    else None
                 ),
                 "lastModified": (
                     row.get("modified_at").isoformat()

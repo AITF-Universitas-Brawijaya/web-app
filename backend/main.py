@@ -6,6 +6,7 @@ import os
 import db
 from routes import data_routes
 from routes import chat_routes, history_routes, update_routes, text_analyze_routes, image_analyze_routes, law_rag_routes, crawler_routes
+from routes import auth_routes, audit_routes
 
 
 load_dotenv()
@@ -22,8 +23,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Authentication routes (no auth required)
+app.include_router(auth_routes.router)
+
+# Protected routes (authentication required)
 app.include_router(data_routes.router)
 app.include_router(update_routes.router)
+app.include_router(audit_routes.router)
 app.include_router(history_routes.router)
 app.include_router(chat_routes.router)
 app.include_router(text_analyze_routes.router)

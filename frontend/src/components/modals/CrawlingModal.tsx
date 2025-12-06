@@ -145,10 +145,20 @@ export default function CrawlingModal({
             // Add initial log
             setLogs(["[INFO] Starting..."])
 
+            // Get auth token
+            const token = localStorage.getItem("auth_token")
+            if (!token) {
+                setLogs((prev) => [...prev, "[ERROR] Not authenticated"])
+                return
+            }
+
             // Start crawler
             const res = await fetch(`${API_BASE}/api/crawler/start`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     domain_count: domainCount,
                     keywords: keywordList,
@@ -230,8 +240,10 @@ export default function CrawlingModal({
             setIsCancelling(true)
             setLogs((prev) => [...prev, "[INFO] Cancelling generation process..."])
 
+            const token = localStorage.getItem("auth_token")
             await fetch(`${API_BASE}/api/crawler/cancel/${jobId}`, {
                 method: "POST",
+                headers: token ? { "Authorization": `Bearer ${token}` } : {},
             })
 
             if (eventSourceRef.current) {

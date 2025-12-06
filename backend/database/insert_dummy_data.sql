@@ -1,12 +1,11 @@
 -- Insert 3 dummy data untuk testing
--- Data 1: Verified - Judi
-INSERT INTO generated_domains (url, title, domain, image_path, status, is_dummy) 
+-- Data 1: Verified - Judi (created by admin, verified by verif1)
+INSERT INTO generated_domains (url, title, domain, image_path, is_dummy) 
 VALUES (
     'https://situs-judi-online.com',
     'Situs Judi Online Terpercaya',
     'situs-judi-online.com',
     '/screenshots/dummy1.png',
-    'verified',
     TRUE
 ) RETURNING id_domain;
 
@@ -32,7 +31,11 @@ VALUES (
     'yolov8-gambling-v1'
 );
 
-INSERT INTO results (id_domain, id_reasoning, id_detection, url, keywords, reasoning_text, image_final_path, label_final, final_confidence)
+INSERT INTO results (
+    id_domain, id_reasoning, id_detection, url, keywords, reasoning_text, 
+    image_final_path, label_final, final_confidence, status,
+    created_by, verified_by, verified_at, modified_by
+)
 VALUES (
     currval('generated_domains_id_domain_seq'),
     currval('reasoning_id_reasoning_seq'),
@@ -42,17 +45,22 @@ VALUES (
     'Website ini teridentifikasi sebagai situs judi online berdasarkan konten visual dan tekstual yang menampilkan permainan kasino.',
     '/results/dummy1_final.png',
     true,
-    97.3
+    97.3,
+    'verified',
+    'admin',
+    'verif1',
+    NOW() - INTERVAL '2 days',
+    'verif1'
 );
 
--- Data 2: Unverified - Pornografi
-INSERT INTO generated_domains (url, title, domain, image_path, status, is_dummy) 
+
+-- Data 2: Unverified - Pornografi (created by verif2, not yet verified)
+INSERT INTO generated_domains (url, title, domain, image_path, is_dummy) 
 VALUES (
     'https://adult-content-site.xxx',
     'Adult Entertainment Portal',
     'adult-content-site.xxx',
     '/screenshots/dummy2.png',
-    'unverified',
     TRUE
 ) RETURNING id_domain;
 
@@ -77,7 +85,11 @@ VALUES (
     'yolov8-nsfw-v1'
 );
 
-INSERT INTO results (id_domain, id_reasoning, id_detection, url, keywords, reasoning_text, image_final_path, label_final, final_confidence)
+INSERT INTO results (
+    id_domain, id_reasoning, id_detection, url, keywords, reasoning_text, 
+    image_final_path, label_final, final_confidence, status,
+    created_by, modified_by
+)
 VALUES (
     currval('generated_domains_id_domain_seq'),
     currval('reasoning_id_reasoning_seq'),
@@ -87,17 +99,20 @@ VALUES (
     'Website ini teridentifikasi sebagai situs pornografi berdasarkan konten visual eksplisit dan indikator 18+.',
     '/results/dummy2_final.png',
     true,
-    94.4
+    94.4,
+    'unverified',
+    'verif2',
+    'verif2'
 );
 
--- Data 3: False Positive - Penipuan (ternyata bukan penipuan)
-INSERT INTO generated_domains (url, title, domain, image_path, status, is_dummy) 
+
+-- Data 3: False Positive - Penipuan (ternyata bukan penipuan, created by admin, verified as false-positive by verif3)
+INSERT INTO generated_domains (url, title, domain, image_path, is_dummy) 
 VALUES (
     'https://legitimate-ecommerce.com',
     'Toko Online Resmi',
     'legitimate-ecommerce.com',
     '/screenshots/dummy3.png',
-    'false-positive',
     TRUE
 ) RETURNING id_domain;
 
@@ -122,7 +137,11 @@ VALUES (
     'yolov8-scam-v1'
 );
 
-INSERT INTO results (id_domain, id_reasoning, id_detection, url, keywords, reasoning_text, image_final_path, label_final, final_confidence)
+INSERT INTO results (
+    id_domain, id_reasoning, id_detection, url, keywords, reasoning_text, 
+    image_final_path, label_final, final_confidence, status, flagged,
+    created_by, verified_by, verified_at, modified_by
+)
 VALUES (
     currval('generated_domains_id_domain_seq'),
     currval('reasoning_id_reasoning_seq'),
@@ -132,5 +151,67 @@ VALUES (
     'Website ini adalah toko online yang legitimate dan bukan merupakan situs penipuan.',
     '/results/dummy3_final.png',
     false,
-    13.8
+    13.8,
+    'false-positive',
+    TRUE,
+    'admin',
+    'verif3',
+    NOW() - INTERVAL '1 day',
+    'verif3'
 );
+
+-- Add audit log entries for the dummy data
+INSERT INTO audit_log (id_result, action, username, timestamp, details)
+SELECT 
+    r.id_results,
+    'created',
+    r.created_by,
+    r.created_at,
+    jsonb_build_object('domain', gd.domain, 'initial_status', 'unverified')
+FROM results r
+JOIN generated_domains gd ON r.id_domain = gd.id_domain
+WHERE gd.is_dummy = TRUE
+  AND r.created_by IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1 FROM audit_log al 
+      WHERE al.id_result = r.id_results AND al.action = 'created'
+  );
+
+-- Add verified audit entries for verified/false-positive dummy data
+INSERT INTO audit_log (id_result, action, username, timestamp, details)
+SELECT 
+    r.id_results,
+    CASE 
+        WHEN r.status = 'verified' THEN 'verified'
+        WHEN r.status = 'false-positive' THEN 'false_positive'
+    END,
+    r.verified_by,
+    r.verified_at,
+    jsonb_build_object('domain', gd.domain, 'status', r.status)
+FROM results r
+JOIN generated_domains gd ON r.id_domain = gd.id_domain
+WHERE gd.is_dummy = TRUE
+  AND r.verified_by IS NOT NULL
+  AND r.status IN ('verified', 'false-positive')
+  AND NOT EXISTS (
+      SELECT 1 FROM audit_log al 
+      WHERE al.id_result = r.id_results 
+        AND al.action IN ('verified', 'false_positive')
+  );
+
+-- Add flagged audit entry for the flagged dummy data
+INSERT INTO audit_log (id_result, action, username, timestamp, details)
+SELECT 
+    r.id_results,
+    'flagged',
+    r.modified_by,
+    r.modified_at,
+    jsonb_build_object('domain', gd.domain, 'reason', 'false positive detection')
+FROM results r
+JOIN generated_domains gd ON r.id_domain = gd.id_domain
+WHERE gd.is_dummy = TRUE
+  AND r.flagged = TRUE
+  AND NOT EXISTS (
+      SELECT 1 FROM audit_log al 
+      WHERE al.id_result = r.id_results AND al.action = 'flagged'
+  );

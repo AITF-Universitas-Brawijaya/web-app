@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import subprocess
@@ -7,6 +7,7 @@ import uuid
 import asyncio
 from typing import Dict, Optional
 import signal
+from utils.auth_middleware import get_current_user
 
 router = APIRouter()
 
@@ -23,9 +24,10 @@ class CrawlerStatus(BaseModel):
     summary: Optional[dict] = None
 
 @router.post("/start")
-async def start_crawler(request: CrawlerRequest):
+async def start_crawler(request: CrawlerRequest, current_user: dict = Depends(get_current_user)):
     """
     Start the crawler with the given parameters.
+    Requires authentication - created_by will be set to current user.
     """
     try:
         if request.domain_count <= 0:
@@ -42,11 +44,13 @@ async def start_crawler(request: CrawlerRequest):
         
         # Prepare command
         keywords_str = ','.join(request.keywords)
+        username = current_user.get("username", "unknown")
         cmd = [
             "python3",
             crawler_path,
             "-n", str(request.domain_count),
-            "-k", keywords_str
+            "-k", keywords_str,
+            "-u", username  # Pass username for created_by tracking
         ]
         
         # Start crawler process

@@ -2,13 +2,22 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from db import get_db
-from stores.history_store import add_history
+from utils.auth_middleware import get_current_user
+from utils.audit import add_audit_log
 import traceback
 
 router = APIRouter(prefix="/api/update", tags=["update"])
 
 @router.post("/")
-async def update_item(request: Request, db: Session = Depends(get_db)):
+async def update_item(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Update domain status or flagged state.
+    Requires authentication - tracks verified_by and modified_by.
+    """
     # DEBUG
     try:
         body = await request.json()
@@ -29,6 +38,9 @@ async def update_item(request: Request, db: Session = Depends(get_db)):
 
     patch = body.get("patch", {})
     print("[DEBUG] Patch received:", patch)
+    
+    username = current_user.get("username")
+    print(f"[DEBUG] User performing update: {username}")
 
     allowed_map = {
         "status": "status",
@@ -36,7 +48,7 @@ async def update_item(request: Request, db: Session = Depends(get_db)):
     }
 
     set_parts = []
-    params = {"id": id_}
+    params = {"id": id_, "username": username}
     i = 0
 
     for k, v in patch.items():
@@ -52,13 +64,30 @@ async def update_item(request: Request, db: Session = Depends(get_db)):
         print("[DEBUG] No valid fields to update:", patch)
         raise HTTPException(status_code=400, detail="No valid fields to update")
 
-    params_sql = ", ".join(set_parts) + ", updated_at = now()"
+    # Handle verified_by and verified_at based on status changes
+    if "status" in patch:
+        status_value = patch["status"]
+        if status_value in ["verified", "false-positive"]:
+            # Set verified_by and verified_at when verifying
+            set_parts.append("verified_by = :username")
+            set_parts.append("verified_at = now()")
+        elif status_value == "unverified":
+            # Clear verified_by and verified_at when changing to unverified
+            set_parts.append("verified_by = NULL")
+            set_parts.append("verified_at = NULL")
+
+    # Always update modified_by and updated_at
+    set_parts.append("modified_by = :username")
+    set_parts.append("updated_at = now()")
+    set_parts.append("modified_at = now()")
+
+    params_sql = ", ".join(set_parts)
 
     query = text(f"""
         UPDATE results
         SET {params_sql}
         WHERE id_results = :id
-        RETURNING id_results, url, status, flagged, updated_at
+        RETURNING id_results, url, status, flagged, verified_by, verified_at, updated_at
     """)
 
     print("\n[DEBUG] EXECUTING SQL:")
@@ -84,16 +113,21 @@ async def update_item(request: Request, db: Session = Depends(get_db)):
         print("==== END ERROR ====\n")
         raise HTTPException(status_code=500, detail=f"Database update failed: {e}")
 
+    # Add audit log entries
     if "flagged" in patch:
-        add_history(id_, "Flagged" if patch["flagged"] else "Unflagged", db)
+        action = "flagged" if patch["flagged"] else "unflagged"
+        add_audit_log(db, id_, action, username)
 
     if "status" in patch:
         s = patch["status"]
         if s == "verified":
-            add_history(id_, "Updated to Verified", db)
+            add_audit_log(db, id_, "verified", username)
         elif s == "unverified":
-            add_history(id_, "Changed to Unverified", db)
+            add_audit_log(db, id_, "unverified", username)
         elif s == "false-positive":
-            add_history(id_, "Marked as False Positive", db)
+            add_audit_log(db, id_, "false_positive", username)
+
+    # Commit audit logs
+    db.commit()
 
     return {"ok": True, "updated": dict(row._mapping)}

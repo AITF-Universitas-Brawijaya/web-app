@@ -45,13 +45,15 @@ fi
 print_info "Dummy data yang akan dihapus ($dummy_count records):"
 psql -U postgres -d "$DB_NAME" <<EOF
 SELECT 
-    id_domain,
-    domain,
-    status,
-    date_generated
-FROM generated_domains 
-WHERE is_dummy = TRUE
-ORDER BY id_domain;
+    gd.id_domain,
+    gd.domain,
+    COALESCE(r.status, 'unverified') as status,
+    gd.date_generated,
+    r.created_by
+FROM generated_domains gd
+LEFT JOIN results r ON gd.id_domain = r.id_domain
+WHERE gd.is_dummy = TRUE
+ORDER BY gd.id_domain;
 EOF
 
 # Confirmation prompt

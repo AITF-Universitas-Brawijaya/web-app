@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import useSWR from "swr"
+import { useAuth } from "@/contexts/AuthContext"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
@@ -21,14 +22,13 @@ import DetailModal from "@/components/modals/DetailModal"
 import CrawlingModal from "@/components/modals/CrawlingModal"
 
 import { LinkRecord } from "@/types/linkRecord"
+import { apiGet } from "@/lib/api"
 
-// const fetcher = (url: string) => fetch(url, { cache: "no-store" }).then((r) => r.json())
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
-
-const fetcher = (url: string) =>
-  fetch(`${API_BASE}${url}`, { cache: "no-store" }).then((r) => r.json())
-console.log("🧠 NEXT_PUBLIC_API_URL:", API_BASE)
-
+// Authenticated fetcher that includes JWT token
+const fetcher = async (url: string) => {
+  const response = await apiGet(url)
+  return response
+}
 
 const TAB_ORDER = [
   { key: "all", label: "All" },
@@ -41,6 +41,7 @@ const TAB_ORDER = [
 type TabKey = (typeof TAB_ORDER)[number]["key"]
 
 export default function PRDDashboardPage() {
+  const { logout } = useAuth()
   const [activeTab, setActiveTab] = useState<TabKey>("all")
   const [search, setSearch] = useState("")
   const [sortCol, setSortCol] = useState<"tanggal" | "kepercayaan">("tanggal")
@@ -54,12 +55,6 @@ export default function PRDDashboardPage() {
     refreshInterval: 4000,
     revalidateOnFocus: true,
   })
-
-  console.log("🔍 DEBUG API_BASE:", API_BASE)
-  console.log("🔍 SWR Data:", data)
-  console.log("🔍 SWR Error:", error)
-  console.log("🔍 SWR Loading:", isLoading)
-
 
   const filtered = useMemo(() => {
     const list = Array.isArray(data) ? data : []
@@ -89,11 +84,6 @@ export default function PRDDashboardPage() {
   const totalPages = Math.max(1, Math.ceil(sorted.length / perPage))
   const pageItems = sorted.slice((page - 1) * perPage, page * perPage)
 
-  const handleLogout = () => {
-    localStorage.removeItem("user")
-    window.location.href = "/login"
-  }
-
   return (
     <ProtectedRoute>
       <div className="flex h-screen">
@@ -102,7 +92,7 @@ export default function PRDDashboardPage() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           tabs={TAB_ORDER}
-          onLogout={handleLogout}
+          onLogout={logout}
         >
           <ThemeToggle />
         </Sidebar>

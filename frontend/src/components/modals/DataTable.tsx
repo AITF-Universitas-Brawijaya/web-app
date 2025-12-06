@@ -86,16 +86,17 @@ export default function DataTable({
                 <div className="flex items-center gap-1.5">
                   <div className="text-xs text-foreground/50">{toHexId(it.id)}</div>
                   {it.flagged && (
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      className="text-primary"
-                      title="Flagged"
-                    >
-                      <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z" />
-                    </svg>
+                    <span title="Flagged">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="text-primary"
+                      >
+                        <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z" />
+                      </svg>
+                    </span>
                   )}
                 </div>
                 <div className="truncate max-w-[28ch]" title={it.link}>{it.link}</div>

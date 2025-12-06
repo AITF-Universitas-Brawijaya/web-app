@@ -453,14 +453,15 @@ def process_detection_api_parallel(all_results):
     print(f"[DETECTION API] Complete: {success_count} success, {failed_count} failed")
 
 
-def save_to_database(all_results, keyword):
-    """Save crawled results to database."""
+def save_to_database(all_results, keyword, username='system'):
+    """Save crawled results to database with user tracking."""
     print("[DATABASE] Starting database save...", flush=True)
     
     try:
         with engine.begin() as conn:
             saved_count = 0
             detection_saved_count = 0
+            results_saved_count = 0
             
             for result in all_results:
                 # Prepare image path in the format: domain-generator/output/img/<id>.png
@@ -468,19 +469,24 @@ def save_to_database(all_results, keyword):
                 
                 # Insert into generated_domains table and get the id_domain
                 insert_result = conn.execute(text("""
-                    INSERT INTO generated_domains (url, title, domain, image_path, status)
-                    VALUES (:url, :title, :domain, :image_path, :status)
+                    INSERT INTO generated_domains (url, title, domain, image_path)
+                    VALUES (:url, :title, :domain, :image_path)
                     RETURNING id_domain
                 """), {
                     "url": result.get('url', ''),
                     "title": result.get('title', '')[:255],  # Limit to 255 chars
                     "domain": result.get('domain', ''),
-                    "image_path": image_path,
-                    "status": "pending"
+                    "image_path": image_path
                 })
                 
                 id_domain = insert_result.fetchone()[0]
                 saved_count += 1
+                
+                # Prepare detection data if available
+                id_detection = None
+                label_final = None
+                final_confidence = None
+                image_detected_path = None
                 
                 # If detection API was successful, save to object_detection table
                 if result.get('detection_status') == 'success' and result.get('detection_api_response'):
@@ -490,16 +496,18 @@ def save_to_database(all_results, keyword):
                     # Transform data
                     status = api_result.get('status', '')
                     label = True if status == 'gambling' else False
+                    label_final = label
                     
                     confidence = api_result.get('classification_confidence', 0.0)
                     confidence_score = round(confidence, 1)
+                    final_confidence = confidence_score
                     
                     visualization_path = api_result.get('visualization_path', '')
                     if visualization_path:
                         visualization_path = visualization_path.lstrip('/')
                         image_detected_path = f"~/tim5_prd_workdir/{visualization_path}"
-                    else:
-                        image_detected_path = None
+                    
+                    id_detection = api_result.get('id')
                     
                     # Insert into object_detection table
                     conn.execute(text("""
@@ -532,7 +540,7 @@ def save_to_database(all_results, keyword):
                             model_version = EXCLUDED.model_version,
                             processed_at = now()
                     """), {
-                        "id_detection": api_result.get('id'),
+                        "id_detection": id_detection,
                         "id_domain": id_domain,
                         "label": label,
                         "confidence_score": confidence_score,
@@ -542,9 +550,64 @@ def save_to_database(all_results, keyword):
                         "model_version": None
                     })
                     detection_saved_count += 1
+                
+                # Insert into results table with created_by tracking
+                conn.execute(text("""
+                    INSERT INTO results (
+                        id_domain,
+                        id_detection,
+                        url,
+                        keywords,
+                        image_final_path,
+                        label_final,
+                        final_confidence,
+                        status,
+                        created_by,
+                        created_at,
+                        modified_by,
+                        modified_at
+                    ) VALUES (
+                        :id_domain,
+                        :id_detection,
+                        :url,
+                        :keywords,
+                        :image_final_path,
+                        :label_final,
+                        :final_confidence,
+                        'unverified',
+                        :created_by,
+                        now(),
+                        :modified_by,
+                        now()
+                    )
+                    ON CONFLICT (id_domain) DO NOTHING
+                """), {
+                    "id_domain": id_domain,
+                    "id_detection": id_detection,
+                    "url": result.get('url', ''),
+                    "keywords": keyword,
+                    "image_final_path": image_detected_path or image_path,
+                    "label_final": label_final,
+                    "final_confidence": final_confidence,
+                    "created_by": username,
+                    "modified_by": username
+                })
+                results_saved_count += 1
+                
+                # Add audit log entry for domain creation
+                conn.execute(text("""
+                    INSERT INTO audit_log (id_result, action, username, timestamp)
+                    SELECT id_results, 'created', :username, now()
+                    FROM results
+                    WHERE id_domain = :id_domain
+                """), {
+                    "username": username,
+                    "id_domain": id_domain
+                })
             
             print(f"[DATABASE] Successfully saved {saved_count} domains to database", flush=True)
             print(f"[DATABASE] Successfully saved {detection_saved_count} detection results to database", flush=True)
+            print(f"[DATABASE] Successfully saved {results_saved_count} results with created_by={username}", flush=True)
             return True
             
     except Exception as e:
@@ -561,6 +624,7 @@ def main():
     parser = argparse.ArgumentParser(description='Domain Generator')
     parser.add_argument('-n', '--domain-count', type=int, default=10, help='Number of domains to generate')
     parser.add_argument('-k', '--keywords', type=str, help='Comma-separated list of keywords')
+    parser.add_argument('-u', '--username', type=str, default='system', help='Username for created_by tracking')
     args = parser.parse_args()
     
     # Track start time
@@ -726,7 +790,7 @@ def main():
     
     # Save to database
     print(f"[DATABASE] Saving {len(all_results)} records to database...", flush=True)
-    db_success = save_to_database(all_results, ', '.join(keywords))
+    db_success = save_to_database(all_results, ', '.join(keywords), args.username)
     
     # Count screenshot results
     screenshot_success = sum(1 for r in all_results if r.get("screenshot_status") == "success")

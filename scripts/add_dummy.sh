@@ -72,13 +72,16 @@ if [ $? -eq 0 ]; then
     print_info "Detail dummy data:"
     psql -U postgres -d "$DB_NAME" <<EOF
 SELECT 
-    id_domain,
-    domain,
-    status,
-    date_generated
-FROM generated_domains 
-WHERE is_dummy = TRUE
-ORDER BY id_domain DESC
+    gd.id_domain,
+    gd.domain,
+    COALESCE(r.status, 'unverified') as status,
+    gd.date_generated,
+    r.created_by,
+    r.verified_by
+FROM generated_domains gd
+LEFT JOIN results r ON gd.id_domain = r.id_domain
+WHERE gd.is_dummy = TRUE
+ORDER BY gd.id_domain DESC
 LIMIT 10;
 EOF
 else
