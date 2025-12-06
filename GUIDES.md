@@ -151,12 +151,6 @@ tar -czf backup-$(date +%Y%m%d).tar.gz \
     - WebSocket support
     - 60s timeouts
 
-3. `scripts/start-backend.sh`: Wrapper script for backend to activate conda environment.
-    
-    **Purpose**: PM2 cannot directly activate conda environments, so this script:
-    1. Activates conda environment `prd6`
-    2. Runs uvicorn with FastAPI
-
 ## Monitoring
 
 Check Service Status:
