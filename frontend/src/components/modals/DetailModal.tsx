@@ -10,8 +10,9 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import DataTable from "./DataTable"
 import { LinkRecord, Status } from "@/types/linkRecord"
+import { apiPost, apiGet } from "@/lib/api"
 
-const fetcher = (url: string) => fetch(url, { cache: "no-store" }).then((r) => r.json())
+const fetcher = async (url: string) => await apiGet(url)
 
 function formatDate(d: string | Date) {
   const date = new Date(d)
@@ -86,7 +87,7 @@ export default function DetailModal({
   }, [item])
 
   const { data: history, mutate: mutateHistory } = useSWR<{ events: { time: string; text: string }[] }>(
-    item ? `${process.env.NEXT_PUBLIC_API_URL}/api/history?id=${item.id}` : null,
+    item ? `/api/history?id=${item.id}` : null,
     fetcher,
     { refreshInterval: 0, revalidateOnFocus: false }
   )
@@ -146,24 +147,12 @@ export default function DetailModal({
     if (!item) return
     setLoading(true)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/update/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: item.id,
-          patch: { status: next },
-        }),
+      const data = await apiPost("/api/update/", {
+        id: item.id,
+        patch: { status: next },
       })
 
-      const json = await res.json().catch(() => null)
-      console.log("[updateStatus] response:", res.status, json)
-
-      if (!res.ok) {
-        console.error("Update status failed:", res.status, json)
-        alert("Gagal update status. Cek console (Network) untuk detail.")
-        setLoading(false)
-        return
-      }
+      console.log("[updateStatus] response:", data)
 
       // Close modal immediately for better UX
       onClose()
@@ -175,12 +164,13 @@ export default function DetailModal({
       } catch (err) {
         console.warn("onMutate failed or not provided:", err)
       }
-    } catch (err) {
-      console.error("Network error updateStatus:", err)
-      alert("Kesalahan jaringan saat mengupdate status.")
+    } catch (err: any) {
+      console.error("Update status failed:", err)
+      alert(`Gagal update status: ${err.message || "Unknown error"}`)
       setLoading(false)
     }
   }
+
 
   async function toggleFlag() {
     if (!item) return
@@ -188,23 +178,12 @@ export default function DetailModal({
     setFlaggedLocal(nextVal)
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/update/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: item.id,
-          patch: { flagged: nextVal },
-        }),
+      const data = await apiPost("/api/update/", {
+        id: item.id,
+        patch: { flagged: nextVal },
       })
-      const json = await res.json().catch(() => null)
-      console.log("[toggleFlag] response:", res.status, json)
 
-      if (!res.ok) {
-        console.error("Toggle flag failed:", res.status, json)
-        setFlaggedLocal(!nextVal)
-        alert("Gagal mengubah flag. Cek console.")
-        return
-      }
+      console.log("[toggleFlag] response:", data)
 
       await mutateHistory()
       try {
@@ -212,10 +191,10 @@ export default function DetailModal({
       } catch (err) {
         console.warn("onMutate failed or not provided:", err)
       }
-    } catch (err) {
-      console.error("Network error toggleFlag:", err)
+    } catch (err: any) {
+      console.error("Toggle flag failed:", err)
       setFlaggedLocal(!nextVal)
-      alert("Kesalahan jaringan saat mengubah flag.")
+      alert(`Gagal mengubah flag: ${err.message || "Unknown error"}`)
     }
   }
 
