@@ -21,4 +21,4 @@ Access: http://localhost:3001 (frontend), http://localhost:8001 (backend)
 
 If you use local browser then forward port 3001 to your local machine
 
-⚠️ **Once finished, update the NEXT_PUBLIC_API_URL value in .env.local file inside the frontend folder to http://localhost:8000 or leave it blank**
+⚠️ **Once finished, update the NEXT_PUBLIC_API_URL value in .env.local file inside the frontend folder to leave it blank**

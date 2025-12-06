@@ -83,7 +83,21 @@ export default function DataTable({
           return (
             <tr key={it.id} className="border-t border-border hover:bg-muted/40">
               <td className="px-4 py-3 font-medium">
-                <div className="text-xs text-foreground/50 mb-0.5">{toHexId(it.id)}</div>
+                <div className="flex items-center gap-1.5">
+                  <div className="text-xs text-foreground/50">{toHexId(it.id)}</div>
+                  {it.flagged && (
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="text-primary"
+                      title="Flagged"
+                    >
+                      <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z" />
+                    </svg>
+                  )}
+                </div>
                 <div className="truncate max-w-[28ch]" title={it.link}>{it.link}</div>
               </td>
               <td className="px-4 py-3">{formatDateOnly(it.tanggal)}</td>

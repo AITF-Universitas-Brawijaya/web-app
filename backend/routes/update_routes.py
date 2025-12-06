@@ -57,8 +57,8 @@ async def update_item(request: Request, db: Session = Depends(get_db)):
     query = text(f"""
         UPDATE results
         SET {params_sql}
-        WHERE id_result = :id
-        RETURNING id_result, url, status, flagged, updated_at
+        WHERE id_results = :id
+        RETURNING id_results, url, status, flagged, updated_at
     """)
 
     print("\n[DEBUG] EXECUTING SQL:")

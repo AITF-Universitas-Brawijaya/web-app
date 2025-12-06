@@ -24,10 +24,9 @@ def get_all_data(db: Session = Depends(get_db)):
                 r.created_at,
                 r.modified_by,
                 r.modified_at,
-                gd.status,
-                gd.date_generated
+                r.status,
+                r.flagged
             FROM results r
-            LEFT JOIN generated_domains gd ON r.id_domain = gd.id_domain
             ORDER BY r.id_results DESC
         """)
         result = db.execute(query)
@@ -57,12 +56,12 @@ def get_all_data(db: Session = Depends(get_db)):
                 "lastModified": (
                     row.get("modified_at").isoformat()
                     if row.get("modified_at")
-                    else (row.get("date_generated").isoformat() if row.get("date_generated") else datetime.utcnow().isoformat())
+                    else (row.get("created_at").isoformat() if row.get("created_at") else datetime.utcnow().isoformat())
                 ),
                 "modifiedBy": row.get("modified_by") or "-",
                 "reasoning": row.get("reasoning_text") or "-",
                 "image": row.get("image_final_path") or "",
-                "flagged": False  # Default value since column doesn't exist
+                "flagged": row.get("flagged") or False
             })
         return formatted
 

@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS generated_domains (
     domain VARCHAR(255),
     image_path TEXT,
     date_generated TIMESTAMPTZ DEFAULT now(),
-    status VARCHAR(20) DEFAULT 'pending',
     is_dummy BOOLEAN DEFAULT FALSE
 );
 
@@ -44,9 +43,12 @@ CREATE TABLE IF NOT EXISTS results (
     image_final_path VARCHAR(512),
     label_final BOOLEAN,
     final_confidence NUMERIC(4,1),
+    status VARCHAR(20) DEFAULT 'unverified',
+    flagged BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT now(),
     modified_by VARCHAR(100),
     modified_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ,
     UNIQUE (id_domain)
 );
 

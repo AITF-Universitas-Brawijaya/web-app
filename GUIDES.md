@@ -62,6 +62,7 @@ Or manually and detailed: [Manual Setup](guides/manual_setup.md)
 chmod +x scripts/deploy.sh
 scripts/deploy.sh
 ```
+It will take a while to finish (3-5 minutes)
 
 Or manually and detailed: [Manual Deployment](guides/manual_deploy.md)
 
@@ -245,6 +246,7 @@ pkill -f "uvicorn"
 
 - [Database Setup](guides/database_setup.md)
 - [Data Management](guides/data_management.md)
+- [Connect Local PgAdmin](guides/connect_local_pgadmin.md)
 - [Troubleshooting](guides/troubleshooting.md)
 - [Helper Scripts](guides/helper_scripts.md)
 - [Command Reference](guides/command_reference.md)
