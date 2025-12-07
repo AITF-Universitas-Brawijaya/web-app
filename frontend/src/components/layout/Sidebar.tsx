@@ -100,7 +100,7 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
               </div>
               <div className="flex flex-col">
                 <h1 className="text-sm font-semibold">PRD Analyst</h1>
-                <span className="text-xs text-muted-foreground">Administrator</span>
+                <span className="text-xs text-muted-foreground">{user?.username || 'User'}</span>
               </div>
               <ChevronDown
                 className={cn(

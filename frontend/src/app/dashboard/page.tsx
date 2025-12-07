@@ -65,7 +65,28 @@ export default function PRDDashboardPage() {
           : activeTab === "flagged"
             ? it.flagged
             : (it.status as string) === activeTab
-      const matchSearch = it.link.toLowerCase().includes(search.toLowerCase())
+
+      // Enhanced search logic for ID and link
+      let matchSearch = false
+      const searchTerm = search.trim()
+
+      if (searchTerm) {
+        // Convert ID to hex format for comparison
+        const hexId = `#${Math.max(1, Number(it.id)).toString(16).toUpperCase().padStart(7, "0")}`
+
+        if (searchTerm.startsWith("#")) {
+          // Exact ID match when search starts with #
+          matchSearch = hexId.toLowerCase() === searchTerm.toLowerCase()
+        } else {
+          // Partial match: check if search term appears in link OR in the hex ID
+          const linkMatch = it.link.toLowerCase().includes(searchTerm.toLowerCase())
+          const idMatch = hexId.includes(searchTerm.toUpperCase())
+          matchSearch = linkMatch || idMatch
+        }
+      } else {
+        matchSearch = true
+      }
+
       return matchTab && matchSearch
     })
   }, [data, activeTab, search])
