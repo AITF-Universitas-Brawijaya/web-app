@@ -123,9 +123,15 @@ export default function PRDDashboardPage() {
           {activeTab !== "summary" && (
             <div className="flex flex-col h-full p-4 gap-4">
               {/* Control Panel */}
-              <Card className="p-3 flex flex-wrap items-center justify-between gap-3">
+              <Card
+                className="p-3 flex flex-wrap items-center justify-between gap-3"
+                style={{
+                  background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)',
+                  border: 'none'
+                }}
+              >
                 <div className="flex items-center justify-between w-full">
-                  <h2 className="text-sm font-semibold">
+                  <h2 className="text-sm font-semibold text-white">
                     {TAB_ORDER.find((t) => t.key === activeTab)?.label} ({sorted.length})
                   </h2>
 
@@ -134,7 +140,7 @@ export default function PRDDashboardPage() {
                       placeholder="Search..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="pl-8 h-8 text-sm"
+                      className="pl-8 h-8 text-sm bg-white dark:bg-background"
                     />
                     <SortMenu
                       sortCol={sortCol}
@@ -147,9 +153,30 @@ export default function PRDDashboardPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="bg-black text-white hover:bg-[rgba(0, 0, 0, 0.30)] border border-border h-8 px-3"
+                      className="h-8 px-3 text-white border-none hover:opacity-90 transition-opacity"
+                      style={{
+                        background: 'linear-gradient(135deg, #1DC0EB 0%, #1199DA 50%, #0B88D3 100%)'
+                      }}
                       onClick={() => setCrawlingModalOpen(true)}
                     >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        className="mr-0.5"
+                      >
+                        {/* Diamond/Sparkle shape similar to Gemini logo */}
+                        <path
+                          d="M12 2L16 8L22 12L16 16L12 22L8 16L2 12L8 8L12 2Z"
+                          fill="currentColor"
+                        />
+                        <path
+                          d="M12 6L14 10L18 12L14 14L12 18L10 14L6 12L10 10L12 6Z"
+                          fill="white"
+                          opacity="0.6"
+                        />
+                      </svg>
                       Generate
                     </Button>
                   </div>

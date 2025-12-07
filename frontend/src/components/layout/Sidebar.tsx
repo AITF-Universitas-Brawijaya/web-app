@@ -78,15 +78,21 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
       {/* 🔹 Sidebar utama */}
       <aside
         className={cn(
-          "fixed lg:static top-0 left-0 h-full border-r border-border bg-card flex flex-col transform transition-all duration-300 z-40",
+          "fixed lg:static top-0 left-0 h-full border-r border-border flex flex-col transform transition-all duration-300 z-40",
           sidebarWidth,
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
+        style={{
+          backgroundImage: 'url(/assets/sidebar.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
       >
         {/* Header profil kiri atas */}
         <div
           className={cn(
-            "border-b border-border flex items-center justify-between relative",
+            "flex items-center justify-between relative",
             isCollapsed ? "px-2 py-3" : "p-4"
           )}
         >
@@ -99,8 +105,8 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
                 P
               </div>
               <div className="flex flex-col">
-                <h1 className="text-sm font-semibold">PRD Analyst</h1>
-                <span className="text-xs text-muted-foreground">{user?.username || 'User'}</span>
+                <h1 className="text-sm font-semibold text-white">PRD Analyst</h1>
+                <span className="text-xs text-white/80">{user?.username || 'User'}</span>
               </div>
               <ChevronDown
                 className={cn(
@@ -137,7 +143,7 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
                   setOpenProfileMenu(false)
                   onLogout()
                 }}
-                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-muted transition"
+                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-muted transition text-foreground"
               >
                 <LogOut className="w-4 h-4" />
                 Logout
@@ -163,8 +169,8 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
                 className={cn(
                   "flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm transition",
                   active
-                    ? "bg-muted text-foreground font-semibold"
-                    : "hover:bg-muted/60 text-foreground/80",
+                    ? "bg-white/20 text-white font-semibold"
+                    : "hover:bg-white/10 text-white/90",
                   isCollapsed && "justify-center px-2"
                 )}
               >
@@ -177,7 +183,7 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
           {/* Admin Panel Link - Only for administrators */}
           {user?.role === "administrator" && (
             <>
-              <div className="border-t border-border my-2" />
+              <div className="" />
               <button
                 onClick={() => {
                   router.push("/admin")
@@ -186,7 +192,7 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
                 title={isCollapsed ? "Admin Panel" : undefined}
                 className={cn(
                   "flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm transition",
-                  "hover:bg-muted/60 text-foreground/80",
+                  "hover:bg-white/10 text-white/90",
                   isCollapsed && "justify-center px-2"
                 )}
               >
@@ -200,7 +206,7 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
         {/* Footer: Dark Mode Toggle */}
         <div
           className={cn(
-            "mt-auto p-2 border-t border-border flex flex-col gap-2 transition-all duration-300",
+            "mt-auto p-2 flex flex-col gap-2 transition-all duration-300",
             isCollapsed && "items-center"
           )}
         >
@@ -216,7 +222,7 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
               <Moon className="h-5 w-5 text-blue-500" />
             )}
             {!isCollapsed && (
-              <span className="ml-2">{isDark ? "Light Mode" : "Dark Mode"}</span>
+              <span className="ml-2 text-white">{isDark ? "Light Mode" : "Dark Mode"}</span>
             )}
           </Button>
         </div>
