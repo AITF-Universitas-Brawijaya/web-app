@@ -11,6 +11,7 @@ import remarkGfm from "remark-gfm"
 import DataTable from "./DataTable"
 import { LinkRecord, Status } from "@/types/linkRecord"
 import { apiPost, apiGet, apiPut, apiDelete } from "@/lib/api"
+import { useAuth } from "@/contexts/AuthContext"
 
 const fetcher = async (url: string) => await apiGet(url)
 
@@ -102,6 +103,8 @@ export default function DetailModal({
   const [newNote, setNewNote] = useState("")
   const [editingNote, setEditingNote] = useState<Note | null>(null)
   const [editNoteText, setEditNoteText] = useState("")
+  const [openMenuNoteId, setOpenMenuNoteId] = useState<number | null>(null)
+  const { user } = useAuth()
 
   useEffect(() => {
     if (chatScrollRef.current) {
@@ -415,27 +418,44 @@ export default function DetailModal({
                               <span className="text-[10px] text-foreground/50">
                                 {note.created_by} · {new Date(note.created_at).toLocaleString()}
                               </span>
-                              <div className="flex gap-1">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-6 px-2 text-xs"
-                                  onClick={() => {
-                                    setEditingNote(note)
-                                    setEditNoteText(note.note_text)
-                                  }}
-                                >
-                                  Edit
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  className="h-6 px-2 text-xs"
-                                  onClick={() => handleDeleteNote(note.id)}
-                                >
-                                  Delete
-                                </Button>
-                              </div>
+                              {user?.username === note.created_by && (
+                                <div className="relative">
+                                  <button
+                                    className="h-6 w-6 flex items-center justify-center hover:bg-muted rounded"
+                                    onClick={() => setOpenMenuNoteId(openMenuNoteId === note.id ? null : note.id)}
+                                    aria-label="Note options"
+                                  >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                      <circle cx="12" cy="5" r="2" />
+                                      <circle cx="12" cy="12" r="2" />
+                                      <circle cx="12" cy="19" r="2" />
+                                    </svg>
+                                  </button>
+                                  {openMenuNoteId === note.id && (
+                                    <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-md shadow-lg z-10 min-w-[100px]">
+                                      <button
+                                        className="w-full px-3 py-1.5 text-xs text-left hover:bg-muted"
+                                        onClick={() => {
+                                          setEditingNote(note)
+                                          setEditNoteText(note.note_text)
+                                          setOpenMenuNoteId(null)
+                                        }}
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        className="w-full px-3 py-1.5 text-xs text-left hover:bg-muted text-destructive"
+                                        onClick={() => {
+                                          handleDeleteNote(note.id)
+                                          setOpenMenuNoteId(null)
+                                        }}
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         )}
