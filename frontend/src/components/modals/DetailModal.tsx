@@ -11,6 +11,7 @@ import remarkGfm from "remark-gfm"
 import DataTable from "./DataTable"
 import { LinkRecord, Status } from "@/types/linkRecord"
 import { apiPost, apiGet, apiPut, apiDelete } from "@/lib/api"
+import { useAuth } from "@/contexts/AuthContext"
 
 const fetcher = async (url: string) => await apiGet(url)
 
@@ -50,12 +51,6 @@ export default function DetailModal({
     setContextMode(false)
     setSelectedContexts([])
   }, [item])
-
-  const kontakList = [
-    { type: "Rekening BCA", value: "1234567890 a.n. John Doe" },
-    { type: "OVO", value: "085712345678" },
-    { type: "GoPay", value: "081234567890" },
-  ]
 
   // Load chat
   useEffect(() => {
@@ -102,6 +97,9 @@ export default function DetailModal({
   const [newNote, setNewNote] = useState("")
   const [editingNote, setEditingNote] = useState<Note | null>(null)
   const [editNoteText, setEditNoteText] = useState("")
+  const [openMenuNoteId, setOpenMenuNoteId] = useState<number | null>(null)
+  const [showNoteInput, setShowNoteInput] = useState(false)
+  const { user } = useAuth()
 
   useEffect(() => {
     if (chatScrollRef.current) {
@@ -260,7 +258,7 @@ export default function DetailModal({
 
   return (
     <Dialog open={!!item} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-[min(95vw,1200px)] sm:max-w-[min(95vw,1200px)] max-h-screen">
+      <DialogContent className="max-w-[min(95vw,1000px)] sm:max-w-[min(95vw,1000px)] max-h-screen">
         <DialogHeader>
           <DialogTitle>{toHexId(item.id)} · Info Detail</DialogTitle>
         </DialogHeader>
@@ -347,16 +345,32 @@ export default function DetailModal({
               )}
               onClick={() => toggleContext("Gambar Terkait")}
             >
-              <div className="text-xs font-semibold mb-2">Gambar Terkait</div>
-              <img
-                src={
-                  item.image
-                    ? item.image
-                    : `assets/placeholder.svg?height=240&width=360&query=Gambar%20terkait%20kasus`
-                }
-                alt="Hasil deteksi gambar"
-                className="rounded-md mx-auto w-full max-w-md h-auto object-contain border"
-              />
+              <div className="text-xs font-semibold mb-2">Object Detection</div>
+              {item.image ? (
+                <img
+                  src={(() => {
+                    // Extract filename from path
+                    // Path format: ~/tim5_prd_workdir/Gambling-Pipeline/results/inference/filename.jpg
+                    const pathParts = item.image.split('/')
+                    const filename = pathParts[pathParts.length - 1]
+
+                    // Construct API URL
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+                    return `${apiUrl}/api/images/detection/${filename}`
+                  })()}
+                  alt="Hasil deteksi object detection"
+                  className="rounded-md mx-auto w-full max-w-md h-auto object-contain border"
+                  onError={(e) => {
+                    // Fallback to placeholder if image fails to load
+                    const target = e.target as HTMLImageElement
+                    target.src = `/assets/placeholder.svg?height=240&width=360&query=Gambar%20tidak%20tersedia`
+                  }}
+                />
+              ) : (
+                <div className="rounded-md mx-auto w-full max-w-md h-48 flex items-center justify-center border bg-muted text-muted-foreground text-sm">
+                  Tidak ada gambar object detection
+                </div>
+              )}
             </div>
 
             {/* Catatan */}
@@ -364,7 +378,7 @@ export default function DetailModal({
               <div className="text-xs font-semibold mb-2">Catatan</div>
               <div className="border border-border rounded-md p-3 bg-card space-y-2">
                 {/* Existing notes */}
-                {notes && notes.length > 0 ? (
+                {notes && notes.length > 0 && (
                   <div className="space-y-2 max-h-40 overflow-auto mb-2">
                     {notes.map((note) => (
                       <div key={note.id} className="border-b pb-2 last:border-b-0">
@@ -399,50 +413,89 @@ export default function DetailModal({
                               <span className="text-[10px] text-foreground/50">
                                 {note.created_by} · {new Date(note.created_at).toLocaleString()}
                               </span>
-                              <div className="flex gap-1">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-6 px-2 text-xs"
-                                  onClick={() => {
-                                    setEditingNote(note)
-                                    setEditNoteText(note.note_text)
-                                  }}
-                                >
-                                  Edit
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  className="h-6 px-2 text-xs"
-                                  onClick={() => handleDeleteNote(note.id)}
-                                >
-                                  Delete
-                                </Button>
-                              </div>
+                              {user?.username === note.created_by && (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    className="h-6 w-6 flex items-center justify-center hover:bg-muted rounded"
+                                    onClick={() => setOpenMenuNoteId(openMenuNoteId === note.id ? null : note.id)}
+                                    aria-label="Note options"
+                                  >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                      <circle cx="12" cy="5" r="2" />
+                                      <circle cx="12" cy="12" r="2" />
+                                      <circle cx="12" cy="19" r="2" />
+                                    </svg>
+                                  </button>
+                                  {openMenuNoteId === note.id && (
+                                    <>
+                                      <button
+                                        className="px-2 py-1 text-xs hover:bg-muted rounded border border-border"
+                                        onClick={() => {
+                                          setEditingNote(note)
+                                          setEditNoteText(note.note_text)
+                                          setOpenMenuNoteId(null)
+                                        }}
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        className="px-2 py-1 text-xs hover:bg-muted rounded border border-border text-destructive"
+                                        onClick={() => {
+                                          handleDeleteNote(note.id)
+                                          setOpenMenuNoteId(null)
+                                        }}
+                                      >
+                                        Delete
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         )}
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="text-xs text-foreground/60 mb-2">Belum ada catatan</div>
                 )}
 
-                {/* Add new note */}
-                <div className="space-y-2">
-                  <textarea
-                    className="w-full p-2 border rounded text-xs"
-                    placeholder="Tambahkan catatan..."
-                    value={newNote}
-                    onChange={(e) => setNewNote(e.target.value)}
-                    rows={2}
-                  />
-                  <Button size="sm" onClick={handleAddNote} disabled={loading || !newNote.trim()}>
-                    Tambah Catatan
-                  </Button>
-                </div>
+                {/* Add new note button and input */}
+                {!showNoteInput ? (
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      className="text-[11px] text-white"
+                      style={{ background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)' }}
+                      onClick={() => setShowNoteInput(true)}
+                    >
+                      Tambah
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <textarea
+                      className="w-full p-2 border rounded text-xs"
+                      placeholder="Tambahkan catatan..."
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      rows={2}
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => {
+                        handleAddNote()
+                        setShowNoteInput(false)
+                      }} disabled={loading || !newNote.trim()}>
+                        Simpan
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => {
+                        setShowNoteInput(false)
+                        setNewNote("")
+                      }}>
+                        Batal
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -470,7 +523,11 @@ export default function DetailModal({
               <div className="text-xs font-semibold mb-2">Verifikasi Status Laporan Mesin</div>
               {item.status === "unverified" ? (
                 <div className="grid grid-cols-2 gap-2">
-                  <Button className="w-full text-xs" onClick={() => updateStatus("verified")}>
+                  <Button
+                    className="w-full text-xs text-white"
+                    style={{ background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)' }}
+                    onClick={() => updateStatus("verified")}
+                  >
                     Confirm
                   </Button>
                   <Button
@@ -503,10 +560,34 @@ export default function DetailModal({
 
           {/* RIGHT */}
           <div className="flex flex-col border border-border rounded-md overflow-hidden md:col-span-3 h-full">
-            <div className="flex items-center justify-between p-2 border-b border-border">
-              <div className="text-xs font-semibold">Chat AI</div>
+            <div
+              className="flex items-center justify-between p-2 border-b border-border"
+              style={{ background: 'linear-gradient(135deg, #1DC0EB 0%, #1199DA 50%, #0B88D3 100%)' }}
+            >
+              <div className="flex items-center gap-2">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="shrink-0"
+                >
+                  {/* Diamond/Sparkle shape similar to Gemini logo */}
+                  <path
+                    d="M12 2L16 8L22 12L16 16L12 22L8 16L2 12L8 8L12 2Z"
+                    fill="white"
+                  />
+                  <path
+                    d="M12 6L14 10L18 12L14 14L12 18L10 14L6 12L10 10L12 6Z"
+                    fill="white"
+                    opacity="0.6"
+                  />
+                </svg>
+                <div className="text-xs font-semibold text-white">Chat AI</div>
+              </div>
               <Button
                 size="sm"
+                className="text-[11px] h-7 px-2 py-1"
                 variant={contextMode ? "default" : "outline"}
                 onClick={() => {
                   // toggle context mode, reset selections if turned off
@@ -543,7 +624,12 @@ export default function DetailModal({
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && send()}
                 />
-                <Button onClick={() => send()} disabled={loading}>
+                <Button
+                  onClick={() => send()}
+                  disabled={loading}
+                  className="text-white"
+                  style={{ background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)' }}
+                >
                   Kirim
                 </Button>
               </div>

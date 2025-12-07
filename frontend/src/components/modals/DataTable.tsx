@@ -84,6 +84,11 @@ export default function DataTable({
             <tr key={it.id} className="border-t border-border hover:bg-muted/40">
               <td className="px-4 py-3 font-medium">
                 <div className="flex items-center gap-1.5">
+                  {it.isNew && (
+                    <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] px-1.5 py-0 font-semibold">
+                      Baru
+                    </Badge>
+                  )}
                   <div className="text-xs text-foreground/50">{toHexId(it.id)}</div>
                   {it.flagged && (
                     <span title="Flagged">

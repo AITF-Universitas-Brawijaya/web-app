@@ -521,7 +521,7 @@ def save_to_database(all_results, keyword, username='system'):
                     visualization_path = api_result.get('visualization_path', '')
                     if visualization_path:
                         visualization_path = visualization_path.lstrip('/')
-                        image_detected_path = f"~/tim5_prd_workdir/{visualization_path}"
+                        image_detected_path = f"~/tim5_prd_workdir/Gambling-Pipeline/{visualization_path}"
                     
                     id_detection = api_result.get('id')
                     

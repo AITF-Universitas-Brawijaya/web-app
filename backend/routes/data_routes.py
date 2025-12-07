@@ -79,7 +79,12 @@ def get_all_data(
                 "modifiedBy": row.get("modified_by") or "-",
                 "reasoning": row.get("reasoning_text") or "-",
                 "image": row.get("image_final_path") or "",
-                "flagged": row.get("flagged") or False
+                "flagged": row.get("flagged") or False,
+                "isNew": (
+                    (datetime.utcnow() - row.get("created_at").replace(tzinfo=None)).total_seconds() < 300
+                    if row.get("created_at")
+                    else False
+                )
             })
         return formatted
 
