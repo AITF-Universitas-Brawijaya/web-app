@@ -13,6 +13,8 @@ interface User {
     role: string;
     created_at?: string;
     last_login?: string;
+    dark_mode?: boolean;
+    compact_mode?: boolean;
 }
 
 interface AuthContextType {
@@ -40,7 +42,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (storedToken && storedUser) {
             setToken(storedToken);
-            setUser(JSON.parse(storedUser));
+            const userData = JSON.parse(storedUser);
+            setUser(userData);
+
+            // Apply user preferences to DOM
+            applyUserPreferences(userData);
         }
         setIsLoading(false);
     }, []);
@@ -69,10 +75,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             setToken(data.access_token);
             setUser(data.user);
+
+            // Apply user preferences to DOM
+            applyUserPreferences(data.user);
         } catch (error: any) {
             console.error("Login error:", error);
             throw error;
         }
+    };
+
+    // Helper function to apply user preferences
+    const applyUserPreferences = (userData: User) => {
+        // Apply dark mode
+        if (userData.dark_mode) {
+            document.documentElement.classList.add("dark");
+            localStorage.setItem("theme", "dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+            localStorage.setItem("theme", "light");
+        }
+
+        // Apply compact mode
+        localStorage.setItem("compactMode", userData.compact_mode ? "true" : "false");
     };
 
     const logout = () => {

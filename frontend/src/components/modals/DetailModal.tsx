@@ -153,18 +153,28 @@ export default function DetailModal({
     }
   }
 
-  async function deleteManualDomain() {
-    if (!item || !item.isManual) return
+  async function deleteDomain() {
+    if (!item) return
 
-    if (!confirm("Apakah Anda yakin ingin menghapus domain manual ini?")) return
+    const domainType = item.isManual ? "manual" : "generated"
+    if (!confirm(`Apakah Anda yakin ingin menghapus domain ${domainType} ini?`)) return
 
     setLoading(true)
     try {
-      await apiDelete(`/api/manual-domain/${item.id}`)
+      if (item.isManual) {
+        await apiDelete(`/api/manual-domain/${item.id}`)
+      } else {
+        // For generated domains, use the admin endpoint
+        await apiDelete(`/api/admin/domains/${item.id}`)
+      }
 
-      // Close modal and refresh data
+      // Refresh data first, then close modal
+      await onMutate()
+
+      // Also trigger global mutate to ensure all SWR caches are updated
+      await globalMutate('/api/data/')
+
       onClose()
-      onMutate()
     } catch (err: any) {
       alert(`Gagal menghapus domain: ${err.message || "Unknown error"}`)
     } finally {
@@ -365,7 +375,7 @@ export default function DetailModal({
             <Button
               variant={flaggedLocal ? "default" : "outline"}
               size="sm"
-              className="text-xs md:text-sm whitespace-nowrap bg-white hover:bg-gray-100 text-gray-900"
+              className="text-xs md:text-sm whitespace-nowrap bg-white hover:bg-gray-100 text-gray-900 dark:text-white"
               onClick={toggleFlag}
               style={flaggedLocal ? {
                 background: 'linear-gradient(135deg, #1DC0EB 0%, #1199DA 50%, #0B88D3 100%)',
@@ -374,14 +384,18 @@ export default function DetailModal({
             >
               {flaggedLocal ? "Unflag" : "Flag"}
             </Button>
-            {/* Show delete button for: 1) Manual domain creators, 2) Administrators (all domains) */}
+            {/* Show delete button for: 1) Administrators (all domains), 2) Manual domain creators, 3) Generated domain creators */}
             {
-              ((item.isManual && user?.username === item.createdBy) || user?.role === "administrator") && (
+              (
+                user?.role === "administrator" ||
+                (item.isManual && user?.username === item.createdBy) ||
+                (!item.isManual && user?.username === item.createdBy)
+              ) && (
                 <Button
                   variant="destructive"
                   size="sm"
                   className="text-xs md:text-sm whitespace-nowrap"
-                  onClick={deleteManualDomain}
+                  onClick={deleteDomain}
                   disabled={loading}
                 >
                   Delete

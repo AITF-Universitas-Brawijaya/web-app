@@ -463,32 +463,59 @@ async def delete_all_domains(
         raise HTTPException(status_code=500, detail=f"Failed to delete all domains: {str(e)}")
 
 
-@router.delete("/domains/{id_domain}")
+@router.delete("/domains/{id_results}")
 async def delete_domain_by_id(
-    id_domain: int,
+    id_results: int,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_role("administrator"))
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Delete a specific domain by ID.
-    Only accessible by administrators.
+    - Administrators can delete any domain
+    - Domain creators can delete their own domains (both manual and generated)
     """
     try:
-        # Check if domain exists
-        check_query = text("SELECT id_domain FROM generated_domains WHERE id_domain = :id_domain")
-        existing = db.execute(check_query, {"id_domain": id_domain}).fetchone()
+        username = current_user.get("username")
+        user_role = current_user.get("role")
         
-        if not existing:
+        # Check if domain exists in results table
+        check_query = text("""
+            SELECT id_results, created_by, is_manual 
+            FROM results 
+            WHERE id_results = :id_results
+        """)
+        result = db.execute(check_query, {"id_results": id_results})
+        row = result.fetchone()
+        
+        if not row:
             raise HTTPException(status_code=404, detail="Domain not found")
         
-        # Delete domain (cascade will handle related tables)
-        delete_query = text("DELETE FROM generated_domains WHERE id_domain = :id_domain")
-        db.execute(delete_query, {"id_domain": id_domain})
+        domain_data = dict(row._mapping)
+        created_by = domain_data.get("created_by")
+        
+        # Permission check:
+        # 1. Administrators can delete any domain
+        # 2. Domain creators can delete their own domains
+        if user_role == "administrator":
+            # Admin can delete anything
+            pass
+        elif username == created_by:
+            # Creator can delete their own domain
+            pass
+        else:
+            raise HTTPException(
+                status_code=403,
+                detail="You can only delete domains you created"
+            )
+        
+        # Delete domain from results table
+        delete_query = text("DELETE FROM results WHERE id_results = :id_results")
+        db.execute(delete_query, {"id_results": id_results})
         db.commit()
         
         return {
             "ok": True,
-            "message": f"Successfully deleted domain with ID {id_domain}"
+            "message": f"Successfully deleted domain with ID {id_results}"
         }
     
     except HTTPException:

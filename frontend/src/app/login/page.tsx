@@ -16,6 +16,11 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
+  // Force light mode on login page
+  useEffect(() => {
+    document.documentElement.classList.remove("dark")
+  }, [])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -61,7 +66,7 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={loading}
-                style={{ backgroundColor: 'white' }}
+                style={{ backgroundColor: 'white', color: '#1f2937' }}
               />
             </div>
             <div>
@@ -73,7 +78,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
-                style={{ backgroundColor: 'white' }}
+                style={{ backgroundColor: 'white', color: '#1f2937' }}
               />
             </div>
             {error && <p className="text-sm text-red-600 text-center">{error}</p>}

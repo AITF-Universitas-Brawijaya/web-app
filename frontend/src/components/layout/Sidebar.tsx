@@ -47,7 +47,7 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout, compa
     setCompactMode?.(compact)
   }, [setCompactMode])
 
-  const toggleDarkMode = () => {
+  const toggleDarkMode = async () => {
     const next = !isDark
     setDark(next)
     if (next) {
@@ -57,12 +57,44 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout, compa
       document.documentElement.classList.remove("dark")
       localStorage.setItem("theme", "light")
     }
+
+    // Save to backend
+    try {
+      const { apiPost } = await import("@/lib/api")
+      await apiPost("/api/auth/preferences", { dark_mode: next })
+
+      // Update user data in localStorage
+      const storedUser = localStorage.getItem("auth_user")
+      if (storedUser) {
+        const userData = JSON.parse(storedUser)
+        userData.dark_mode = next
+        localStorage.setItem("auth_user", JSON.stringify(userData))
+      }
+    } catch (err) {
+      console.error("Failed to save dark mode preference:", err)
+    }
   }
 
-  const toggleCompactMode = () => {
+  const toggleCompactMode = async () => {
     const next = !compactMode
     setCompactMode?.(next)
     localStorage.setItem("compactMode", next.toString())
+
+    // Save to backend
+    try {
+      const { apiPost } = await import("@/lib/api")
+      await apiPost("/api/auth/preferences", { compact_mode: next })
+
+      // Update user data in localStorage
+      const storedUser = localStorage.getItem("auth_user")
+      if (storedUser) {
+        const userData = JSON.parse(storedUser)
+        userData.compact_mode = next
+        localStorage.setItem("auth_user", JSON.stringify(userData))
+      }
+    } catch (err) {
+      console.error("Failed to save compact mode preference:", err)
+    }
   }
 
   const sidebarWidth = isCollapsed ? "w-20" : "w-64"

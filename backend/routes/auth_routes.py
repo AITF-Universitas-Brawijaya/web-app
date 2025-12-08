@@ -56,7 +56,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     """
     # Fetch user from database
     query = text("""
-        SELECT id, username, password_hash, full_name, email, phone, role, created_at, last_login
+        SELECT id, username, password_hash, full_name, email, phone, role, created_at, last_login, dark_mode, compact_mode
         FROM users
         WHERE username = :username
     """)
@@ -107,6 +107,8 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         "role": user_dict["role"],
         "created_at": user_dict["created_at"].isoformat() if user_dict["created_at"] else None,
         "last_login": user_dict["last_login"].isoformat() if user_dict["last_login"] else None,
+        "dark_mode": user_dict.get("dark_mode", False),
+        "compact_mode": user_dict.get("compact_mode", False),
     }
     
     return {
@@ -177,3 +179,72 @@ async def refresh_token(current_user: dict = Depends(get_current_user)):
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+
+class PreferencesUpdate(BaseModel):
+    dark_mode: Optional[bool] = None
+    compact_mode: Optional[bool] = None
+
+
+@router.post("/preferences")
+async def update_preferences(
+    preferences: PreferencesUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Update user UI preferences (dark mode, compact mode)
+    
+    Args:
+        preferences: Preferences to update
+        db: Database session
+        current_user: Current user from JWT token
+        
+    Returns:
+        Updated preferences
+    """
+    try:
+        username = current_user.get("username")
+        
+        # Build update query dynamically
+        update_parts = []
+        params = {"username": username}
+        
+        if preferences.dark_mode is not None:
+            update_parts.append("dark_mode = :dark_mode")
+            params["dark_mode"] = preferences.dark_mode
+        
+        if preferences.compact_mode is not None:
+            update_parts.append("compact_mode = :compact_mode")
+            params["compact_mode"] = preferences.compact_mode
+        
+        if not update_parts:
+            raise HTTPException(status_code=400, detail="No preferences to update")
+        
+        update_query = text(f"""
+            UPDATE users
+            SET {", ".join(update_parts)}
+            WHERE username = :username
+            RETURNING dark_mode, compact_mode
+        """)
+        
+        result = db.execute(update_query, params)
+        db.commit()
+        
+        row = result.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        row_dict = dict(row._mapping)
+        
+        return {
+            "ok": True,
+            "dark_mode": row_dict["dark_mode"],
+            "compact_mode": row_dict["compact_mode"]
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update preferences: {str(e)}")
