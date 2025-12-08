@@ -24,7 +24,7 @@ import {
 } from "lucide-react"
 import FeedbackModal from "@/components/modals/FeedbackModal"
 
-export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any) {
+export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout, compactMode, setCompactMode }: any) {
   const router = useRouter()
   const { user } = useAuth()
   const [openProfileMenu, setOpenProfileMenu] = useState(false)
@@ -40,6 +40,13 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
     setDark(dark)
   }, [])
 
+  // 🔹 Sync compact mode dari localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("compactMode")
+    const compact = saved === "true"
+    setCompactMode?.(compact)
+  }, [setCompactMode])
+
   const toggleDarkMode = () => {
     const next = !isDark
     setDark(next)
@@ -50,6 +57,12 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
       document.documentElement.classList.remove("dark")
       localStorage.setItem("theme", "light")
     }
+  }
+
+  const toggleCompactMode = () => {
+    const next = !compactMode
+    setCompactMode?.(next)
+    localStorage.setItem("compactMode", next.toString())
   }
 
   const sidebarWidth = isCollapsed ? "w-20" : "w-64"
@@ -273,7 +286,7 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
           )}
         </nav>
 
-        {/* Footer: Feedback + Dark Mode Toggle */}
+        {/* Footer: Feedback + Mode Toggles */}
         <div
           className={cn(
             "mt-auto p-2 flex flex-col gap-2 transition-all duration-300",
@@ -294,21 +307,43 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
             )}
           </Button>
 
-          {/* Dark Mode Toggle */}
-          <Button
-            variant="ghost"
-            size={isCollapsed ? "icon" : "sm"}
-            onClick={toggleDarkMode}
-            title="Toggle Dark Mode"
-            className="text-white hover:bg-white/10"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" className="h-5 w-5" fill="currentColor">
-              <path d="M512 320C512 214 426 128 320 128L320 512C426 512 512 426 512 320zM64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320z" />
-            </svg>
-            {!isCollapsed && (
-              <span className="ml-2">{isDark ? "Light Mode" : "Dark Mode"}</span>
-            )}
-          </Button>
+          {/* Dark Mode & Compact Mode Toggles */}
+          <div className={cn(
+            "flex gap-2",
+            isCollapsed ? "flex-col" : "flex-row"
+          )}>
+            {/* Compact Mode Toggle */}
+            <Button
+              variant="ghost"
+              size={isCollapsed ? "icon" : "sm"}
+              onClick={toggleCompactMode}
+              title="Compact"
+              className="text-white hover:bg-white/10 flex-1"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" className="h-5 w-5" fill="currentColor">
+                <path d="M128 128C92.7 128 64 156.7 64 192L64 448C64 483.3 92.7 512 128 512L512 512C547.3 512 576 483.3 576 448L576 192C576 156.7 547.3 128 512 128L128 128zM224 384C224 401.7 209.7 416 192 416C174.3 416 160 401.7 160 384C160 366.3 174.3 352 192 352C209.7 352 224 366.3 224 384zM192 288C174.3 288 160 273.7 160 256C160 238.3 174.3 224 192 224C209.7 224 224 238.3 224 256C224 273.7 209.7 288 192 288zM312 232L456 232C469.3 232 480 242.7 480 256C480 269.3 469.3 280 456 280L312 280C298.7 280 288 269.3 288 256C288 242.7 298.7 232 312 232zM312 360L456 360C469.3 360 480 370.7 480 384C480 397.3 469.3 408 456 408L312 408C298.7 408 288 397.3 288 384C288 370.7 298.7 360 312 360z" />
+              </svg>
+              {!isCollapsed && (
+                <span className="ml-2">{compactMode ? "Normal" : "Compact"}</span>
+              )}
+            </Button>
+
+            {/* Dark Mode Toggle */}
+            <Button
+              variant="ghost"
+              size={isCollapsed ? "icon" : "sm"}
+              onClick={toggleDarkMode}
+              title="Dark/Light"
+              className="text-white hover:bg-white/10 flex-1"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" className="h-5 w-5" fill="currentColor">
+                <path d="M512 320C512 214 426 128 320 128L320 512C426 512 512 426 512 320zM64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320z" />
+              </svg>
+              {!isCollapsed && (
+                <span className="ml-2">{isDark ? "Light" : "Dark"}</span>
+              )}
+            </Button>
+          </div>
         </div>
       </aside>
 

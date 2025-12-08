@@ -54,6 +54,7 @@ export default function PRDDashboardPage() {
   const [addManualModalOpen, setAddManualModalOpen] = useState(false)
   const [manualDomainInput, setManualDomainInput] = useState("")
   const [addingManual, setAddingManual] = useState(false)
+  const [compactMode, setCompactMode] = useState(false)
 
   const { data, error, isLoading, mutate } = useSWR<LinkRecord[]>("/api/data/", fetcher, {
     refreshInterval: 4000,
@@ -165,6 +166,8 @@ export default function PRDDashboardPage() {
           setActiveTab={setActiveTab}
           tabs={TAB_ORDER}
           onLogout={logout}
+          compactMode={compactMode}
+          setCompactMode={setCompactMode}
         >
           <ThemeToggle />
         </Sidebar>
@@ -258,6 +261,7 @@ export default function PRDDashboardPage() {
                   setDetail={setDetail}
                   sortCol={sortCol}
                   sortOrder={sortOrder}
+                  compactMode={compactMode}
                   onSort={(col: "tanggal" | "kepercayaan" | "lastModified" | "modifiedBy") => {
                     if (sortCol === col) {
                       setSortOrder(sortOrder === "asc" ? "desc" : "asc")
