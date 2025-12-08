@@ -12,6 +12,11 @@ export function PerPage({ value, onChange }: { value: number; onChange: (v: numb
             variant={opt === value ? "default" : "outline"}
             size="sm"
             onClick={() => onChange(opt)}
+            style={opt === value ? {
+              background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)',
+              color: 'white',
+              border: 'none'
+            } : undefined}
           >
             {opt}
           </Button>

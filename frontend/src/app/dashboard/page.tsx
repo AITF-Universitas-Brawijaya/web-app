@@ -153,7 +153,7 @@ export default function PRDDashboardPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 px-3 text-white border-none hover:opacity-90 transition-opacity"
+                      className="h-8 px-3 text-white border-none hover:opacity-90 hover:text-white transition-opacity"
                       style={{
                         background: 'linear-gradient(135deg, #1DC0EB 0%, #1199DA 50%, #0B88D3 100%)'
                       }}
@@ -169,7 +169,7 @@ export default function PRDDashboardPage() {
                         {/* Diamond/Sparkle shape similar to Gemini logo */}
                         <path
                           d="M12 2L16 8L22 12L16 16L12 22L8 16L2 12L8 8L12 2Z"
-                          fill="currentColor"
+                          fill="white"
                         />
                         <path
                           d="M12 6L14 10L18 12L14 14L12 18L10 14L6 12L10 10L12 6Z"
