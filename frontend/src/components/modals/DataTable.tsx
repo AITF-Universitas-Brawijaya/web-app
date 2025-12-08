@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils"
 import { LinkRecord } from "@/types/linkRecord"
 
 const STATUS_LABEL = {
-  verified: { label: "Verified", className: "bg-secondary text-foreground" },
+  verified: { label: "Verified", className: "bg-blue-500/10 text-blue-600 dark:text-blue-400" }, // Changed to blue
   unverified: { label: "Unverified", className: "bg-primary/10 text-primary" },
-  "false-positive": { label: "False Positive", className: "bg-destructive/10 text-destructive-foreground" },
+  "false-positive": { label: "False", className: "bg-destructive/10 text-destructive-foreground" },
 }
 
 // Fallback untuk status yang tidak terdefinisi
@@ -42,21 +42,75 @@ export default function DataTable({
   isLoading,
   error,
   setDetail,
+  sortCol,
+  sortOrder,
+  onSort,
 }: {
   pageItems: LinkRecord[]
   isLoading: boolean
   error: any
   setDetail: (item: LinkRecord) => void
+  sortCol?: "tanggal" | "kepercayaan" | "lastModified" | "modifiedBy"
+  sortOrder?: "asc" | "desc"
+  onSort?: (col: "tanggal" | "kepercayaan" | "lastModified" | "modifiedBy") => void
 }) {
+  const SortIcon = ({ column }: { column: "tanggal" | "kepercayaan" | "lastModified" | "modifiedBy" }) => {
+    if (sortCol !== column) {
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block mr-1 opacity-40">
+          <path d="M7 10l5-5 5 5M7 14l5 5 5-5" />
+        </svg>
+      )
+    }
+
+    if (sortOrder === "asc") {
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block mr-1">
+          <path d="M7 14l5-5 5 5" />
+        </svg>
+      )
+    }
+
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block mr-1">
+        <path d="M7 10l5 5 5-5" />
+      </svg>
+    )
+  }
+
   return (
     <table className="w-full text-sm">
       <thead className="bg-muted text-foreground/80">
         <tr>
           <th className="px-4 py-3 text-left font-medium w-[28%]">Link</th>
-          <th className="px-4 py-3 text-left font-medium">Tanggal</th>
-          <th className="px-4 py-3 text-left font-medium">Tgl Berubah</th>
-          <th className="px-4 py-3 text-left font-medium">Modified By</th>
-          <th className="px-4 py-3 text-left font-medium">Kepercayaan</th>
+          <th
+            className={`px-4 py-3 text-left font-medium ${onSort ? 'cursor-pointer hover:bg-muted-foreground/10 select-none' : ''}`}
+            onClick={() => onSort?.("tanggal")}
+          >
+            {onSort && <SortIcon column="tanggal" />}
+            Tanggal
+          </th>
+          <th
+            className={`px-4 py-3 text-left font-medium ${onSort ? 'cursor-pointer hover:bg-muted-foreground/10 select-none' : ''}`}
+            onClick={() => onSort?.("lastModified")}
+          >
+            {onSort && <SortIcon column="lastModified" />}
+            Tgl Berubah
+          </th>
+          <th
+            className={`px-4 py-3 text-left font-medium ${onSort ? 'cursor-pointer hover:bg-muted-foreground/10 select-none' : ''}`}
+            onClick={() => onSort?.("modifiedBy")}
+          >
+            {onSort && <SortIcon column="modifiedBy" />}
+            Modified By
+          </th>
+          <th
+            className={`px-4 py-3 text-left font-medium ${onSort ? 'cursor-pointer hover:bg-muted-foreground/10 select-none' : ''}`}
+            onClick={() => onSort?.("kepercayaan")}
+          >
+            {onSort && <SortIcon column="kepercayaan" />}
+            Kepercayaan
+          </th>
           <th className="px-4 py-3 text-left font-medium">Status</th>
           <th className="px-4 py-3 text-left font-medium" />
         </tr>
@@ -129,7 +183,7 @@ export default function DataTable({
               </td>
               <td className="px-4 py-3">
                 {it.isManual ? (
-                  <Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 font-semibold">
+                  <Badge className="bg-secondary text-foreground font-semibold">
                     Manual
                   </Badge>
                 ) : (

@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/Input"
 // layout & controls
 import Sidebar from "@/components/layout/Sidebar"
 import ThemeToggle from "@/components/layout/ThemeToggle"
-import { SortMenu } from "@/components/controls/SortMenu"
 import { PerPage } from "@/components/controls/PerPage"
 
 // charts & modal
@@ -20,6 +19,7 @@ import TpFpChart from "@/components/charts/TpFpChart"
 import ConfidenceChart from "@/components/charts/ConfidenceChart"
 import DetailModal from "@/components/modals/DetailModal"
 import CrawlingModal from "@/components/modals/CrawlingModal"
+import { StaticParticlesBackground } from "@/components/ui/StaticParticlesBackground"
 
 import { LinkRecord } from "@/types/linkRecord"
 import { apiGet } from "@/lib/api"
@@ -45,7 +45,7 @@ export default function PRDDashboardPage() {
   const { logout } = useAuth()
   const [activeTab, setActiveTab] = useState<TabKey>("all")
   const [search, setSearch] = useState("")
-  const [sortCol, setSortCol] = useState<"tanggal" | "kepercayaan">("tanggal")
+  const [sortCol, setSortCol] = useState<"tanggal" | "kepercayaan" | "lastModified" | "modifiedBy">("tanggal")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(20)
@@ -100,8 +100,31 @@ export default function PRDDashboardPage() {
   const sorted = useMemo(() => {
     const list = [...filtered]
     list.sort((a, b) => {
-      const A = sortCol === "tanggal" ? a.tanggal : a.kepercayaan
-      const B = sortCol === "tanggal" ? b.tanggal : b.kepercayaan
+      let A: string | number
+      let B: string | number
+
+      switch (sortCol) {
+        case "tanggal":
+          A = a.tanggal
+          B = b.tanggal
+          break
+        case "kepercayaan":
+          A = a.kepercayaan
+          B = b.kepercayaan
+          break
+        case "lastModified":
+          A = a.lastModified
+          B = b.lastModified
+          break
+        case "modifiedBy":
+          A = a.modifiedBy
+          B = b.modifiedBy
+          break
+        default:
+          A = a.tanggal
+          B = b.tanggal
+      }
+
       const cmp = A > B ? 1 : A < B ? -1 : 0
       return sortOrder === "desc" ? -cmp : cmp
     })
@@ -152,13 +175,15 @@ export default function PRDDashboardPage() {
             <div className="flex flex-col h-full p-4 gap-4">
               {/* Control Panel */}
               <Card
-                className="p-3 flex flex-wrap items-center justify-between gap-3"
+                className="p-3 flex flex-wrap items-center justify-between gap-3 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)',
                   border: 'none'
                 }}
               >
-                <div className="flex items-center justify-between w-full">
+                {/* Static Particles Background */}
+                <StaticParticlesBackground />
+                <div className="flex items-center justify-between w-full relative z-10">
                   <h2 className="text-sm font-semibold text-white">
                     {TAB_ORDER.find((t) => t.key === activeTab)?.label} ({sorted.length})
                   </h2>
@@ -168,23 +193,12 @@ export default function PRDDashboardPage() {
                       placeholder="Search..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="pl-8 h-8 text-sm bg-white dark:bg-background"
-                    />
-                    <SortMenu
-                      sortCol={sortCol}
-                      sortOrder={sortOrder}
-                      onApply={(c, o) => {
-                        setSortCol(c)
-                        setSortOrder(o)
-                      }}
+                      className="pl-8 h-8 text-sm bg-transparent border-gray-400 text-gray-300 placeholder:text-gray-400 focus-visible:bg-white focus-visible:text-foreground focus-visible:border-ring dark:focus-visible:bg-background dark:focus-visible:text-foreground"
                     />
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 w-8 p-0 text-white border-none hover:opacity-90 hover:text-white transition-opacity"
-                      style={{
-                        background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)'
-                      }}
+                      className="h-8 w-8 p-0 bg-white dark:bg-gray-100 border-2 border-white dark:border-gray-200 hover:opacity-90 transition-opacity shadow-md"
                       onClick={() => setAddManualModalOpen(true)}
                       title="Add Manual Domain"
                     >
@@ -193,7 +207,7 @@ export default function PRDDashboardPage() {
                         height="16"
                         viewBox="0 0 24 24"
                         fill="none"
-                        stroke="white"
+                        stroke="#00336A"
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -242,6 +256,16 @@ export default function PRDDashboardPage() {
                   isLoading={isLoading}
                   error={error}
                   setDetail={setDetail}
+                  sortCol={sortCol}
+                  sortOrder={sortOrder}
+                  onSort={(col: "tanggal" | "kepercayaan" | "lastModified" | "modifiedBy") => {
+                    if (sortCol === col) {
+                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                    } else {
+                      setSortCol(col)
+                      setSortOrder("desc")
+                    }
+                  }}
                 />
               </div>
 
@@ -290,8 +314,17 @@ export default function PRDDashboardPage() {
 
         {/* Add Manual Domain Modal */}
         {addManualModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-background border border-border rounded-lg p-6 max-w-md w-full mx-4">
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => {
+              setAddManualModalOpen(false)
+              setManualDomainInput("")
+            }}
+          >
+            <div
+              className="bg-background border border-border rounded-lg p-6 max-w-md w-full mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="text-lg font-semibold mb-4">Add Manual Domain</h3>
               <Input
                 placeholder="Enter domain (e.g., example.com)"

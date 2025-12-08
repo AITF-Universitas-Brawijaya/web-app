@@ -281,7 +281,7 @@ export default function DetailModal({
       <DialogContent className="max-w-[min(95vw,1000px)] sm:max-w-[min(95vw,1000px)] max-h-screen" showCloseButton={false}>
         {/* Accessible DialogHeader - visually hidden */}
         <DialogHeader className="sr-only">
-          <DialogTitle>{toHexId(item.id)} · Info Detail</DialogTitle>
+          <DialogTitle>{toHexId(item.id)} · Info Detail · {item.isManual ? 'Added' : 'Generated'} by {item.createdBy}{user?.username === item.createdBy ? ' (You)' : ''}</DialogTitle>
         </DialogHeader>
 
         {/* Visual Header + Link combined */}
@@ -293,7 +293,9 @@ export default function DetailModal({
         >
           {/* Header */}
           <div className="px-6 py-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white" aria-hidden="true">{toHexId(item.id)} · Info Detail</h2>
+            <h2 className="text-lg font-semibold text-white" aria-hidden="true">
+              {toHexId(item.id)} · {item.isManual ? 'Added' : 'Generated'} by {item.createdBy}{user?.username === item.createdBy ? ' (You)' : ''}
+            </h2>
             <button
               onClick={onClose}
               className="text-white hover:text-white/80 transition-colors"
@@ -373,17 +375,19 @@ export default function DetailModal({
               {flaggedLocal ? "Unflag" : "Flag"}
             </Button>
             {/* Show delete button for: 1) Manual domain creators, 2) Administrators (all domains) */}
-            {((item.isManual && user?.username === item.createdBy) || user?.role === "administrator") && (
-              <Button
-                variant="destructive"
-                size="sm"
-                className="text-xs md:text-sm whitespace-nowrap"
-                onClick={deleteManualDomain}
-                disabled={loading}
-              >
-                Delete
-              </Button>
-            )}
+            {
+              ((item.isManual && user?.username === item.createdBy) || user?.role === "administrator") && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="text-xs md:text-sm whitespace-nowrap"
+                  onClick={deleteManualDomain}
+                  disabled={loading}
+                >
+                  Delete
+                </Button>
+              )
+            }
           </div >
         </div >
 

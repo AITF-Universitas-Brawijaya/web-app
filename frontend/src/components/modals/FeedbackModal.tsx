@@ -47,8 +47,14 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
     if (!isOpen) return null
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-background border border-border rounded-lg shadow-lg w-full max-w-md mx-4">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <div
+                className="bg-background border border-border rounded-lg shadow-lg w-full max-w-md mx-4"
+                onClick={(e) => e.stopPropagation()}
+            >
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-border">
                     <h2 className="text-lg font-semibold">Kirim Feedback</h2>

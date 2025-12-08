@@ -300,14 +300,13 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout }: any
             size={isCollapsed ? "icon" : "sm"}
             onClick={toggleDarkMode}
             title="Toggle Dark Mode"
+            className="text-white hover:bg-white/10"
           >
-            {isDark ? (
-              <Sun className="h-5 w-5 text-yellow-400" />
-            ) : (
-              <Moon className="h-5 w-5 text-blue-500" />
-            )}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" className="h-5 w-5" fill="currentColor">
+              <path d="M512 320C512 214 426 128 320 128L320 512C426 512 512 426 512 320zM64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320z" />
+            </svg>
             {!isCollapsed && (
-              <span className="ml-2 text-white">{isDark ? "Light Mode" : "Dark Mode"}</span>
+              <span className="ml-2">{isDark ? "Light Mode" : "Dark Mode"}</span>
             )}
           </Button>
         </div>
