@@ -36,7 +36,8 @@ def get_all_data(
                 r.modified_by,
                 r.modified_at,
                 r.status,
-                r.flagged
+                r.flagged,
+                r.is_manual
             FROM results r
             ORDER BY r.id_results DESC
         """)
@@ -80,6 +81,7 @@ def get_all_data(
                 "reasoning": row.get("reasoning_text") or "-",
                 "image": row.get("image_final_path") or "",
                 "flagged": row.get("flagged") or False,
+                "isManual": row.get("is_manual") or False,
                 "isNew": (
                     (datetime.utcnow() - row.get("created_at").replace(tzinfo=None)).total_seconds() < 300
                     if row.get("created_at")

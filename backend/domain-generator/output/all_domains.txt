@@ -97,3 +97,6 @@ www.oed.com
 dictionary.cambridge.org
 www.thefreedictionary.com
 redkiwiapp.com
+example.com
+brone.ub.ac.id
+test.com

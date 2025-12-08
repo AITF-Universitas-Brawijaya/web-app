@@ -15,4 +15,5 @@ export type LinkRecord = {
   image: string
   flagged: boolean
   isNew: boolean
+  isManual?: boolean
 }

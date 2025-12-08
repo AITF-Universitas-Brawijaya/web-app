@@ -36,6 +36,7 @@ const TAB_ORDER = [
   { key: "unverified", label: "Unverified" },
   { key: "false-positive", label: "False Positive" },
   { key: "flagged", label: "Flagged" },
+  { key: "manual", label: "Manual" },
   { key: "summary", label: "Summary" },
 ] as const
 type TabKey = (typeof TAB_ORDER)[number]["key"]
@@ -50,6 +51,9 @@ export default function PRDDashboardPage() {
   const [perPage, setPerPage] = useState(20)
   const [detail, setDetail] = useState<LinkRecord | null>(null)
   const [crawlingModalOpen, setCrawlingModalOpen] = useState(false)
+  const [addManualModalOpen, setAddManualModalOpen] = useState(false)
+  const [manualDomainInput, setManualDomainInput] = useState("")
+  const [addingManual, setAddingManual] = useState(false)
 
   const { data, error, isLoading, mutate } = useSWR<LinkRecord[]>("/api/data/", fetcher, {
     refreshInterval: 4000,
@@ -64,7 +68,9 @@ export default function PRDDashboardPage() {
           ? true
           : activeTab === "flagged"
             ? it.flagged
-            : (it.status as string) === activeTab
+            : activeTab === "manual"
+              ? it.isManual
+              : (it.status as string) === activeTab
 
       // Enhanced search logic for ID and link
       let matchSearch = false
@@ -104,6 +110,28 @@ export default function PRDDashboardPage() {
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / perPage))
   const pageItems = sorted.slice((page - 1) * perPage, page * perPage)
+
+  async function handleAddManualDomain() {
+    const domain = manualDomainInput.trim()
+    if (!domain) return
+
+    setAddingManual(true)
+    try {
+      const { apiPost } = await import("@/lib/api")
+      await apiPost("/api/manual-domain/add", { url: domain })
+
+      // Reset and close modal
+      setManualDomainInput("")
+      setAddManualModalOpen(false)
+
+      // Refresh data
+      mutate()
+    } catch (err: any) {
+      alert(err.message || "Failed to add manual domain")
+    } finally {
+      setAddingManual(false)
+    }
+  }
 
   return (
     <ProtectedRoute>
@@ -150,6 +178,30 @@ export default function PRDDashboardPage() {
                         setSortOrder(o)
                       }}
                     />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 w-8 p-0 text-white border-none hover:opacity-90 hover:text-white transition-opacity"
+                      style={{
+                        background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)'
+                      }}
+                      onClick={() => setAddManualModalOpen(true)}
+                      title="Add Manual Domain"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
@@ -235,6 +287,47 @@ export default function PRDDashboardPage() {
 
         {/* Crawling Modal */}
         <CrawlingModal open={crawlingModalOpen} onClose={() => setCrawlingModalOpen(false)} />
+
+        {/* Add Manual Domain Modal */}
+        {addManualModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-background border border-border rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold mb-4">Add Manual Domain</h3>
+              <Input
+                placeholder="Enter domain (e.g., example.com)"
+                value={manualDomainInput}
+                onChange={(e) => setManualDomainInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !addingManual) {
+                    handleAddManualDomain()
+                  }
+                }}
+                className="mb-4"
+                autoFocus
+              />
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setAddManualModalOpen(false)
+                    setManualDomainInput("")
+                  }}
+                  disabled={addingManual}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleAddManualDomain}
+                  disabled={addingManual || !manualDomainInput.trim()}
+                  className="text-white"
+                  style={{ background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)' }}
+                >
+                  {addingManual ? "Adding..." : "Add"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   )

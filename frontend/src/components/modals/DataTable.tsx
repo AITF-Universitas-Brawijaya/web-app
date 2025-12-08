@@ -111,20 +111,32 @@ export default function DataTable({
               <td className="px-4 py-3">{formatDateOnly(it.lastModified)}</td>
               <td className="px-4 py-3 text-foreground/70">{it.modifiedBy}</td>
               <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-10 text-right">{conf}%</span>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className={cn("h-2 rounded-full", confidenceBarColor(conf))}
-                      style={{ width: `${conf}%` }}
-                    />
+                {it.isManual ? (
+                  <div className="flex items-center gap-2">
+                    <span className="w-10 text-right text-foreground/50">-</span>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="w-10 text-right">{conf}%</span>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className={cn("h-2 rounded-full", confidenceBarColor(conf))}
+                        style={{ width: `${conf}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
               </td>
               <td className="px-4 py-3">
-                <Badge className={cn("font-semibold", getStatusLabel(it.status).className)}>
-                  {getStatusLabel(it.status).label}
-                </Badge>
+                {it.isManual ? (
+                  <Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 font-semibold">
+                    Manual
+                  </Badge>
+                ) : (
+                  <Badge className={cn("font-semibold", getStatusLabel(it.status).className)}>
+                    {getStatusLabel(it.status).label}
+                  </Badge>
+                )}
               </td>
               <td className="px-4 py-3">
                 <button
