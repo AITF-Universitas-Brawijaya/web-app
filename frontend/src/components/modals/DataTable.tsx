@@ -25,11 +25,12 @@ function formatDateOnly(d: string) {
 
 
 function confidenceBarColor(v: number) {
-  if (v >= 95) return "bg-primary"
-  if (v >= 85) return "bg-foreground/60"
-  if (v >= 70) return "bg-foreground/40"
-  return "bg-foreground/20"
+  if (v >= 95) return "bg-[#00336A]" // Darkest blue (highest confidence)
+  if (v >= 85) return "bg-[#003D7D]" // Medium-dark blue
+  if (v >= 70) return "bg-[#1199DA]" // Medium blue
+  return "bg-[#1DC0EB]" // Light blue (lowest confidence)
 }
+
 
 function toHexId(n: number) {
   const hex = Math.max(1, Number(n)).toString(16).toUpperCase().padStart(7, "0")

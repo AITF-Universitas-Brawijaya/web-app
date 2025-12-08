@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
+import { ParticlesBackground } from "@/components/ui/ParticlesBackground"
 
 export default function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
     const router = useRouter()
@@ -20,8 +21,14 @@ export default function ProtectedAdminRoute({ children }: { children: React.Reac
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <p className="text-gray-500">Memeriksa sesi pengguna...</p>
+            <div
+                className="relative flex items-center justify-center min-h-screen overflow-hidden"
+                style={{ background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)' }}
+            >
+                <ParticlesBackground />
+                <div className="relative z-10">
+                    <p className="text-white text-lg">Memeriksa sesi pengguna...</p>
+                </div>
             </div>
         )
     }

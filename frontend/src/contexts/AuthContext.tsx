@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { ParticlesBackground } from "@/components/ui/ParticlesBackground";
 
 interface User {
     id: number;
@@ -29,6 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const router = useRouter();
 
     // Load auth state from localStorage on mount
@@ -74,11 +76,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const logout = () => {
+        setIsLoggingOut(true);
         localStorage.removeItem("auth_token");
         localStorage.removeItem("auth_user");
         setToken(null);
         setUser(null);
-        router.push("/login");
+
+        // Small delay for visual feedback
+        setTimeout(() => {
+            router.push("/login");
+            setIsLoggingOut(false);
+        }, 500);
     };
 
     const value: AuthContextType = {
@@ -90,7 +98,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
     };
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={value}>
+            {children}
+            {isLoggingOut && (
+                <div
+                    className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
+                    style={{ background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)' }}
+                >
+                    <ParticlesBackground />
+                    <div className="relative z-10">
+                        <p className="text-white text-lg">Logging out...</p>
+                    </div>
+                </div>
+            )}
+        </AuthContext.Provider>
+    );
 }
 
 export function useAuth() {
