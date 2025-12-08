@@ -156,7 +156,6 @@ export default function DetailModal({
       })
 
       const json = await res.json().catch(() => null)
-      console.log("[updateStatus] response:", res.status, json)
 
       if (!res.ok) {
         console.error("Update status failed:", res.status, json)
@@ -194,7 +193,6 @@ export default function DetailModal({
         }),
       })
       const json = await res.json().catch(() => null)
-      console.log("[toggleFlag] response:", res.status, json)
 
       if (!res.ok) {
         console.error("Toggle flag failed:", res.status, json)
@@ -239,7 +237,7 @@ export default function DetailModal({
                 onClick={() => {
                   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
                     navigator.clipboard.writeText(item.link)
-                      .then(() => console.log("Link copied:", item.link))
+                      .then(() => { })
                       .catch((err) => console.error("Clipboard error:", err));
                   } else {
                     // fallback untuk browser lama
@@ -249,7 +247,6 @@ export default function DetailModal({
                     textarea.select();
                     try {
                       document.execCommand("copy");
-                      console.log("Fallback copy success:", item.link);
                     } catch (err) {
                       console.error("Fallback copy failed:", err);
                     }
@@ -305,6 +302,27 @@ export default function DetailModal({
                 alt="Hasil deteksi gambar"
                 className="rounded-md mx-auto w-full max-w-md h-auto object-contain border"
               />
+            </div>
+
+            {/* Kontak */}
+            <div>
+              <div className="text-xs font-semibold mb-2">Kontak Terkait</div>
+              <div className="border border-border rounded-md p-3 bg-card flex flex-col gap-2">
+                {kontakList.map((k, idx) => (
+                  <div
+                    key={idx}
+                    className={cn(
+                      "flex justify-between items-center text-xs border border-muted-foreground/20 rounded-md px-3 py-1",
+                      contextMode && "cursor-pointer hover:bg-muted",
+                      selectedContexts.includes(`${k.type}: ${k.value}`) && "bg-muted border-primary"
+                    )}
+                    onClick={() => toggleContext(`${k.type}: ${k.value}`)}
+                  >
+                    <span>{k.type}</span>
+                    <span className="font-medium">{k.value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Riwayat */}

@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, text
 from pathlib import Path
 from urllib.parse import urlparse
 
-DB_URL = os.getenv("DB_URL", "postgresql://postgres:root@localhost:5432/prd")
+DB_URL = os.getenv("DB_URL", "postgresql://postgres:rosa@localhost:5432/prd")
 engine = create_engine(DB_URL)
 
 csv_path = Path("public/data/links.csv")

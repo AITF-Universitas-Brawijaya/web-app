@@ -1,0 +1,54 @@
+{
+  "metadata": {
+    "total_records": 3,
+    "generated_at": "2025-11-21T13:12:21.958622Z",
+    "version": "1.4",
+    "keywords": [
+      "technology news"
+    ]
+  },
+  "data": [
+    {
+      "id": "00000106",
+      "title": "The Latest News in Technology | PCMag",
+      "url": "https://www.pcmag.com/news",
+      "domain": "www.pcmag.com",
+      "description": "Get the latest technology news and in-depth analysis from the expert analysts at PCMag.",
+      "og_metadata": {
+        "og:title": "Error: Client error '403 Forbidden' for url 'https://www.pcmag.com/news'\nFor more information check: https:",
+        "og:description": "Error: Client error '403 Forbidden' for url 'https://www.pcmag.com/news'\nFor more information check: https:",
+        "og:type": "Error: Client error '403 Forbidden' for url 'https://www.pcmag.com/news'\nFor more information check: https:",
+        "og:site_name": "Error: Client error '403 Forbidden' for url 'https://www.pcmag.com/news'\nFor more information check: https:"
+      },
+      "screenshot_status": "success"
+    },
+    {
+      "id": "00000107",
+      "title": "WIRED - The Latest in Technology , Science, Culture and Business",
+      "url": "https://www.wired.com/",
+      "domain": "www.wired.com",
+      "description": "We bring you the future as it happens. From the latest in science and technology to the big stories in business and culture, we've got you covered.",
+      "og_metadata": {
+        "og:title": "WIRED - The Latest in Technology, Science, Culture and Business",
+        "og:description": "We bring you the future as it happens. From the latest in science and technology to the big stories in business and culture, we've got you covered.",
+        "og:type": "website",
+        "og:site_name": "WIRED"
+      },
+      "screenshot_status": "failed"
+    },
+    {
+      "id": "00000108",
+      "title": "Technology News - CNBC",
+      "url": "https://www.cnbc.com/technology/?msockid=0aeb830515cb6a5f059595ae145c6b52",
+      "domain": "www.cnbc.com",
+      "description": "Business news related to the technology industry, including Apple, Amazon, Microsoft, Google, and Facebook, plus consumer electronics, start-ups, cryptocurrency, media, advertising, streaming,...",
+      "og_metadata": {
+        "og:title": "Error: Client error '403 Forbidden' for url 'https://www.cnbc.com/technology/?msockid=0aeb830515cb6a5f05959",
+        "og:description": "Error: Client error '403 Forbidden' for url 'https://www.cnbc.com/technology/?msockid=0aeb830515cb6a5f05959",
+        "og:type": "Error: Client error '403 Forbidden' for url 'https://www.cnbc.com/technology/?msockid=0aeb830515cb6a5f05959",
+        "og:site_name": "Error: Client error '403 Forbidden' for url 'https://www.cnbc.com/technology/?msockid=0aeb830515cb6a5f05959"
+      },
+      "screenshot_status": "failed"
+    }
+  ]
+}

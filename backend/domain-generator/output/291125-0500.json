@@ -1,0 +1,334 @@
+{
+  "metadata": {
+    "total_records": 15,
+    "generated_at": "2025-11-29T05:00:32.713614Z",
+    "version": "1.4",
+    "keywords": [
+      "gacor88"
+    ]
+  },
+  "data": [
+    {
+      "id": "00000406",
+      "title": "gacor 88 > situs slot super gacor resmi terbaru gampang maxwin besar...",
+      "url": "https://gacor88.amazink.id/",
+      "domain": "gacor88.amazink.id",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9825,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/3d14cff1-49f6-469a-9032-1d1c36ab19c7.jpg",
+          "id": "3679dc9c-631f-4758-b354-a4cf9bb96346",
+          "timestamp": "2025-11-29T12:00:31.465384"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000407",
+      "title": "gacor 88 : Situs Slot Gacor Online Pragmatic Play... | Zapier Community",
+      "url": "https://community.zapier.com/general-discussion-13/gacor88-situs-slot-gacor-online-pragmatic-play-slot88-thailand-34600",
+      "domain": "community.zapier.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9923,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/7b49d5f6-ea6d-4211-9b27-96335b62edf3.jpg",
+          "id": "a6243f6a-5f56-4fa7-bb1c-742b577c023e",
+          "timestamp": "2025-11-29T12:00:31.567676"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000408",
+      "title": "slot- gacor - 88 -tips-dan-trik-untuk-kemenangan-terbaik",
+      "url": "https://tabiattarihi.ege.edu.tr/files/tabiattarihi/icerik/slot-gacor-88-tips-dan-trik-untuk-kemenangan-terbaik-.pdf",
+      "domain": "tabiattarihi.ege.edu.tr",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9789,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/82a2043f-c611-407b-a120-8a343d2735a4.jpg",
+          "id": "38f4edb9-ef2d-4fee-a9d3-9541ad3921b7",
+          "timestamp": "2025-11-29T12:00:31.654901"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000409",
+      "title": "gacor 88 jp-login.cityandgarden.com",
+      "url": "https://gacor88jp-login.cityandgarden.com/",
+      "domain": "gacor88jp-login.cityandgarden.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "gambling",
+          "classification_confidence": 0.995,
+          "detections": [
+            {
+              "class": "cta_button",
+              "confidence": 0.19756156206130981,
+              "bbox": [
+                1545.911865234375,
+                52.427284240722656,
+                1652.68408203125,
+                101.73059844970703
+              ]
+            }
+          ],
+          "ocr": [],
+          "visualization_path": "/results/inference/73535988-15c3-4965-bcdd-3aca9db6b7cb.jpg",
+          "id": "cc6351e7-f0fc-45b3-9715-92f5254f9ccc",
+          "timestamp": "2025-11-29T12:00:31.878198"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000410",
+      "title": "Back Button",
+      "url": "https://public.tableau.com/app/profile/sableng88.gacor/vizzes",
+      "domain": "public.tableau.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9935,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/dbea739d-c25e-4c3c-9c88-6774729db1a9.jpg",
+          "id": "eb838251-020f-4168-a57c-cb4ee81b9ae9",
+          "timestamp": "2025-11-29T12:00:31.731349"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000411",
+      "title": "gacor 88 | ReverbNation",
+      "url": "https://www.reverbnation.com/gacor882",
+      "domain": "www.reverbnation.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9871,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/eec0cac9-b6ca-4656-9e24-abfdaa3329c4.jpg",
+          "id": "4ae1db9a-c51a-413c-a676-0427bac03523",
+          "timestamp": "2025-11-29T12:00:31.946353"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000412",
+      "title": "SIGHPC Education Blog | Forum",
+      "url": "https://sighpceducation.hosting.acm.org/wp/forums/users/rexus88gacor/",
+      "domain": "sighpceducation.hosting.acm.org",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9815,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/ca09508c-f453-49c7-a92d-a130da143b65.jpg",
+          "id": "9375ac1e-ce5a-4477-b237-c67b6ed1c6f4",
+          "timestamp": "2025-11-29T12:00:32.016770"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000413",
+      "title": "gacor 88 -login.kprintingla.com",
+      "url": "https://gacor88-login.kprintingla.com/",
+      "domain": "gacor88-login.kprintingla.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "gambling",
+          "classification_confidence": 0.9953,
+          "detections": [
+            {
+              "class": "cta_button",
+              "confidence": 0.19973057508468628,
+              "bbox": [
+                1545.8814697265625,
+                52.44249725341797,
+                1652.6866455078125,
+                101.71886444091797
+              ]
+            }
+          ],
+          "ocr": [],
+          "visualization_path": "/results/inference/ce2dd4a1-1220-4bff-9254-015293312b4b.jpg",
+          "id": "160c5ef7-9d7a-4ace-b246-af375fef2835",
+          "timestamp": "2025-11-29T12:00:32.236146"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000414",
+      "title": "Pargoy88gacor - LeetCode Profile",
+      "url": "https://leetcode.com/u/Pargoy88gacor/",
+      "domain": "leetcode.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9199,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/b892aa36-d89a-4159-b4be-a0d15caed1cf.jpg",
+          "id": "704e8dad-84cd-46a0-baa6-40acff58dca8",
+          "timestamp": "2025-11-29T12:00:32.093850"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000415",
+      "title": "Penemuan Slot Gacor Terbaik untuk Meraih Kemenangan Besar di...",
+      "url": "https://www.jordanaviation.jo/max/?judul=slot-gacor-88",
+      "domain": "www.jordanaviation.jo",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9821,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/ba7eb95d-3acf-4fe1-a675-abe77221a733.jpg",
+          "id": "59ba3624-6684-4aac-b900-9881dfb277c5",
+          "timestamp": "2025-11-29T12:00:32.312181"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000416",
+      "title": "Dermandar User Profile - Grid",
+      "url": "https://www.dermandar.com/user/gacor88new/",
+      "domain": "www.dermandar.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9949,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/b083c800-a584-4bac-be62-b553c3d85440.jpg",
+          "id": "a7ce629b-eb0f-41aa-a6e2-bb3dc4f55aac",
+          "timestamp": "2025-11-29T12:00:32.606702"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000417",
+      "title": "Mathematics and Panay Bukidnon Women in Alan Cabalfn’s Paintings",
+      "url": "https://journal.wvsu.edu.ph/index.php/journals/article/view/48",
+      "domain": "journal.wvsu.edu.ph",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9844,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/d09bb4ad-5b46-42f6-bb44-557e4b0bf76c.jpg",
+          "id": "8d933ac5-aab6-44e2-bad5-609dcc67c8bc",
+          "timestamp": "2025-11-29T12:00:32.379888"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000418",
+      "title": "Muhammad Ali Quiz - HowStuffWorks",
+      "url": "https://play.howstuffworks.com/quiz/muhammad-ali-quiz",
+      "domain": "play.howstuffworks.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.994,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/72a558ef-a64e-461c-bbda-d250ad1ccc92.jpg",
+          "id": "62e74b4b-5761-427d-848f-69ff48b30b28",
+          "timestamp": "2025-11-29T12:00:32.451166"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000419",
+      "title": "Muhammad Ali Quiz : 10 Hard Questions You Can’t Miss!",
+      "url": "https://quizchase.com/muhammad-ali-quiz/",
+      "domain": "quizchase.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9891,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/3e97ec3e-8251-4a06-b293-a9bc4dbabf84.jpg",
+          "id": "283242ef-ccd4-49e5-ae06-bc077f9929f5",
+          "timestamp": "2025-11-29T12:00:32.516459"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000420",
+      "title": "Do You Know About Muhammad Ali? - Quiz & Trivia - ProProfs",
+      "url": "https://www.proprofs.com/quiz-school/story.php?title=pp-do-you-know-about-muhammad-ali",
+      "domain": "www.proprofs.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9882,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/2c073a9f-0c86-484a-816a-24aae8574a93.jpg",
+          "id": "2caa6c75-e6de-49ec-92f3-dd33837edfb5",
+          "timestamp": "2025-11-29T12:00:32.698146"
+        }
+      },
+      "detection_status": "success"
+    }
+  ]
+}

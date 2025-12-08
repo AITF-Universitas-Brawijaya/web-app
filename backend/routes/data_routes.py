@@ -1,14 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from db import get_db
+from backend.db import get_db
+from backend.auth import get_current_user
 from datetime import datetime
 
 router = APIRouter(prefix="/api/data", tags=["Data"])
 
 @router.get("/")
-def get_all_data(db: Session = Depends(get_db)):
+def get_all_data(db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
     try:
+        db.execute(text(f"SET LOCAL app.current_user_id = '{user['id_user']}'"))
+        db.commit()
+        
         query = text("""
             SELECT
                 r.id_results,
@@ -26,9 +30,10 @@ def get_all_data(db: Session = Depends(get_db)):
                 gd.date_generated
             FROM results r
             LEFT JOIN generated_domains gd ON r.id_domain = gd.id_domain
+            WHERE r.user_id = :user_id
             ORDER BY r.id_results DESC
         """)
-        result = db.execute(query)
+        result = db.execute(query, {"user_id": user["id_user"]})
         rows = [dict(r._mapping) for r in result]
 
         formatted = []

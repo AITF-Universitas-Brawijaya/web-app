@@ -8,8 +8,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
 
   useEffect(() => {
-    const user = localStorage.getItem("user")
-    if (!user) {
+    const token = localStorage.getItem("access_token")
+    if (!token) {
       router.replace("/login")
     } else {
       setIsAuthenticated(true)
@@ -17,7 +17,6 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }, [router])
 
   if (isAuthenticated === null) {
-    // Loading state biar gak flicker
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-gray-500">Memeriksa sesi pengguna...</p>

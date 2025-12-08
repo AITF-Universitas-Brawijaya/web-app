@@ -5,7 +5,7 @@ import os
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DB_URL", "postgresql://postgres:root@localhost:5432/prd")
+DATABASE_URL = os.getenv("DB_URL", "postgresql://postgres:root@localhost:5432/dbprd")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 

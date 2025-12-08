@@ -1,0 +1,54 @@
+{
+  "metadata": {
+    "total_records": 3,
+    "generated_at": "2025-11-20T08:58:46.668966Z",
+    "version": "1.4",
+    "keywords": [
+      "judi online"
+    ]
+  },
+  "data": [
+    {
+      "id": "00000004",
+      "title": "Hukuman bagi pelaku judi online : Penjara dan denda hingga miliaran",
+      "url": "https://www.antaranews.com/berita/4855457/hukuman-bagi-pelaku-judi-online-penjara-dan-denda-hingga-miliaran",
+      "domain": "www.antaranews.com",
+      "description": "May 24, 2025 · Judi online merupakan praktik perjudian yang dilakukan melalui jaringan internet. Meski telah dilarang secara tegas oleh hukum di Indonesia, praktik judi ...",
+      "og_metadata": {
+        "og:title": "Hukuman bagi pelaku judi online: Penjara dan denda hingga miliaran",
+        "og:description": "Judi online merupakan praktik perjudian yang dilakukan melalui jaringan internet. Meski telah dilarang secara tegas oleh hukum di Indonesia, praktik judi ...",
+        "og:type": "website",
+        "og:site_name": "Antara News"
+      },
+      "screenshot_status": "success"
+    },
+    {
+      "id": "00000005",
+      "title": "Komdigi Sebut 76% Situs Judi Online RI Menggunakan Cloudflare",
+      "url": "https://teknologi.bisnis.com/read/20251119/101/1930168/komdigi-sebut-76-situs-judi-online-ri-menggunakan-cloudflare",
+      "domain": "teknologi.bisnis.com",
+      "description": "19 hours ago · Komdigi ungkap 76% situs judi online gunakan Cloudflare untuk hindari blokir. Cloudflare belum daftar PSE, bisa kena sanksi jika tak patuhi aturan.",
+      "og_metadata": {
+        "og:title": "Komdigi Sebut 76% Situs Judi Online RI Menggunakan Cloudflare",
+        "og:description": "Komdigi ungkap 76% situs judi online gunakan Cloudflare untuk hindari blokir. Cloudflare belum daftar PSE, bisa kena sanksi jika tak patuhi aturan.",
+        "og:type": "article",
+        "og:site_name": "Bisnis.com"
+      },
+      "screenshot_status": "success"
+    },
+    {
+      "id": "00000006",
+      "title": "Penyebab, Bahaya, dan Cara Atasi Kecanduan Judi Online …",
+      "url": "https://regional.kompas.com/read/2025/06/20/043300078/penyebab-bahaya-dan-cara-atasi-kecanduan-judi-online-menurut-psikolog-apa",
+      "domain": "regional.kompas.com",
+      "description": "Fenomena judi online di Jambi semakin mengkhawatirkan, memicu pembobolan dan pencurian. Psikolog mengungkap penyebab, bahaya, dan cara mengatasinya.",
+      "og_metadata": {
+        "og:title": "Penyebab, Bahaya, dan Cara Atasi Kecanduan Judi Online Menurut Psikolog, Apa Saja?",
+        "og:description": "Fenomena judi online di Jambi semakin mengkhawatirkan, memicu pembobolan dan pencurian. Psikolog mengungkap penyebab, bahaya, dan cara mengatasinya. ",
+        "og:type": "article",
+        "og:site_name": "KOMPAS.com"
+      },
+      "screenshot_status": "failed"
+    }
+  ]
+}

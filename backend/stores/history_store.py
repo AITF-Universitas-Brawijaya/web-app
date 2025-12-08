@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import text
-from db import engine
+from backend.db import engine
 
 with engine.begin() as conn:
     conn.execute(text("""

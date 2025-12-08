@@ -25,9 +25,23 @@ import { LinkRecord } from "@/types/linkRecord"
 // const fetcher = (url: string) => fetch(url, { cache: "no-store" }).then((r) => r.json())
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
-const fetcher = (url: string) =>
-  fetch(`${API_BASE}${url}`, { cache: "no-store" }).then((r) => r.json())
-console.log("🧠 NEXT_PUBLIC_API_URL:", API_BASE)
+const fetcher = (url: string) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  return fetch(`${API_BASE}${url}`, {
+    cache: "no-store",
+    headers: {
+      'Authorization': token ? `Bearer ${token}` : '',
+    }
+  }).then((r) => {
+    if (r.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
+      throw new Error('Unauthorized')
+    }
+    return r.json()
+  })
+}
 
 
 const TAB_ORDER = [
@@ -55,10 +69,6 @@ export default function PRDDashboardPage() {
     revalidateOnFocus: true,
   })
 
-  console.log("🔍 DEBUG API_BASE:", API_BASE)
-  console.log("🔍 SWR Data:", data)
-  console.log("🔍 SWR Error:", error)
-  console.log("🔍 SWR Loading:", isLoading)
 
 
   const filtered = useMemo(() => {
@@ -91,6 +101,7 @@ export default function PRDDashboardPage() {
 
   const handleLogout = () => {
     localStorage.removeItem("user")
+    localStorage.removeItem("access_token")
     window.location.href = "/login"
   }
 

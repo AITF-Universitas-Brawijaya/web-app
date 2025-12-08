@@ -3,9 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 
-import db
-from routes import data_routes
-from routes import chat_routes, history_routes, update_routes, text_analyze_routes, image_analyze_routes, law_rag_routes, crawler_routes
+import backend.db
+from backend.routes import data_routes, auth_routes
+from backend.routes import chat_routes, history_routes, update_routes, text_analyze_routes, image_analyze_routes, law_rag_routes, crawler_routes
 
 
 load_dotenv()
@@ -22,6 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_routes.router)
 app.include_router(data_routes.router)
 app.include_router(update_routes.router)
 app.include_router(history_routes.router)

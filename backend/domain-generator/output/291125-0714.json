@@ -1,0 +1,354 @@
+{
+  "metadata": {
+    "total_records": 15,
+    "generated_at": "2025-11-29T07:14:05.126286Z",
+    "version": "1.4",
+    "keywords": [
+      "bola"
+    ]
+  },
+  "data": [
+    {
+      "id": "00000423",
+      "title": "Berita dan Foto Sepak Bola Terbaru, Jadwal dan Hasil Pertandingan ...",
+      "url": "https://m.bola.net/",
+      "domain": "m.bola.net",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9913,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/ede520ec-171a-4735-9f70-21aee8d40ba8.jpg",
+          "id": "d4d6be80-caf1-4b7f-86a3-c2f272b60aaf",
+          "timestamp": "2025-11-29T14:14:03.666739"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000424",
+      "title": "Berita Bola Terkini, Jadwal Klasemen, Skor Liga - Bola.com",
+      "url": "https://m.bola.com/",
+      "domain": "m.bola.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9929,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/d24d838a-0d80-4b7b-b84c-5d59aa7cd8bd.jpg",
+          "id": "1000df60-22f4-43ed-8db2-830e34930ec5",
+          "timestamp": "2025-11-29T14:14:03.785167"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000425",
+      "title": "Okezone Bola Berita dan Jadwal Bola Indonesia Internasional",
+      "url": "https://bola.okezone.com/",
+      "domain": "bola.okezone.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.993,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/8a936f50-a66f-4be3-bfc7-56f5b57468bb.jpg",
+          "id": "2e01225f-58c2-4813-be10-c2691eee898b",
+          "timestamp": "2025-11-29T14:14:03.883255"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000426",
+      "title": "Berita Bola Terbaru Hari ini - Bolasport.com",
+      "url": "https://www.bolasport.com/bola",
+      "domain": "www.bolasport.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9796,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/2d3d3384-92ea-4482-96e5-5a9aa033af8f.jpg",
+          "id": "d6328657-9a57-4a97-b882-c4918e37329f",
+          "timestamp": "2025-11-29T14:14:03.960901"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000427",
+      "title": "A Bola - Ringier Sports Media Group",
+      "url": "https://ringiersportsmediagroup.com/brands/a-bola/",
+      "domain": "ringiersportsmediagroup.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9903,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/261c1ec0-ee99-4bf2-b814-29f8df1a89f3.jpg",
+          "id": "acb9cc6d-c309-4c5f-ab0e-ec2566696978",
+          "timestamp": "2025-11-29T14:14:04.034065"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000428",
+      "title": "Livesport: Sepak Bola. Skor Langsung, Hasil Pertandingan, Peringkat ...",
+      "url": "https://www.livesport.com/id/sepak-bola/",
+      "domain": "www.livesport.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9938,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/30fe0191-8e65-4bd5-a86d-44cc4247bc7f.jpg",
+          "id": "95f0ace0-cd83-4d91-bec1-5e5c78186391",
+          "timestamp": "2025-11-29T14:14:04.110900"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000429",
+      "title": "Berita Terkini Bola.com",
+      "url": "https://www.bola.com/latest",
+      "domain": "www.bola.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9935,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/b425991f-4119-4836-9ee1-8f680eee6f35.jpg",
+          "id": "79dd63c5-e219-4659-8ce8-ba71a8c9171e",
+          "timestamp": "2025-11-29T14:14:04.191434"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000430",
+      "title": "Soccer | Today news - Bolavip",
+      "url": "https://bolavip.com/en/soccer",
+      "domain": "bolavip.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "gambling",
+          "classification_confidence": 0.9925,
+          "detections": [
+            {
+              "class": "menu_nav",
+              "confidence": 0.15244413912296295,
+              "bbox": [
+                213.51754760742188,
+                41.573524475097656,
+                1093.427001953125,
+                65.43547821044922
+              ]
+            },
+            {
+              "class": "logo",
+              "confidence": 0.1334236115217209,
+              "bbox": [
+                188.30662536621094,
+                6.996946334838867,
+                337.97857666015625,
+                826.39501953125
+              ]
+            },
+            {
+              "class": "cta_button",
+              "confidence": 0.10524460673332214,
+              "bbox": [
+                188.30662536621094,
+                6.996946334838867,
+                337.97857666015625,
+                826.39501953125
+              ]
+            }
+          ],
+          "ocr": [
+            {
+              "class": "menu_nav",
+              "bbox": [
+                213.51754760742188,
+                41.573524475097656,
+                1093.427001953125,
+                65.43547821044922
+              ],
+              "ocr_text": "US ENGLISH LATEST NEWS NFL NBA MLB SOCCER NHL NCAAF TENNIS BOXING"
+            }
+          ],
+          "visualization_path": "/results/inference/7079c977-0093-412c-adb4-5badc8e3a38e.jpg",
+          "id": "d6d2b104-9a8f-4176-82d5-a1d2dd72264f",
+          "timestamp": "2025-11-29T14:14:04.441108"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000431",
+      "title": "Bola | Spanish to English Translation - SpanishDictionary.com",
+      "url": "https://www.spanishdict.com/translate/bola",
+      "domain": "www.spanishdict.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9898,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/27d405cd-7751-40b2-bdfb-6368ba175319.jpg",
+          "id": "bdbace59-9fc0-4097-b683-69f738cbe29e",
+          "timestamp": "2025-11-29T14:14:04.516191"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000432",
+      "title": "Berita dan Foto Sepak Bola Terbaru, Jadwal dan Hasil Pertandingan ...",
+      "url": "https://www.bola.net/",
+      "domain": "www.bola.net",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9913,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/e503ce51-a93b-4da5-8f29-10866cf31360.jpg",
+          "id": "a075ab8a-1fc2-4916-b6cb-d8e235567376",
+          "timestamp": "2025-11-29T14:14:04.641817"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000433",
+      "title": "English Translation of “ BOLA ” | Collins Spanish-English Dictionary",
+      "url": "https://www.collinsdictionary.com/dictionary/spanish-english/bola",
+      "domain": "www.collinsdictionary.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9893,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/222fa900-113b-46a0-a4ea-c32279018b26.jpg",
+          "id": "457d433f-0c8d-4858-a968-0caa78967cb6",
+          "timestamp": "2025-11-29T14:14:04.755007"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000434",
+      "title": "BOLA | translate Spanish to English - Cambridge Dictionary",
+      "url": "https://dictionary.cambridge.org/dictionary/spanish-english/bola",
+      "domain": "dictionary.cambridge.org",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.7761,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/316626a8-3877-4b19-af8e-be2ca6748297.jpg",
+          "id": "3d1cc50e-166e-463e-b6ae-3b5661e4c93d",
+          "timestamp": "2025-11-29T14:14:04.833942"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000435",
+      "title": "BOLA Definition & Meaning | Dictionary .com",
+      "url": "https://www.dictionary.com/browse/bola",
+      "domain": "www.dictionary.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9942,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/c144f5d9-86b8-45a2-996f-5a196aafb554.jpg",
+          "id": "72570e3f-d9f9-4c50-98be-5c8610126cce",
+          "timestamp": "2025-11-29T14:14:04.947281"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000436",
+      "title": "What does bola mean in Spanish ? - WordHippo",
+      "url": "https://www.wordhippo.com/what-is/the-meaning-of/spanish-word-bola.html",
+      "domain": "www.wordhippo.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.993,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/c6ca13ae-f667-4160-a1f6-b33c02fb6e30.jpg",
+          "id": "1d180681-bbbd-4c5d-9f59-e6d491277a33",
+          "timestamp": "2025-11-29T14:14:05.034882"
+        }
+      },
+      "detection_status": "success"
+    },
+    {
+      "id": "00000437",
+      "title": "Translate bola from Spanish to English - Interglot Translation …",
+      "url": "https://www.interglot.com/dictionary/es/en/translate/bola",
+      "domain": "www.interglot.com",
+      "screenshot_status": "success",
+      "detection_api_response": {
+        "success": true,
+        "result": {
+          "status": "non_gambling",
+          "classification_confidence": 0.9748,
+          "detections": [],
+          "ocr": [],
+          "visualization_path": "/results/inference/a93e5371-42c6-49a1-8d88-485c74f039c7.jpg",
+          "id": "6d2c30cf-6f19-478a-b079-01b60e970be0",
+          "timestamp": "2025-11-29T14:14:05.116428"
+        }
+      },
+      "detection_status": "success"
+    }
+  ]
+}
