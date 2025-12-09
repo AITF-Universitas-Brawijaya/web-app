@@ -15,9 +15,11 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000").split(",")
 
 app = FastAPI(title="PRD Chatbot Backend")
 
+# Allow all origins for RunPod proxy compatibility
+# When behind Nginx, origin headers vary and strict CORS breaks the app
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=FRONTEND_URL,
+    allow_origins=["*"],  # Allow all origins for RunPod proxy
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

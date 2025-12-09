@@ -53,7 +53,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const login = async (username: string, password: string) => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            // Use relative URL for API calls - Nginx will proxy /api/* to backend
+            // For local dev with separate ports, set NEXT_PUBLIC_API_URL in .env.local
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
             const response = await fetch(`${apiUrl}/api/auth/login`, {
                 method: "POST",
                 headers: {

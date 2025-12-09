@@ -464,7 +464,8 @@ export default function DetailModal({
                           src={(() => {
                             const pathParts = item.image.split('/')
                             const filename = pathParts[pathParts.length - 1]
-                            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+                            // Use relative URL for Nginx proxying
+                            const apiUrl = process.env.NEXT_PUBLIC_API_URL || ''
                             return `${apiUrl}/api/images/detection/${filename}`
                           })()}
                           alt="Hasil deteksi object detection"

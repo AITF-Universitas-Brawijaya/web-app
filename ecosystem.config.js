@@ -6,13 +6,14 @@ module.exports = {
             args: 'start',
             cwd: '/home/ubuntu/tim6_prd_workdir/frontend',
             instances: 1,
+            exec_mode: 'fork',
             autorestart: true,
             watch: false,
             max_memory_restart: '1G',
             env: {
                 NODE_ENV: 'production',
-                PORT: 3000,
-                NEXT_PUBLIC_API_URL: 'http://localhost:8000'
+                PORT: 3000
+                // NEXT_PUBLIC_API_URL not set - uses relative URLs for Nginx proxying
             },
             error_file: '/home/ubuntu/tim6_prd_workdir/logs/pm2-frontend-error.log',
             out_file: '/home/ubuntu/tim6_prd_workdir/logs/pm2-frontend-out.log',

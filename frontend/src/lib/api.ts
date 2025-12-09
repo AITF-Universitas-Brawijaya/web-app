@@ -2,7 +2,9 @@
  * API utilities for making authenticated requests
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Use relative URLs for API calls - Nginx will proxy /api/* to backend
+// For local dev with separate ports, set NEXT_PUBLIC_API_URL in .env.local
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 /**
  * Get authentication token from localStorage
