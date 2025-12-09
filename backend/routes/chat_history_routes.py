@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List
-import psycopg2
-from db import get_db_connection
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+from db import get_db
 
 router = APIRouter(prefix="/api/chat", tags=["chat_history"])
 
@@ -14,24 +15,20 @@ class ChatMessage(BaseModel):
 
 
 @router.get("/history/{id_domain}")
-async def get_chat_history(id_domain: int, username: str) -> List[ChatMessage]:
+async def get_chat_history(id_domain: int, username: str, db: Session = Depends(get_db)) -> List[ChatMessage]:
     """
     Retrieve chat history for a specific user and domain.
     """
-    conn = None
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        
-        cur.execute("""
+        query = text("""
             SELECT role, message, created_at
             FROM chat_history
-            WHERE username = %s AND id_domain = %s
+            WHERE username = :username AND id_domain = :id_domain
             ORDER BY created_at ASC
-        """, (username, id_domain))
+        """)
         
-        rows = cur.fetchall()
-        cur.close()
+        result = db.execute(query, {"username": username, "id_domain": id_domain})
+        rows = result.fetchall()
         
         messages = [
             ChatMessage(
@@ -46,65 +43,56 @@ async def get_chat_history(id_domain: int, username: str) -> List[ChatMessage]:
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve chat history: {str(e)}")
-    finally:
-        if conn:
-            conn.close()
 
 
 @router.post("/history/{id_domain}")
-async def save_chat_message(id_domain: int, username: str, role: str, message: str):
+async def save_chat_message(id_domain: int, username: str, role: str, message: str, db: Session = Depends(get_db)):
     """
     Save a chat message to the database.
     """
-    conn = None
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        
-        cur.execute("""
+        query = text("""
             INSERT INTO chat_history (username, id_domain, role, message)
-            VALUES (%s, %s, %s, %s)
+            VALUES (:username, :id_domain, :role, :message)
             RETURNING id, created_at
-        """, (username, id_domain, role, message))
+        """)
         
-        result = cur.fetchone()
-        conn.commit()
-        cur.close()
+        result = db.execute(query, {
+            "username": username,
+            "id_domain": id_domain,
+            "role": role,
+            "message": message
+        })
+        
+        row = result.fetchone()
+        db.commit()
         
         return {
-            "id": result[0],
-            "created_at": result[1].isoformat(),
+            "id": row[0],
+            "created_at": row[1].isoformat(),
             "role": role,
             "message": message
         }
         
     except Exception as e:
-        if conn:
-            conn.rollback()
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to save chat message: {str(e)}")
-    finally:
-        if conn:
-            conn.close()
 
 
 @router.delete("/history/{id_domain}")
-async def clear_chat_history(id_domain: int, username: str):
+async def clear_chat_history(id_domain: int, username: str, db: Session = Depends(get_db)):
     """
     Clear all chat history for a specific user and domain.
     """
-    conn = None
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        
-        cur.execute("""
+        query = text("""
             DELETE FROM chat_history
-            WHERE username = %s AND id_domain = %s
-        """, (username, id_domain))
+            WHERE username = :username AND id_domain = :id_domain
+        """)
         
-        deleted_count = cur.rowcount
-        conn.commit()
-        cur.close()
+        result = db.execute(query, {"username": username, "id_domain": id_domain})
+        deleted_count = result.rowcount
+        db.commit()
         
         return {
             "success": True,
@@ -112,9 +100,5 @@ async def clear_chat_history(id_domain: int, username: str):
         }
         
     except Exception as e:
-        if conn:
-            conn.rollback()
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to clear chat history: {str(e)}")
-    finally:
-        if conn:
-            conn.close()

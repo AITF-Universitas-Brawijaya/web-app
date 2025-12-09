@@ -91,10 +91,16 @@ export default function DetailModal({
     if (item) setFlaggedLocal(item.flagged)
   }, [item])
 
-  const { data: history, mutate: mutateHistory } = useSWR<{ events: { time: string; text: string }[] }>(
-    item ? `/api/history?id=${item.id}` : null,
+  const { data: history, error: historyError, mutate: mutateHistory } = useSWR<{ events: { time: string; text: string }[] }>(
+    item ? `/api/history/?id=${item.id}` : null,
     fetcher,
-    { refreshInterval: 0, revalidateOnFocus: false }
+    {
+      refreshInterval: 0,
+      revalidateOnFocus: false,
+      onError: (err) => {
+        console.error('[History] SWR Error:', err)
+      }
+    }
   )
 
   // Notes state and fetching
@@ -643,17 +649,33 @@ export default function DetailModal({
                     <div className="text-xs font-semibold">Riwayat Aktivitas</div>
                   </div>
                   <div className="border border-border rounded-md p-3 bg-card max-h-40 overflow-auto">
-                    {history?.events?.length ? (
+                    {historyError ? (
+                      <div className="text-xs text-red-500">Error: {historyError.message}</div>
+                    ) : !history ? (
+                      <div className="text-xs text-foreground/60">Memuat riwayat...</div>
+                    ) : history.events && history.events.length > 0 ? (
                       <ul className="space-y-1">
                         {history.events.map((ev, idx) => (
                           <li key={idx} className="text-xs">
-                            <span className="text-foreground/50 mr-2">{new Date(ev.time).toLocaleString()}</span>
-                            {ev.text}
+                            <div className="flex flex-col">
+                              <span className="text-foreground/50 text-[10px]">
+                                {new Date(ev.time).toLocaleString('id-ID', {
+                                  year: 'numeric',
+                                  month: '2-digit',
+                                  day: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  second: '2-digit',
+                                  hour12: false
+                                })}
+                              </span>
+                              <span className="mt-0.5">{ev.text}</span>
+                            </div>
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <div className="text-xs text-foreground/60">Memuat riwayat...</div>
+                      <div className="text-xs text-foreground/60">Belum ada riwayat aktivitas</div>
                     )}
                   </div>
                 </div>

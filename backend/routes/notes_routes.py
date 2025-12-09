@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from db import get_db
 from utils.auth_middleware import get_current_user
+from utils.audit import add_audit_log
 
 router = APIRouter(prefix="/api/notes", tags=["Notes"])
 
@@ -109,6 +110,15 @@ async def create_note(
         row = result.fetchone()
         note_dict = dict(row._mapping)
         
+        # Add audit log for note creation
+        # Get result_id from id_domain
+        result_query = text("SELECT id_results FROM results WHERE id_domain = :id_domain")
+        result_row = db.execute(result_query, {"id_domain": id_domain}).fetchone()
+        if result_row:
+            result_id = dict(result_row._mapping)["id_results"]
+            add_audit_log(db, result_id, "note_added", username)
+            db.commit()
+        
         return {
             "id": note_dict["id"],
             "id_domain": note_dict["id_domain"],
@@ -174,6 +184,15 @@ async def update_note(
         row = result.fetchone()
         note_dict = dict(row._mapping)
         
+        # Add audit log for note update
+        # Get result_id from id_domain
+        result_query = text("SELECT id_results FROM results WHERE id_domain = :id_domain")
+        result_row = db.execute(result_query, {"id_domain": note_dict["id_domain"]}).fetchone()
+        if result_row:
+            result_id = dict(result_row._mapping)["id_results"]
+            add_audit_log(db, result_id, "note_updated", username)
+            db.commit()
+        
         return {
             "id": note_dict["id"],
             "id_domain": note_dict["id_domain"],
@@ -221,10 +240,24 @@ async def delete_note(
                 detail="You can only delete your own notes"
             )
         
+        # Get id_domain before deleting
+        id_domain_query = text("SELECT id_domain FROM domain_notes WHERE id = :note_id")
+        id_domain_row = db.execute(id_domain_query, {"note_id": note_id}).fetchone()
+        id_domain = dict(id_domain_row._mapping)["id_domain"] if id_domain_row else None
+        
         # Delete note
         delete_query = text("DELETE FROM domain_notes WHERE id = :note_id")
         db.execute(delete_query, {"note_id": note_id})
         db.commit()
+        
+        # Add audit log for note deletion
+        if id_domain:
+            result_query = text("SELECT id_results FROM results WHERE id_domain = :id_domain")
+            result_row = db.execute(result_query, {"id_domain": id_domain}).fetchone()
+            if result_row:
+                result_id = dict(result_row._mapping)["id_results"]
+                add_audit_log(db, result_id, "note_deleted", username)
+                db.commit()
         
         return {"ok": True, "message": "Note deleted successfully"}
     

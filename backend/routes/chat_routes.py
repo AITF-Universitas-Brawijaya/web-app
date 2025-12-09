@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+from sqlalchemy import text
 from pydantic import BaseModel
 import requests
 import os
-from db import get_db_connection
+from db import get_db
 
 router = APIRouter(prefix="/api", tags=["chat"])
 
@@ -16,12 +18,11 @@ class ChatRequest(BaseModel):
 
 
 @router.post("/chat")
-def chat(req: ChatRequest):
+def chat(req: ChatRequest, db: Session = Depends(get_db)):
     """
     Endpoint untuk melakukan percakapan dengan model Mistral melalui Ollama.
     Menyimpan pesan user dan respons AI ke database.
     """
-    conn = None
     try:
         # Bangun konteks dari data item
         context = f"""
@@ -43,16 +44,19 @@ def chat(req: ChatRequest):
         }
 
         # Simpan pesan user ke database
-        conn = get_db_connection()
-        cur = conn.cursor()
-        
         id_domain = req.item.get('id')
         if id_domain:
-            cur.execute("""
+            insert_query = text("""
                 INSERT INTO chat_history (username, id_domain, role, message)
-                VALUES (%s, %s, %s, %s)
-            """, (req.username, id_domain, 'user', req.question))
-            conn.commit()
+                VALUES (:username, :id_domain, :role, :message)
+            """)
+            db.execute(insert_query, {
+                "username": req.username,
+                "id_domain": id_domain,
+                "role": "user",
+                "message": req.question
+            })
+            db.commit()
 
         # Kirim ke Ollama (misalnya: localhost:11434/api/generate)
         response = requests.post(OLLAMA_URL, json=payload, timeout=60)
@@ -67,20 +71,20 @@ def chat(req: ChatRequest):
 
         # Simpan respons AI ke database
         if id_domain:
-            cur.execute("""
+            insert_query = text("""
                 INSERT INTO chat_history (username, id_domain, role, message)
-                VALUES (%s, %s, %s, %s)
-            """, (req.username, id_domain, 'assistant', reply_text))
-            conn.commit()
-        
-        cur.close()
+                VALUES (:username, :id_domain, :role, :message)
+            """)
+            db.execute(insert_query, {
+                "username": req.username,
+                "id_domain": id_domain,
+                "role": "assistant",
+                "message": reply_text
+            })
+            db.commit()
 
         return {"reply": reply_text}
 
     except Exception as e:
-        if conn:
-            conn.rollback()
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        if conn:
-            conn.close()
