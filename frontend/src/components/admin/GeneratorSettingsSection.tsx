@@ -8,9 +8,12 @@ import { apiGet, apiPost } from "@/lib/api"
 export default function GeneratorSettingsSection() {
     const [blockedDomains, setBlockedDomains] = useState("")
     const [blockedKeywords, setBlockedKeywords] = useState("")
+    const [serpApiKey, setSerpApiKey] = useState("")
+    const [quota, setQuota] = useState<{ used: number, limit: number } | null>(null)
     const [loading, setLoading] = useState(false)
     const [loadingDomains, setLoadingDomains] = useState(true)
     const [loadingKeywords, setLoadingKeywords] = useState(true)
+    const [loadingSerpApi, setLoadingSerpApi] = useState(true)
 
     useEffect(() => {
         loadSettings()
@@ -18,18 +21,22 @@ export default function GeneratorSettingsSection() {
 
     const loadSettings = async () => {
         try {
-            const [domainsData, keywordsData] = await Promise.all([
+            const [domainsData, keywordsData, serpApiData] = await Promise.all([
                 apiGet("/api/admin/generator/blocked-domains"),
                 apiGet("/api/admin/generator/blocked-keywords"),
+                apiGet("/api/admin/generator/serpapi-key"),
             ])
 
             setBlockedDomains(domainsData.value || "")
             setBlockedKeywords(keywordsData.value || "")
+            setSerpApiKey(serpApiData.value || "")
+            setQuota(serpApiData.quota || null)
         } catch (err: any) {
             console.error("Failed to load settings:", err)
         } finally {
             setLoadingDomains(false)
             setLoadingKeywords(false)
+            setLoadingSerpApi(false)
         }
     }
 
@@ -52,6 +59,19 @@ export default function GeneratorSettingsSection() {
             alert("Blocked keywords saved successfully")
         } catch (err: any) {
             alert(`Failed to save blocked keywords: ${err.message}`)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleSaveSerpApiKey = async () => {
+        setLoading(true)
+        try {
+            const response = await apiPost("/api/admin/generator/serpapi-key", { value: serpApiKey })
+            setQuota(response.quota || null)
+            alert("SerpAPI key saved successfully")
+        } catch (err: any) {
+            alert(`Failed to save SerpAPI key: ${err.message}`)
         } finally {
             setLoading(false)
         }
@@ -109,6 +129,49 @@ export default function GeneratorSettingsSection() {
                                 className="mt-2"
                             >
                                 {loading ? "Saving..." : "Save Blocked Keywords"}
+                            </Button>
+                        </>
+                    )}
+                </div>
+
+                {/* SerpAPI Key */}
+                <div>
+                    <label className="text-sm font-medium mb-2 block">
+                        SerpAPI Key
+                    </label>
+                    {loadingSerpApi ? (
+                        <div className="text-sm text-muted-foreground">Loading...</div>
+                    ) : (
+                        <>
+                            <input
+                                type="password"
+                                className="w-full p-3 border rounded-md font-mono text-sm mb-2"
+                                value={serpApiKey}
+                                onChange={(e) => setSerpApiKey(e.target.value)}
+                                placeholder="Enter your SerpAPI key"
+                            />
+                            {quota && (
+                                <div className="text-sm text-muted-foreground mb-2">
+                                    Quota: {quota.used}/{quota.limit} searches used this month
+                                </div>
+                            )}
+                            <div className="text-xs text-muted-foreground mb-2">
+                                Used for generating trending keywords. Get your API key from{" "}
+                                <a
+                                    href="https://serpapi.com/manage-api-key"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline"
+                                >
+                                    SerpAPI Dashboard
+                                </a>
+                            </div>
+                            <Button
+                                onClick={handleSaveSerpApiKey}
+                                disabled={loading}
+                                className="mt-2"
+                            >
+                                {loading ? "Saving..." : "Save SerpAPI Key"}
                             </Button>
                         </>
                     )}

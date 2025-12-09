@@ -420,6 +420,116 @@ async def update_blocked_keywords(
         raise HTTPException(status_code=500, detail=f"Failed to update blocked keywords: {str(e)}")
 
 
+@router.get("/generator/serpapi-key")
+async def get_serpapi_key(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_role("administrator"))
+):
+    """
+    Get SerpAPI key and quota information.
+    Only accessible by administrators.
+    """
+    try:
+        from utils.serpapi_service import get_serpapi_quota
+        
+        query = text("""
+            SELECT setting_value, updated_by, updated_at
+            FROM generator_settings
+            WHERE setting_key = 'serpapi_key'
+        """)
+        
+        result = db.execute(query).fetchone()
+        
+        if result:
+            row_dict = dict(result._mapping)
+            api_key = row_dict["setting_value"]
+            
+            # Get quota if key exists
+            quota = None
+            if api_key:
+                try:
+                    quota = get_serpapi_quota(api_key)
+                except Exception as e:
+                    print(f"Failed to fetch quota: {e}")
+                    quota = {"used": 0, "limit": 0, "remaining": 0}
+            
+            return {
+                "value": api_key,
+                "quota": quota,
+                "updated_by": row_dict["updated_by"],
+                "updated_at": row_dict["updated_at"].isoformat() if row_dict["updated_at"] else None
+            }
+        else:
+            return {"value": "", "quota": None, "updated_by": None, "updated_at": None}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch SerpAPI key: {str(e)}")
+
+
+@router.post("/generator/serpapi-key")
+async def update_serpapi_key(
+    settings_data: GeneratorSettingsUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_role("administrator"))
+):
+    """
+    Update SerpAPI key.
+    Validates the key by calling SerpAPI account endpoint.
+    Only accessible by administrators.
+    """
+    try:
+        from utils.serpapi_service import get_serpapi_quota
+        
+        username = current_user.get("username")
+        api_key = settings_data.value
+        
+        # Validate key if not empty
+        quota = None
+        if api_key:
+            try:
+                quota = get_serpapi_quota(api_key)
+            except Exception as e:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid SerpAPI key: {str(e)}"
+                )
+        
+        # Update key in database
+        query = text("""
+            INSERT INTO generator_settings (setting_key, setting_value, updated_by, updated_at)
+            VALUES ('serpapi_key', :value, :username, now())
+            ON CONFLICT (setting_key) DO UPDATE SET
+                setting_value = EXCLUDED.setting_value,
+                updated_by = EXCLUDED.updated_by,
+                updated_at = EXCLUDED.updated_at
+            RETURNING setting_value, updated_by, updated_at
+        """)
+        
+        result = db.execute(query, {
+            "value": api_key,
+            "username": username
+        })
+        db.commit()
+        
+        row = result.fetchone()
+        row_dict = dict(row._mapping)
+        
+        return {
+            "ok": True,
+            "value": row_dict["setting_value"],
+            "quota": quota,
+            "updated_by": row_dict["updated_by"],
+            "updated_at": row_dict["updated_at"].isoformat() if row_dict["updated_at"] else None
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update SerpAPI key: {str(e)}")
+
+
+
 # ============================================================
 # Domain Management Endpoints
 # ============================================================

@@ -33,6 +33,9 @@ export default function CrawlingModal({
     const [keywords, setKeywords] = useState("judi online, slot gacor, casino online, poker online, togel online, situs judi, agen bola, bandar togel, slot deposit, judi bola")
     const [isEditingKeywords, setIsEditingKeywords] = useState(false)
     const [tempKeywords, setTempKeywords] = useState(keywords)
+    const [generatingKeywords, setGeneratingKeywords] = useState(false)
+    const [showKeywordInput, setShowKeywordInput] = useState(false)
+    const [baseKeyword, setBaseKeyword] = useState("")
 
     // Generating tab state
     const [logs, setLogs] = useState<string[]>([])
@@ -131,6 +134,62 @@ export default function CrawlingModal({
     function handleSaveKeywords() {
         setKeywords(tempKeywords)
         setIsEditingKeywords(false)
+    }
+
+    function handleOpenKeywordGenerator() {
+        setShowKeywordInput(true)
+        setBaseKeyword("")
+    }
+
+    async function handleGenerateKeywords() {
+        try {
+            if (!baseKeyword || !baseKeyword.trim()) {
+                alert("Masukkan keyword dasar terlebih dahulu")
+                return
+            }
+
+            setGeneratingKeywords(true)
+
+            // Get auth token
+            const token = localStorage.getItem("auth_token")
+            if (!token) {
+                alert("Not authenticated")
+                return
+            }
+
+            // Call keyword generation API
+            const res = await fetch(`${API_BASE}/api/keywords/generate`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    keyword: baseKeyword.trim()
+                }),
+            })
+
+            if (!res.ok) {
+                const error = await res.json()
+                throw new Error(error.detail || "Failed to generate keywords")
+            }
+
+            const data = await res.json()
+
+            // Update keywords with comma-separated format
+            const generatedKeywords = data.keywords.join(", ")
+            setKeywords(generatedKeywords)
+            setTempKeywords(generatedKeywords)
+
+            // Close input and reset
+            setShowKeywordInput(false)
+            setBaseKeyword("")
+
+        } catch (err) {
+            alert(`Failed to generate keywords: ${err instanceof Error ? err.message : "Unknown error"}`)
+        } finally {
+            setGeneratingKeywords(false)
+        }
     }
 
     async function handleGenerate() {
@@ -319,9 +378,6 @@ export default function CrawlingModal({
             <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Domain Generator</DialogTitle>
-                    <DialogDescription>
-                        Configure and generate domains for phishing detection
-                    </DialogDescription>
                 </DialogHeader>
 
 
@@ -367,12 +423,87 @@ export default function CrawlingModal({
                                                 Save
                                             </Button>
                                         ) : (
-                                            <Button size="sm" variant="outline" onClick={handleEditKeywords}>
-                                                Edit
-                                            </Button>
+                                            <>
+                                                <Button
+                                                    size="sm"
+                                                    className="text-white border-none hover:opacity-90 hover:text-white transition-opacity"
+                                                    style={{
+                                                        background: 'linear-gradient(135deg, #1DC0EB 0%, #1199DA 50%, #0B88D3 100%)'
+                                                    }}
+                                                    onClick={handleOpenKeywordGenerator}
+                                                    disabled={generatingKeywords}
+                                                >
+                                                    <svg
+                                                        width="14"
+                                                        height="14"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                        className="mr-1"
+                                                    >
+                                                        <path
+                                                            d="M12 2L16 8L22 12L16 16L12 22L8 16L2 12L8 8L12 2Z"
+                                                            fill="white"
+                                                        />
+                                                        <path
+                                                            d="M12 6L14 10L18 12L14 14L12 18L10 14L6 12L10 10L12 6Z"
+                                                            fill="white"
+                                                            opacity="0.6"
+                                                        />
+                                                    </svg>
+                                                    Keyword Generator
+                                                </Button>
+                                                <Button size="sm" variant="outline" onClick={handleEditKeywords}>
+                                                    Edit
+                                                </Button>
+                                            </>
                                         )}
                                     </div>
                                 </div>
+
+                                {/* Keyword Generator Input */}
+                                {showKeywordInput && (
+                                    <div className="p-3 border border-primary rounded-md bg-primary/5 space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground">
+                                            Masukkan keyword dasar untuk generate trending keywords:
+                                        </label>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                value={baseKeyword}
+                                                onChange={(e) => setBaseKeyword(e.target.value)}
+                                                placeholder="Contoh: judi online"
+                                                className="flex-1"
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter" && !generatingKeywords) {
+                                                        handleGenerateKeywords()
+                                                    }
+                                                }}
+                                                autoFocus
+                                            />
+                                            <Button
+                                                size="sm"
+                                                onClick={handleGenerateKeywords}
+                                                disabled={generatingKeywords || !baseKeyword.trim()}
+                                                className="text-white"
+                                                style={{
+                                                    background: 'linear-gradient(135deg, #1DC0EB 0%, #1199DA 50%, #0B88D3 100%)'
+                                                }}
+                                            >
+                                                {generatingKeywords ? "Generating..." : "Generate"}
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => {
+                                                    setShowKeywordInput(false)
+                                                    setBaseKeyword("")
+                                                }}
+                                                disabled={generatingKeywords}
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {isEditingKeywords ? (
                                     <textarea
