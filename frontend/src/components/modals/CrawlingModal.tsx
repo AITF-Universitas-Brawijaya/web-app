@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/Dialog"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || ""
 
 type Tab = "detail" | "generating" | "result"
 
@@ -319,6 +319,9 @@ export default function CrawlingModal({
             <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Domain Generator</DialogTitle>
+                    <DialogDescription>
+                        Configure and generate domains for phishing detection
+                    </DialogDescription>
                 </DialogHeader>
 
 

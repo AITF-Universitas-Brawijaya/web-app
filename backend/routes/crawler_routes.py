@@ -42,15 +42,18 @@ async def start_crawler(request: CrawlerRequest, current_user: dict = Depends(ge
         # Path to crawler script
         crawler_path = os.path.join(os.path.dirname(__file__), "..", "domain-generator", "crawler.py")
         
-        # Prepare command
+        # Prepare command - use bash to activate conda environment
         keywords_str = ','.join(request.keywords)
         username = current_user.get("username", "unknown")
+        
+        # Use bash wrapper to activate conda environment before running crawler
         cmd = [
-            "python3",
-            crawler_path,
-            "-n", str(request.domain_count),
-            "-k", keywords_str,
-            "-u", username  # Pass username for created_by tracking
+            "bash",
+            "-c",
+            f"source /home/ubuntu/miniconda3/etc/profile.d/conda.sh && "
+            f"conda activate prd6 && "
+            f"cd {os.path.dirname(crawler_path)} && "
+            f"python3 crawler.py -n {request.domain_count} -k '{keywords_str}' -u '{username}'"
         ]
         
         # Start crawler process
@@ -60,7 +63,6 @@ async def start_crawler(request: CrawlerRequest, current_user: dict = Depends(ge
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,  # Line buffered
-            cwd=os.path.dirname(crawler_path)
         )
         
         # Store process

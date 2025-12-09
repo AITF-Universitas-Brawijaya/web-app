@@ -401,8 +401,8 @@ def send_to_detection_api(screenshot_path, item_id):
                 if api_response.get('success'):
                     result = api_response.get('result', {})
                     status = result.get('status', 'unknown')
-                    confidence = result.get('classification_confidence', 0.0)
-                    print(f"[DETECTION API] {item_id}: ✓ {status} (confidence: {confidence:.4f})")
+                    confidence = result.get('prob_fusion', 0.0)
+                    print(f"[DETECTION API] {item_id}: ✓ {status} (prob_fusion: {confidence:.4f})")
                     return api_response
                 else:
                     print(f"[DETECTION API] {item_id}: API returned success=false")
@@ -481,9 +481,11 @@ def save_to_database(all_results, keyword, username='system'):
             
             for result in all_results:
                 # Prepare image path in the format: domain-generator/output/img/<id>.png
-                image_path = f"domain-generator/output/img/{result['id']}.png" if result.get('screenshot_status') == 'success' else None
+                # Note: result['id'] is just for file naming, not for database ID
+                screenshot_filename = result['id']
+                image_path = f"domain-generator/output/img/{screenshot_filename}.png" if result.get('screenshot_status') == 'success' else None
                 
-                # Insert into generated_domains table and get the id_domain
+                # Insert into generated_domains table and let database auto-increment id_domain
                 insert_result = conn.execute(text("""
                     INSERT INTO generated_domains (url, title, domain, image_path)
                     VALUES (:url, :title, :domain, :image_path)
@@ -514,8 +516,9 @@ def save_to_database(all_results, keyword, username='system'):
                     label = True if status == 'gambling' else False
                     label_final = label
                     
-                    confidence = api_result.get('classification_confidence', 0.0)
-                    confidence_score = round(confidence, 1)
+                    # Use prob_fusion as the confidence score (this is what the API actually returns)
+                    confidence = api_result.get('prob_fusion', 0.0)
+                    confidence_score = round(confidence * 100, 1)  # Convert to percentage (0-100)
                     final_confidence = confidence_score
                     
                     visualization_path = api_result.get('visualization_path', '')
