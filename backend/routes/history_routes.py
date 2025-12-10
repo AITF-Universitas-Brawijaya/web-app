@@ -6,6 +6,7 @@ from utils.auth_middleware import get_current_user
 
 router = APIRouter(prefix="/api/history", tags=["history"])
 
+@router.get("")
 @router.get("/")
 def get_history_data(
     id: int,

@@ -27,7 +27,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
         setError(null)
 
         try {
-            await apiPost("/api/feedback/", { message: message.trim() })
+            await apiPost("/api/feedback", { message: message.trim() })
 
             // Success - reset and close
             setMessage("")

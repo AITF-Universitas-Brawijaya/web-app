@@ -8,6 +8,7 @@ import traceback
 
 router = APIRouter(prefix="/api/update", tags=["update"])
 
+@router.post("")
 @router.post("/")
 async def update_item(
     request: Request,

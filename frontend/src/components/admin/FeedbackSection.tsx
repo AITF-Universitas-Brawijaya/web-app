@@ -21,7 +21,7 @@ export default function FeedbackSection() {
         setLoading(true)
         setError(null)
         try {
-            const data = await apiGet<Feedback[]>("/api/feedback/")
+            const data = await apiGet<Feedback[]>("/api/feedback")
             setFeedbackList(data)
         } catch (err: any) {
             setError(err.message || "Failed to load feedback")

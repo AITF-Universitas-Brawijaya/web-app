@@ -96,7 +96,7 @@ def generate_keywords(keyword: str, api_key: str) -> List[str]:
             "api_key": api_key
         }
         
-        response = requests.get(url, params=params, timeout=30)
+        response = requests.get(url, params=params, timeout=60)
         response.raise_for_status()
         
         data = response.json()

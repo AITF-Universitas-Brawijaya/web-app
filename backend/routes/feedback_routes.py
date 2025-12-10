@@ -21,6 +21,7 @@ class FeedbackResponse(BaseModel):
 
 
 @router.post("/", status_code=201)
+@router.post("", status_code=201)
 async def submit_feedback(
     feedback: FeedbackSubmit,
     db: Session = Depends(get_db),
@@ -62,6 +63,7 @@ async def submit_feedback(
 
 
 @router.get("/", response_model=List[FeedbackResponse])
+@router.get("", response_model=List[FeedbackResponse])
 async def get_all_feedback(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)

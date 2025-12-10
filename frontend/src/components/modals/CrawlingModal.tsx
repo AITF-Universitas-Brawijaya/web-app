@@ -203,8 +203,17 @@ export default function CrawlingModal({
             })
 
             if (!res.ok) {
-                const error = await res.json()
-                throw new Error(error.detail || "Failed to generate keywords")
+                let errorMessage = "Failed to generate keywords";
+                try {
+                    const error = await res.json();
+                    errorMessage = error.detail || errorMessage;
+                } catch {
+                    // Fallback to text if JSON parsing fails
+                    const textError = await res.text();
+                    errorMessage = textError || `HTTP Error ${res.status}`;
+                    console.error("Non-JSON error response:", textError);
+                }
+                throw new Error(errorMessage);
             }
 
             const data = await res.json()

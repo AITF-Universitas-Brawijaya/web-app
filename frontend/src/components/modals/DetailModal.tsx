@@ -115,7 +115,7 @@ export default function DetailModal({
   }, [item])
 
   const { data: history, error: historyError, mutate: mutateHistory } = useSWR<{ events: { time: string; text: string }[] }>(
-    item ? `/api/history/?id=${item.id}` : null,
+    item ? `/api/history?id=${item.id}` : null,
     fetcher,
     {
       refreshInterval: 0,
@@ -245,7 +245,7 @@ export default function DetailModal({
     if (!item) return
     setLoading(true)
     try {
-      const data = await apiPost("/api/update/", {
+      const data = await apiPost("/api/update", {
         id: item.id,
         patch: { status: next },
       })
@@ -276,7 +276,7 @@ export default function DetailModal({
     setFlaggedLocal(nextVal)
 
     try {
-      const data = await apiPost("/api/update/", {
+      const data = await apiPost("/api/update", {
         id: item.id,
         patch: { flagged: nextVal },
       })
