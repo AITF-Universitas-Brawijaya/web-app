@@ -425,10 +425,10 @@ export default function DetailModal({
 
         <div className="grid grid-cols-1 md:grid-cols-7 gap-6 h-[80vh]">
           {/* LEFT */}
-          <div className="flex flex-col md:col-span-4 relative">
+          <div className="flex flex-col md:col-span-4 relative overflow-hidden">
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto thin-scroll pr-1 pb-4" style={{ maxHeight: 'calc(100%)' }}>
-              <div className="flex flex-col gap-4">
+            <div className="flex-1 overflow-y-auto thin-scroll pr-2 pb-2" style={{ maxHeight: item.isManual ? '100%' : '90%' }}>
+              <div className="flex flex-col gap-4 pr-1">
                 {/* Reasoning - Hidden for manual domains */}
                 {!item.isManual && (
                   <div
@@ -684,10 +684,10 @@ export default function DetailModal({
 
             {/* Fixed Verifikasi Section - Hidden for manual domains */}
             {!item.isManual && (
-              <div className="absolute bottom-0 left-0 right-0 bg-background border-t border-border pt-3 pr-1">
-                <div className="text-xs font-semibold mb-2">Verifikasi Status Laporan Mesin</div>
+              <div className="absolute bottom-0 left-0 right-0 bg-background border-t border-border pt-3 pr-3 pl-0">
+                <div className="text-xs font-semibold mb-2 pr-1">Verifikasi Status Laporan Mesin</div>
                 {item.status === "unverified" ? (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 pr-1">
                     <Button
                       className="w-full text-xs text-white"
                       style={{ background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)' }}
@@ -704,7 +704,7 @@ export default function DetailModal({
                     </Button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pr-1">
                     {item.status !== "false-positive" && (
                       <Button className="text-xs" variant="destructive" onClick={() => updateStatus("false-positive")}>
                         Ubah ke False Positive

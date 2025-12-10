@@ -325,19 +325,21 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout, compa
             isCollapsed && "items-center"
           )}
         >
-          {/* Feedback Button */}
-          <Button
-            variant="ghost"
-            size={isCollapsed ? "icon" : "sm"}
-            onClick={() => setIsFeedbackOpen(true)}
-            title="Kirim Feedback"
-            className="text-white hover:bg-white/10"
-          >
-            <MailIcon />
-            {!isCollapsed && (
-              <span className="ml-2">Kirim Feedback</span>
-            )}
-          </Button>
+          {/* Feedback Button - Only for verifikator role */}
+          {user?.role === "verifikator" && (
+            <Button
+              variant="ghost"
+              size={isCollapsed ? "icon" : "sm"}
+              onClick={() => setIsFeedbackOpen(true)}
+              title="Kirim Feedback"
+              className="text-white hover:bg-white/10"
+            >
+              <MailIcon />
+              {!isCollapsed && (
+                <span className="ml-2">Kirim Feedback</span>
+              )}
+            </Button>
+          )}
 
           {/* Dark Mode & Compact Mode Toggles */}
           <div className={cn(

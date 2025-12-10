@@ -9,9 +9,7 @@ import { apiDelete } from "@/lib/api"
 
 export default function DomainManagementSection() {
     const [showDeleteAllModal, setShowDeleteAllModal] = useState(false)
-    const [showDeleteByIdModal, setShowDeleteByIdModal] = useState(false)
     const [confirmText, setConfirmText] = useState("")
-    const [domainId, setDomainId] = useState("")
     const [loading, setLoading] = useState(false)
 
     const handleDeleteAll = async () => {
@@ -33,54 +31,11 @@ export default function DomainManagementSection() {
         }
     }
 
-    const handleDeleteById = async () => {
-        if (!domainId) {
-            alert("Please enter a domain ID")
-            return
-        }
-
-        if (!confirm(`Are you sure you want to delete domain with ID ${domainId}?`)) {
-            return
-        }
-
-        setLoading(true)
-        try {
-            await apiDelete(`/api/admin/domains/${domainId}`)
-            alert(`Successfully deleted domain with ID ${domainId}`)
-            setShowDeleteByIdModal(false)
-            setDomainId("")
-        } catch (err: any) {
-            alert(`Failed to delete domain: ${err.message}`)
-        } finally {
-            setLoading(false)
-        }
-    }
-
     return (
         <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4">Domain Management</h2>
 
             <div className="space-y-4">
-                <div>
-                    <h3 className="text-sm font-medium mb-2">Delete Specific Domain</h3>
-                    <div className="flex gap-2">
-                        <Input
-                            type="number"
-                            placeholder="Enter domain ID"
-                            value={domainId}
-                            onChange={(e) => setDomainId(e.target.value)}
-                            className="max-w-xs"
-                        />
-                        <Button
-                            variant="destructive"
-                            onClick={() => setShowDeleteByIdModal(true)}
-                            disabled={!domainId}
-                        >
-                            Delete Domain
-                        </Button>
-                    </div>
-                </div>
-
                 <div className="border-t pt-4">
                     <h3 className="text-sm font-medium mb-2 text-destructive">Danger Zone</h3>
                     <Button
@@ -137,42 +92,6 @@ export default function DomainManagementSection() {
                     </div>
                 </DialogContent>
             </Dialog>
-
-            {/* Delete By ID Modal */}
-            {showDeleteByIdModal && (
-                <Dialog open={showDeleteByIdModal} onOpenChange={(open) => !open && setShowDeleteByIdModal(false)}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Confirm Deletion</DialogTitle>
-                        </DialogHeader>
-
-                        <div className="space-y-4">
-                            <p className="text-sm text-muted-foreground">
-                                Are you sure you want to delete domain with ID {domainId}?
-                            </p>
-
-                            <div className="flex gap-2 justify-end">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                        setShowDeleteByIdModal(false)
-                                        setDomainId("")
-                                    }}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    variant="destructive"
-                                    onClick={handleDeleteById}
-                                    disabled={loading}
-                                >
-                                    {loading ? "Deleting..." : "Delete Domain"}
-                                </Button>
-                            </div>
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            )}
         </Card>
     )
 }
