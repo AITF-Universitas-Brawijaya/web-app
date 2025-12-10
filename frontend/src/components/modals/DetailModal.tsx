@@ -62,18 +62,41 @@ export default function DetailModal({
 
   // Load chat history from API
   useEffect(() => {
-    if (!item || !chatHistory) return
+    if (!item || !chatHistory || !user) return
 
     if (chatHistory.length === 0) {
-      // No chat history, show initial greeting
-      setChat([
-        {
-          role: "assistant",
-          text: "Halo, saya siap membantu menganalisis kasus ini. Apa yang ingin Anda ketahui?",
-          ts: Date.now(),
-          link: item.link,
-        },
-      ])
+      // No chat history, save initial greeting to database
+      const greetingMessage = "Halo, saya siap membantu menganalisis kasus ini. Apa yang ingin Anda ketahui?"
+
+      // Save greeting to database
+      apiPost(`/api/chat/history/${item.id}`, {
+        username: user.username,
+        role: "assistant",
+        message: greetingMessage
+      }).then(() => {
+        // After saving, set the chat state
+        setChat([
+          {
+            role: "assistant",
+            text: greetingMessage,
+            ts: Date.now(),
+            link: item.link,
+          },
+        ])
+        // Refresh chat history
+        mutateChat()
+      }).catch((err) => {
+        console.error("Failed to save greeting message:", err)
+        // Still show greeting even if save fails
+        setChat([
+          {
+            role: "assistant",
+            text: greetingMessage,
+            ts: Date.now(),
+            link: item.link,
+          },
+        ])
+      })
     } else {
       // Load chat history from database
       const loadedChat = chatHistory.map((msg) => ({
@@ -84,7 +107,7 @@ export default function DetailModal({
       }))
       setChat(loadedChat)
     }
-  }, [chatHistory, item])
+  }, [chatHistory, item, user, mutateChat])
 
   const [flaggedLocal, setFlaggedLocal] = useState<boolean>(!!item?.flagged)
   useEffect(() => {
@@ -130,6 +153,7 @@ export default function DetailModal({
     )
   }
 
+
   async function send() {
     if (!item || !user) return
     const content = message.trim()
@@ -148,12 +172,13 @@ export default function DetailModal({
     setContextMode(false)
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: finalMsg, item, username: user.username }),
+      // Use apiPost to ensure authentication token is included
+      const data = await apiPost("/api/chat", {
+        question: finalMsg,
+        item,
+        username: user.username
       })
-      const data = await res.json()
+
       setChat((c) => [
         ...c,
         { role: "assistant", text: data.reply ?? "Maaf, tidak ada balasan.", ts: Date.now(), link: item.link },
@@ -161,11 +186,27 @@ export default function DetailModal({
 
       // Refresh chat history from database
       mutateChat()
-    } catch {
+    } catch (err: any) {
+      console.error("Chat error:", err)
+
+      // Show specific error message
+      const errorMessage = err.message || "Terjadi kesalahan saat menghubungi AI."
       setChat((c) => [
         ...c,
-        { role: "assistant", text: "Terjadi kesalahan saat menghubungi AI.", ts: Date.now(), link: item.link },
+        { role: "assistant", text: errorMessage, ts: Date.now(), link: item.link },
       ])
+
+      // Even if AI fails, try to save user message to database
+      try {
+        await apiPost(`/api/chat/history/${item.id}`, {
+          username: user.username,
+          role: "user",
+          message: finalMsg
+        })
+        mutateChat()
+      } catch (saveErr) {
+        console.error("Failed to save user message:", saveErr)
+      }
     } finally {
       setLoading(false)
     }
@@ -296,6 +337,41 @@ export default function DetailModal({
       mutateNotes()
     } catch (err: any) {
       alert(`Gagal menghapus catatan: ${err.message || "Unknown error"}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function clearChat() {
+    if (!item || !user) return
+    if (!confirm("Hapus semua riwayat percakapan untuk domain ini?")) return
+
+    setLoading(true)
+    try {
+      await apiDelete(`/api/chat/history/${item.id}?username=${user.username}`)
+
+      // Reset chat to greeting message
+      const greetingMessage = "Halo, saya siap membantu menganalisis kasus ini. Apa yang ingin Anda ketahui?"
+      setChat([
+        {
+          role: "assistant",
+          text: greetingMessage,
+          ts: Date.now(),
+          link: item.link,
+        },
+      ])
+
+      // Save greeting to database
+      await apiPost(`/api/chat/history/${item.id}`, {
+        username: user.username,
+        role: "assistant",
+        message: greetingMessage
+      })
+
+      // Refresh chat history
+      mutateChat()
+    } catch (err: any) {
+      alert(`Gagal menghapus riwayat chat: ${err.message || "Unknown error"}`)
     } finally {
       setLoading(false)
     }
@@ -751,21 +827,37 @@ export default function DetailModal({
                 </svg>
                 <div className="text-xs font-semibold text-white">Chat AI</div>
               </div>
-              {/* Hide Ask with Context button for manual domains */}
-              {!item.isManual && (
+              <div className="flex items-center gap-2">
+                {/* Hide Ask with Context button for manual domains */}
+                {!item.isManual && (
+                  <Button
+                    size="sm"
+                    className="text-[11px] h-7 px-2 py-1"
+                    variant={contextMode ? "default" : "outline"}
+                    onClick={() => {
+                      // toggle context mode, reset selections if turned off
+                      if (contextMode) setSelectedContexts([])
+                      setContextMode(!contextMode)
+                    }}
+                  >
+                    {`Ask with Context${selectedContexts.length > 0 ? ` (${selectedContexts.length})` : ""}`}
+                  </Button>
+                )}
+                {/* Clear Chat button */}
                 <Button
                   size="sm"
                   className="text-[11px] h-7 px-2 py-1"
-                  variant={contextMode ? "default" : "outline"}
-                  onClick={() => {
-                    // toggle context mode, reset selections if turned off
-                    if (contextMode) setSelectedContexts([])
-                    setContextMode(!contextMode)
-                  }}
+                  variant="outline"
+                  onClick={clearChat}
+                  disabled={loading || chat.length <= 1}
+                  title="Hapus riwayat percakapan"
                 >
-                  {`Ask with Context${selectedContexts.length > 0 ? ` (${selectedContexts.length})` : ""}`}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
                 </Button>
-              )}
+              </div>
             </div>
 
             <div ref={chatScrollRef} className="flex-1 overflow-y-auto thin-scroll p-3 space-y-2">

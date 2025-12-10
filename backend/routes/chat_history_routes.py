@@ -45,8 +45,14 @@ async def get_chat_history(id_domain: int, username: str, db: Session = Depends(
         raise HTTPException(status_code=500, detail=f"Failed to retrieve chat history: {str(e)}")
 
 
+class SaveChatRequest(BaseModel):
+    username: str
+    role: str
+    message: str
+
+
 @router.post("/history/{id_domain}")
-async def save_chat_message(id_domain: int, username: str, role: str, message: str, db: Session = Depends(get_db)):
+async def save_chat_message(id_domain: int, req: SaveChatRequest, db: Session = Depends(get_db)):
     """
     Save a chat message to the database.
     """
@@ -58,10 +64,10 @@ async def save_chat_message(id_domain: int, username: str, role: str, message: s
         """)
         
         result = db.execute(query, {
-            "username": username,
+            "username": req.username,
             "id_domain": id_domain,
-            "role": role,
-            "message": message
+            "role": req.role,
+            "message": req.message
         })
         
         row = result.fetchone()
@@ -70,8 +76,8 @@ async def save_chat_message(id_domain: int, username: str, role: str, message: s
         return {
             "id": row[0],
             "created_at": row[1].isoformat(),
-            "role": role,
-            "message": message
+            "role": req.role,
+            "message": req.message
         }
         
     except Exception as e:

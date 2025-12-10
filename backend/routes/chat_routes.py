@@ -37,13 +37,7 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
         Gunakan bahasa Indonesia yang baku dan profesional.
         """
 
-        payload = {
-            "model": MODEL_NAME,
-            "prompt": f"{context}\n\nPertanyaan pengguna: {req.question}",
-            "stream": False,
-        }
-
-        # Simpan pesan user ke database
+        # Simpan pesan user ke database TERLEBIH DAHULU
         id_domain = req.item.get('id')
         if id_domain:
             insert_query = text("""
@@ -58,13 +52,30 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
             })
             db.commit()
 
-        # Kirim ke Ollama (misalnya: localhost:11434/api/generate)
-        response = requests.post(OLLAMA_URL, json=payload, timeout=60)
-        if response.status_code != 200:
-            raise HTTPException(status_code=500, detail=f"Ollama error: {response.text}")
+        # Coba kirim ke Ollama
+        reply_text = None
+        try:
+            payload = {
+                "model": MODEL_NAME,
+                "prompt": f"{context}\n\nPertanyaan pengguna: {req.question}",
+                "stream": False,
+            }
 
-        result = response.json()
-        reply_text = result.get("response", "").strip()
+            # Kirim ke Ollama dengan timeout yang lebih pendek
+            response = requests.post(OLLAMA_URL, json=payload, timeout=30)
+            
+            if response.status_code == 200:
+                result = response.json()
+                reply_text = result.get("response", "").strip()
+            else:
+                reply_text = f"⚠️ Ollama error (HTTP {response.status_code}). Silakan hubungi administrator untuk mengaktifkan layanan AI."
+                
+        except requests.exceptions.ConnectionError:
+            reply_text = "⚠️ Layanan AI (Ollama) tidak tersedia. Silakan hubungi administrator untuk mengaktifkan layanan."
+        except requests.exceptions.Timeout:
+            reply_text = "⚠️ Layanan AI timeout. Silakan coba lagi atau hubungi administrator."
+        except Exception as e:
+            reply_text = f"⚠️ Error saat menghubungi AI: {str(e)}"
         
         if not reply_text:
             reply_text = "Model tidak memberikan respons."
