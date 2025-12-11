@@ -161,7 +161,7 @@ export default function Sidebar({ activeTab, setActiveTab, tabs, onLogout, compa
     "false-positive": FalsePositiveIcon,
     flagged: FlaggedIcon,
     manual: ManualIcon,
-    summary: SummaryIcon,
+    summary: Home,
   }
 
   return (

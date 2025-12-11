@@ -14,11 +14,9 @@ import ThemeToggle from "@/components/layout/ThemeToggle"
 import { PerPage } from "@/components/controls/PerPage"
 
 // charts & modal
-import JenisChart from "@/components/charts/JenisChart"
-import TpFpChart from "@/components/charts/TpFpChart"
-import ConfidenceChart from "@/components/charts/ConfidenceChart"
 import DetailModal from "@/components/modals/DetailModal"
 import CrawlingModal from "@/components/modals/CrawlingModal"
+import SummaryDashboard from "./SummaryDashboard"
 import { StaticParticlesBackground } from "@/components/ui/StaticParticlesBackground"
 
 import { LinkRecord } from "@/types/linkRecord"
@@ -31,19 +29,19 @@ const fetcher = async (url: string) => {
 }
 
 const TAB_ORDER = [
+  { key: "summary", label: "Home" },
   { key: "all", label: "All" },
   { key: "verified", label: "Verified" },
   { key: "unverified", label: "Unverified" },
   { key: "false-positive", label: "False Positive" },
   { key: "flagged", label: "Flagged" },
   { key: "manual", label: "Manual" },
-  { key: "summary", label: "Summary" },
 ] as const
 type TabKey = (typeof TAB_ORDER)[number]["key"]
 
 export default function PRDDashboardPage() {
   const { logout } = useAuth()
-  const [activeTab, setActiveTab] = useState<TabKey>("all")
+  const [activeTab, setActiveTab] = useState<TabKey>("summary")
   const [search, setSearch] = useState("")
   const [sortCol, setSortCol] = useState<"tanggal" | "kepercayaan" | "lastModified" | "modifiedBy">("tanggal")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
@@ -73,19 +71,18 @@ export default function PRDDashboardPage() {
               ? it.isManual
               : (it.status as string) === activeTab
 
-      // Enhanced search logic for ID and link
       let matchSearch = false
       const searchTerm = search.trim()
 
       if (searchTerm) {
-        // Convert ID to hex format for comparison
-        const hexId = `#${Math.max(1, Number(it.id)).toString(16).toUpperCase().padStart(7, "0")}`
+        const hexId = `#${Math.max(1, Number(it.id))
+          .toString(16)
+          .toUpperCase()
+          .padStart(7, "0")}`
 
         if (searchTerm.startsWith("#")) {
-          // Exact ID match when search starts with #
           matchSearch = hexId.toLowerCase() === searchTerm.toLowerCase()
         } else {
-          // Partial match: check if search term appears in link OR in the hex ID
           const linkMatch = it.link.toLowerCase().includes(searchTerm.toLowerCase())
           const idMatch = hexId.includes(searchTerm.toUpperCase())
           matchSearch = linkMatch || idMatch
@@ -144,11 +141,8 @@ export default function PRDDashboardPage() {
       const { apiPost } = await import("@/lib/api")
       await apiPost("/api/manual-domain/add", { url: domain })
 
-      // Reset and close modal
       setManualDomainInput("")
       setAddManualModalOpen(false)
-
-      // Refresh data
       mutate()
     } catch (err: any) {
       alert(err.message || "Failed to add manual domain")
@@ -180,11 +174,10 @@ export default function PRDDashboardPage() {
               <Card
                 className="p-3 flex flex-wrap items-center justify-between gap-3 relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)',
-                  border: 'none'
+                  background: "linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)",
+                  border: "none",
                 }}
               >
-                {/* Static Particles Background */}
                 <StaticParticlesBackground />
                 <div className="flex items-center justify-between w-full relative z-10">
                   <h2 className="text-sm font-semibold text-white">
@@ -224,18 +217,11 @@ export default function PRDDashboardPage() {
                       variant="outline"
                       className="h-8 px-3 text-white border-none hover:opacity-90 hover:text-white transition-opacity"
                       style={{
-                        background: 'linear-gradient(135deg, #1DC0EB 0%, #1199DA 50%, #0B88D3 100%)'
+                        background: "linear-gradient(135deg, #1DC0EB 0%, #1199DA 50%, #0B88D3 100%)",
                       }}
                       onClick={() => setCrawlingModalOpen(true)}
                     >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        className="mr-0.5"
-                      >
-                        {/* Diamond/Sparkle shape similar to Gemini logo */}
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="mr-0.5">
                         <path
                           d="M12 2L16 8L22 12L16 16L12 22L8 16L2 12L8 8L12 2Z"
                           fill="white"
@@ -302,11 +288,10 @@ export default function PRDDashboardPage() {
           )}
 
           {activeTab === "summary" && (
-            <div className="p-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              <JenisChart data={data ?? []} />
-              <TpFpChart data={data ?? []} />
-              <ConfidenceChart data={data ?? []} />
-            </div>
+            <SummaryDashboard
+              data={Array.isArray(data) ? data : []}
+              onGoToAll={() => setActiveTab("all")}
+            />
           )}
         </main>
 
@@ -357,7 +342,9 @@ export default function PRDDashboardPage() {
                   onClick={handleAddManualDomain}
                   disabled={addingManual || !manualDomainInput.trim()}
                   className="text-white"
-                  style={{ background: 'linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)' }}
+                  style={{
+                    background: "linear-gradient(135deg, #00336A 0%, #003D7D 50%, #003F81 100%)",
+                  }}
                 >
                   {addingManual ? "Adding..." : "Add"}
                 </Button>
