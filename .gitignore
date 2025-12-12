@@ -11,15 +11,15 @@ frontend/.pnp*
 frontend/*.tsbuildinfo
 frontend/next-env.d.ts
 frontend/.vercel/
-frontend/.env*
-frontend/.env*.local
+# frontend/.env*
+# frontend/.env*.local
 
 ### Backend - Python (FastAPI) ###
 # Virtualenv
 backend/.venv/
 backend/venv/
-backend/ENV/
-backend/env/
+# backend/ENV/
+# backend/env/
 
 # Python bytecode / cache
 backend/__pycache__/
@@ -35,8 +35,8 @@ backend/dist/
 backend/downloads/
 
 # Environment files
-backend/.env*
-backend/.env.*.local
+# backend/.env*
+# backend/.env.*.local
 
 # Domain generator output
 backend/domain-generator/output/*json
@@ -44,8 +44,8 @@ backend/domain-generator/output/img/
 
 ### General ###
 # Misc
-.env*
-.env.*.local
+# .env*
+# .env.*.local
 *.pem
 *.log
 .DS_Store
