@@ -7,15 +7,19 @@
 set -e
 
 # Configuration
+# Configuration
+# Configuration
 PROJECT_DIR="/home/ubuntu/tim6_prd_workdir"
+# RUNTIME DIR (Must support chmod 700)
 DB_DATA_DIR="/tmp/pg_data"
-DB_BACKUP_DIR="$PROJECT_DIR/db_data_backup"
+# PERSISTENT DIR (Storage on /home)
+DB_PERSISTENT_DIR="$PROJECT_DIR/postgres_data"
+DB_BACKUP_DIR="$PROJECT_DIR/db_data_backup" # Keeping for legacy backup support
+
 LOG_DIR="$PROJECT_DIR/logs"
 BIN_DIR="$PROJECT_DIR/bin"
 CHROME_DIR="$BIN_DIR/chrome-linux64"
 CHROMEDRIVER_DIR="$BIN_DIR/chromedriver-linux64"
-NGINX_CONF="$PROJECT_DIR/nginx.conf"
-NEXTJS_NGINX_CONF="$PROJECT_DIR/nextjs-nginx.conf"
 
 export PGHOST=/tmp
 # Get the postgres bin path (adjust version if needed, assuming 14 from setup script)
@@ -47,6 +51,29 @@ else
     print_info "System dependencies (psql, nginx) appear to be installed."
 fi
 
+# 1.05 Setup Node.js & PM2 (Load NVM or Install if missing)
+export NVM_DIR="/home/ubuntu/.nvm"
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+    . "$NVM_DIR/nvm.sh"
+else
+    print_warn "NVM not found. Running setup script..."
+    if [ -f "$PROJECT_DIR/scripts/setup-local-nodejs.sh" ]; then
+         chmod +x "$PROJECT_DIR/scripts/setup-local-nodejs.sh"
+         "$PROJECT_DIR/scripts/setup-local-nodejs.sh"
+         export NVM_DIR="/home/ubuntu/.nvm"
+         [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+    else
+         print_error "setup-local-nodejs.sh not found! Cannot setup Node environment."
+    fi
+fi
+
+if ! command -v pm2 &> /dev/null; then
+    print_info "PM2 not found in current environment. Installing global pm2..."
+    npm install -g pm2
+    # Reload path
+    hash -r
+fi
+
 # 1.1 Setup Portable Chromium & ChromeDriver (Persistent in /home)
 if [ ! -d "$CHROME_DIR" ] || [ ! -x "$CHROME_DIR/chrome" ] || [ ! -d "$CHROMEDRIVER_DIR" ]; then
     print_info "Portable Chromium/Driver not found. Installing to $BIN_DIR..."
@@ -75,55 +102,47 @@ else
     print_info "Portable Chrome & Driver found at $BIN_DIR"
 fi
 
-# 2. Setup Persistent PostgreSQL (via /tmp and sync)
-print_info "Setting up PostgreSQL in /tmp (with persistence sync)..."
+# 2. Setup PostgreSQL (Runtime in /tmp)
+print_info "Setting up PostgreSQL in /tmp..."
 
-# Stop existing postgres
+# Stop existing postgres (system service)
 if systemctl is-active --quiet postgresql; then
     print_info "Stopping default system PostgreSQL service..."
     sudo service postgresql stop
 fi
 
-mkdir -p "$DB_BACKUP_DIR"
 mkdir -p "$LOG_DIR"
-
-# Restore from backup if exists and /tmp is empty
-if [ -d "$DB_BACKUP_DIR" ] && [ ! -z "$(ls -A "$DB_BACKUP_DIR")" ]; then
-    if [ ! -d "$DB_DATA_DIR" ] || [ -z "$(ls -A "$DB_DATA_DIR")" ]; then
-        print_info "Restoring database from backup..."
-        mkdir -p "$DB_DATA_DIR"
-        rsync -a "$DB_BACKUP_DIR/" "$DB_DATA_DIR/"
-        print_info "Restore complete."
-    fi
-fi
-
+# DB_DATA_DIR was set to /tmp/pg_data in config (verify or set here)
+DB_DATA_DIR="/tmp/pg_data"
 mkdir -p "$DB_DATA_DIR"
 chmod 700 "$DB_DATA_DIR"
 
-# Initialize DB if data dir is empty
+# Restore from backup if exists and /tmp is empty (Best effort persistence)
+if [ -z "$(ls -A "$DB_DATA_DIR")" ]; then
+    if [ -d "$DB_BACKUP_DIR" ] && [ ! -z "$(ls -A "$DB_BACKUP_DIR")" ]; then
+        print_info "Restoring database from backup..."
+        rsync -a "$DB_BACKUP_DIR/" "$DB_DATA_DIR/"
+    fi
+fi
+
+# Initialize DB if data dir is still empty
 if [ -z "$(ls -A "$DB_DATA_DIR")" ]; then
     print_info "Initializing new database cluster in $DB_DATA_DIR..."
     "$PG_BIN/initdb" -D "$DB_DATA_DIR" --auth=trust --no-instructions
 fi
 
-# Check if Postgres is already running on port 5432 (system or ours)
+# Check ports and cleanup
 if lsof -i :5432 >/dev/null; then
-    print_warn "Port 5432 is in use. Checking if it's our instance..."
-    if ! "$PG_BIN/pg_isready" -d template1 -q; then
-         print_error "Port 5432 is in use but doesn't seem to be responding correctly. Attempting to kill..."
-         sudo fuser -k 5432/tcp
-    fi
+    print_warn "Port 5432 is in use. Killing old processes..."
+    sudo fuser -k 5432/tcp
 fi
+
+# Cleanup stale pid
+rm -f "$DB_DATA_DIR/postmaster.pid"
 
 # Start Postgres
 print_info "Starting PostgreSQL..."
 "$PG_BIN/pg_ctl" -D "$DB_DATA_DIR" -l "$LOG_DIR/postgres.log" -o "-p 5432 -k /tmp" start
-
-# Start Sync Script (via PM2 later or nohup here? PM2 is better)
-# We will start it with PM2 in step 4 or manually here to be safe
-print_info "Starting DB Sync Process..."
-nohup "$PROJECT_DIR/scripts/sync-db.sh" > "$LOG_DIR/sync.log" 2>&1 &
-
 
 # Wait for it to be ready
 echo -n "Waiting for PostgreSQL to start..."
@@ -137,18 +156,25 @@ for i in {1..30}; do
 done
 
 # Setup DB Users/Schema if needed
-# Since we run as 'ubuntu', we are the superuser 'ubuntu'.
-# The app likely uses 'postgres' user. Let's ensure 'postgres' user exists with superuser privileges.
 if ! psql -d template1 -c "SELECT 1 FROM pg_roles WHERE rolname='postgres'" | grep -q 1; then
     print_info "Creating 'postgres' superuser role..."
     psql -d template1 -c "CREATE ROLE postgres WITH LOGIN SUPERUSER ENCRYPTED PASSWORD 'root';"
+fi
+
+# Start Sync Process (Optional Best Effort)
+print_info "Starting DB Backup Sync (Best Effort)..."
+if command -v pm2 &> /dev/null; then
+    pm2 delete db-sync 2>/dev/null || true
+    pm2 start "$PROJECT_DIR/scripts/sync-db.sh" --name db-sync
+else
+    pkill -f sync-db.sh || true
+    nohup "$PROJECT_DIR/scripts/sync-db.sh" > "$LOG_DIR/sync.log" 2>&1 &
 fi
 
 # Create 'prd' database if not exists
 if ! psql -lqt | cut -d \| -f 1 | grep -qw prd; then
     print_info "Creating 'prd' database..."
     createdb prd
-    print_info "Database 'prd' created. You may need to restore data if this is a fresh volume."
 fi
 
 # 3. Setup Nginx
