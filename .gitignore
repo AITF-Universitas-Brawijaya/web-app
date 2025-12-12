@@ -61,3 +61,5 @@ archives
 prompt.txt
 db_information.txt
 .ipynb_checkpoints
+bin/
+db_data_backup/

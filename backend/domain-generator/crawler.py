@@ -249,7 +249,19 @@ def take_screenshot_worker(url, output_path, item_id):
     """Worker function for taking screenshot (must be picklable for multiprocessing)."""
     try:
         options = Options()
-        options.binary_location = "/home/ubuntu/chrome/bin/google-chrome"
+        # Path configuration
+        project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        default_chrome = os.path.join(project_dir, "bin", "chrome-linux64", "chrome")
+        default_driver = os.path.join(project_dir, "bin", "chromedriver-linux64", "chromedriver")
+        
+        chrome_bin = os.getenv("CHROME_PATH", default_chrome)
+        driver_bin = os.getenv("CHROMEDRIVER_PATH", default_driver)
+        
+        # Fallback to system if portable not found
+        if not os.path.exists(chrome_bin):
+            chrome_bin = "/usr/bin/google-chrome" # System fallback
+            
+        options.binary_location = chrome_bin
         
         # Essential headless arguments
         options.add_argument("--headless=new")
@@ -271,7 +283,10 @@ def take_screenshot_worker(url, output_path, item_id):
         options.add_argument("--log-level=3")
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         
-        service = Service("/home/ubuntu/chrome/bin/chromedriver")
+        if os.path.exists(driver_bin):
+             service = Service(driver_bin)
+        else:
+             service = Service("/usr/bin/chromedriver") # System fallback
         driver = webdriver.Chrome(service=service, options=options)
         
         # Increased timeout
@@ -294,7 +309,19 @@ def take_screenshot(url, output_path, retries=2):
     """Take screenshot of the URL (no retries on timeout)."""
     try:
         options = Options()
-        options.binary_location = "/home/ubuntu/chrome/bin/google-chrome"
+        # Path configuration
+        project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        default_chrome = os.path.join(project_dir, "bin", "chrome-linux64", "chrome")
+        default_driver = os.path.join(project_dir, "bin", "chromedriver-linux64", "chromedriver")
+        
+        chrome_bin = os.getenv("CHROME_PATH", default_chrome)
+        driver_bin = os.getenv("CHROMEDRIVER_PATH", default_driver)
+        
+        # Fallback to system if portable not found
+        if not os.path.exists(chrome_bin):
+            chrome_bin = "/usr/bin/google-chrome" # System fallback
+
+        options.binary_location = chrome_bin
         
         # Essential headless arguments
         options.add_argument("--headless=new")
@@ -316,7 +343,10 @@ def take_screenshot(url, output_path, retries=2):
         options.add_argument("--log-level=3")
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         
-        service = Service("/home/ubuntu/chrome/bin/chromedriver")
+        if os.path.exists(driver_bin):
+             service = Service(driver_bin)
+        else:
+             service = Service("/usr/bin/chromedriver") # System fallback
         driver = webdriver.Chrome(service=service, options=options)
         
         # Increased timeout

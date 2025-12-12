@@ -8,10 +8,16 @@ set -e
 
 # Configuration
 PROJECT_DIR="/home/ubuntu/tim6_prd_workdir"
-DB_DATA_DIR="$PROJECT_DIR/db_data"
+DB_DATA_DIR="/tmp/pg_data"
+DB_BACKUP_DIR="$PROJECT_DIR/db_data_backup"
 LOG_DIR="$PROJECT_DIR/logs"
+BIN_DIR="$PROJECT_DIR/bin"
+CHROME_DIR="$BIN_DIR/chrome-linux64"
+CHROMEDRIVER_DIR="$BIN_DIR/chromedriver-linux64"
 NGINX_CONF="$PROJECT_DIR/nginx.conf"
 NEXTJS_NGINX_CONF="$PROJECT_DIR/nextjs-nginx.conf"
+
+export PGHOST=/tmp
 # Get the postgres bin path (adjust version if needed, assuming 14 from setup script)
 PG_BIN="/usr/lib/postgresql/14/bin"
 
@@ -29,37 +35,70 @@ print_info "Starting Persistent Setup..."
 
 # 1. Check & Install System Dependencies
 # We check for a critical binary from each package to decide if we need to reinstall.
-if ! command -v psql &> /dev/null || ! command -v nginx &> /dev/null || ! command -v google-chrome &> /dev/null; then
+if ! command -v psql &> /dev/null || ! command -v nginx &> /dev/null || ! command -v google-chrome &> /dev/null || ! command -v lsof &> /dev/null; then
     print_warn "System dependencies missing (likely due to restart). Re-installing..."
     
     # Update apt
-    sudo apt-get update -qq
+    sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
 
     # Install Backend/System basics
-    sudo apt-get install -y -qq postgresql-14 postgresql-client-14 nginx curl wget git build-essential unzip
-    
-    # Install Chrome (Refactored from setup-local-chrome.sh for speed)
-    if ! command -v google-chrome &> /dev/null; then
-        print_info "Installing Chrome..."
-        wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/chrome.deb
-        sudo dpkg -i /tmp/chrome.deb || sudo apt-get install -f -y
-        rm /tmp/chrome.deb
-    fi
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq postgresql-14 postgresql-client-14 nginx curl wget git build-essential unzip lsof psmisc rsync
 else
-    print_info "System dependencies appear to be installed."
+    print_info "System dependencies (psql, nginx) appear to be installed."
 fi
 
-# 2. Setup Persistent PostgreSQL
-print_info "Setting up Persistent PostgreSQL..."
+# 1.1 Setup Portable Chromium & ChromeDriver (Persistent in /home)
+if [ ! -d "$CHROME_DIR" ] || [ ! -x "$CHROME_DIR/chrome" ] || [ ! -d "$CHROMEDRIVER_DIR" ]; then
+    print_info "Portable Chromium/Driver not found. Installing to $BIN_DIR..."
+    mkdir -p "$BIN_DIR"
+    
+    # URL for Chrome for Testing (stable version suitable for automation)
+    VERSION="127.0.6533.72"
+    CHROME_URL="https://storage.googleapis.com/chrome-for-testing-public/$VERSION/linux64/chrome-linux64.zip"
+    DRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/$VERSION/linux64/chromedriver-linux64.zip"
+    
+    print_info "Downloading Chrome $VERSION..."
+    wget -q --show-progress "$CHROME_URL" -O "$BIN_DIR/chrome.zip"
+    wget -q --show-progress "$DRIVER_URL" -O "$BIN_DIR/chromedriver.zip"
+    
+    print_info "Unzipping binaries..."
+    unzip -q -o "$BIN_DIR/chrome.zip" -d "$BIN_DIR"
+    unzip -q -o "$BIN_DIR/chromedriver.zip" -d "$BIN_DIR"
+    rm "$BIN_DIR/chrome.zip" "$BIN_DIR/chromedriver.zip"
+    
+    # Install dependencies for Chrome if missing (libs often missing on slim images)
+    print_info "Installing Chrome runtime dependencies..."
+    sudo apt-get install -y -qq libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2
+    
+    print_info "Portable Chrome/Driver installed."
+else
+    print_info "Portable Chrome & Driver found at $BIN_DIR"
+fi
 
-# Stop the default system postgres service (we want to run our own custom instance)
+# 2. Setup Persistent PostgreSQL (via /tmp and sync)
+print_info "Setting up PostgreSQL in /tmp (with persistence sync)..."
+
+# Stop existing postgres
 if systemctl is-active --quiet postgresql; then
     print_info "Stopping default system PostgreSQL service..."
     sudo service postgresql stop
 fi
 
-mkdir -p "$DB_DATA_DIR"
+mkdir -p "$DB_BACKUP_DIR"
 mkdir -p "$LOG_DIR"
+
+# Restore from backup if exists and /tmp is empty
+if [ -d "$DB_BACKUP_DIR" ] && [ ! -z "$(ls -A "$DB_BACKUP_DIR")" ]; then
+    if [ ! -d "$DB_DATA_DIR" ] || [ -z "$(ls -A "$DB_DATA_DIR")" ]; then
+        print_info "Restoring database from backup..."
+        mkdir -p "$DB_DATA_DIR"
+        rsync -a "$DB_BACKUP_DIR/" "$DB_DATA_DIR/"
+        print_info "Restore complete."
+    fi
+fi
+
+mkdir -p "$DB_DATA_DIR"
+chmod 700 "$DB_DATA_DIR"
 
 # Initialize DB if data dir is empty
 if [ -z "$(ls -A "$DB_DATA_DIR")" ]; then
@@ -76,10 +115,15 @@ if lsof -i :5432 >/dev/null; then
     fi
 fi
 
-# Start Postgres (as current user)
-# We use pg_ctl to start it in background
+# Start Postgres
 print_info "Starting PostgreSQL..."
-"$PG_BIN/pg_ctl" -D "$DB_DATA_DIR" -l "$LOG_DIR/postgres.log" -o "-p 5432" start
+"$PG_BIN/pg_ctl" -D "$DB_DATA_DIR" -l "$LOG_DIR/postgres.log" -o "-p 5432 -k /tmp" start
+
+# Start Sync Script (via PM2 later or nohup here? PM2 is better)
+# We will start it with PM2 in step 4 or manually here to be safe
+print_info "Starting DB Sync Process..."
+nohup "$PROJECT_DIR/scripts/sync-db.sh" > "$LOG_DIR/sync.log" 2>&1 &
+
 
 # Wait for it to be ready
 echo -n "Waiting for PostgreSQL to start..."
