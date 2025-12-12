@@ -720,21 +720,11 @@ export default function DetailModal({
 
                 {/* Riwayat */}
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" className="h-4 w-4 fill-current">
-                        <path d="M208 0c-29.9 0-54.7 20.5-61.8 48.2c-.8 0-1.6-.2-2.4-.2c-35.3 0-64 28.7-64 64c0 4.8 .6 9.6 1.7 14.4C51.2 135 32 163.7 32 192c0 2.2 .1 4.4 .3 6.6C11 213 0 236.7 0 256c0 35.3 28.7 64 64 64l288 0c35.3 0 64-28.7 64-64c0-20.9-9.5-39.7-24.6-52.6c1.9-5.7 3.2-11.7 3.6-18c9.4 4.1 19.8 6.6 30.9 6.6c35.3 0 64-28.7 64-64c0-35.3-28.7-64-64-64c-5.4 0-10.7 .7-15.8 2c-3-28.6-27.3-51.1-57-51.1c-2.3 0-4.6 .1-6.8 .4C340.4 7.2 322.8 0 304 0c-25.2 0-47.8 13.1-60.7 32.7c-5.8-20-24.1-32.7-43.3-32.7zM160 304c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16s7.2-16 16-16l32 0c8.8 0 16 7.2 16 16zm-32 64c8.8 0 16 7.2 16 16l0 32c-29 5.2-113.3 35.1-137.9 44.5C2 462.1 0 466.7 0 471.2c0 5 2.5 9.8 6.7 12.8l94 67.2c4.1 2.9 8.9 4.3 13.7 3.8C182.2 548 249.7 483 252 480.9c9-8 9.9-21.7 2.1-30.8s-21.5-10.1-30.7-2.3c-.9 .8-44.1 38.6-95.4 56.6L128 504.4 128 368z" />
-                      </svg>
-                      <div className="text-xs font-semibold">Tanya AI Assistant</div>
-                    </div>
-                    <select
-                      value={chatMode}
-                      onChange={(e) => setChatMode(e.target.value as "edukasi" | "hukum")}
-                      className="text-xs border rounded p-1 bg-white dark:bg-gray-800"
-                    >
-                      <option value="edukasi">Mode Edukasi</option>
-                      <option value="hukum">Mode Hukum</option>
-                    </select>
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" className="h-4 w-4 fill-current">
+                      <path d="M320 128C426 128 512 214 512 320C512 426 426 512 320 512C254.8 512 197.1 479.5 162.4 429.7C152.3 415.2 132.3 411.7 117.8 421.8C103.3 431.9 99.8 451.9 109.9 466.4C156.1 532.6 233 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C234.3 64 158.5 106.1 112 170.7L112 144C112 126.3 97.7 112 80 112C62.3 112 48 126.3 48 144L48 256C48 273.7 62.3 288 80 288L104.6 288C105.1 288 105.6 288 106.1 288L192.1 288C209.8 288 224.1 273.7 224.1 256C224.1 238.3 209.8 224 192.1 224L153.8 224C186.9 166.6 249 128 320 128zM344 216C344 202.7 333.3 192 320 192C306.7 192 296 202.7 296 216L296 320C296 326.4 298.5 332.5 303 337L375 409C384.4 418.4 399.6 418.4 408.9 409C418.2 399.6 418.3 384.4 408.9 375.1L343.9 310.1L343.9 216z" />
+                    </svg>
+                    <div className="text-xs font-semibold">Riwayat Aktivitas</div>
                   </div>
                   <div className="border border-border rounded-md p-3 bg-card max-h-40 overflow-auto">
                     {historyError ? (
@@ -890,6 +880,17 @@ export default function DetailModal({
             </div>
 
             <div className="border-t border-border p-2">
+              <div className="flex justify-between items-center px-1 mb-2">
+                <span className="text-[10px] text-muted-foreground">Pilih Mode Chat:</span>
+                <select
+                  value={chatMode}
+                  onChange={(e) => setChatMode(e.target.value as "edukasi" | "hukum")}
+                  className="text-xs border rounded p-1 bg-white dark:bg-gray-800 h-6"
+                >
+                  <option value="edukasi">Mode Edukasi</option>
+                  <option value="hukum">Mode Hukum</option>
+                </select>
+              </div>
               <div className="flex items-center gap-2">
                 <Input
                   placeholder="Tanya tentang kasus ini..."
