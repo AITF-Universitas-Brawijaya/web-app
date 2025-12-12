@@ -1,15 +1,17 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/Dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs"
 import { useAuth } from "@/contexts/AuthContext"
 import { apiPost } from "@/lib/api"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || ""
 
 type Tab = "detail" | "generating" | "result"
+type InputMode = "search" | "manual"
 
 interface GeneratorSummary {
     status: string
@@ -32,6 +34,9 @@ export default function CrawlingModal({
 }) {
     const { user } = useAuth()
     const [activeTab, setActiveTab] = useState<Tab>("detail")
+    const [inputMode, setInputMode] = useState<InputMode>("search")
+
+    // Search Mode State
     const [domainCount, setDomainCount] = useState(15)
     const [keywords, setKeywords] = useState("")
     const [isEditingKeywords, setIsEditingKeywords] = useState(false)
@@ -39,6 +44,9 @@ export default function CrawlingModal({
     const [generatingKeywords, setGeneratingKeywords] = useState(false)
     const [showKeywordInput, setShowKeywordInput] = useState(false)
     const [baseKeyword, setBaseKeyword] = useState("")
+
+    // Manual Mode State
+    const [manualDomains, setManualDomains] = useState("")
 
     // Load keywords from user preferences on mount
     useEffect(() => {
@@ -270,17 +278,43 @@ export default function CrawlingModal({
                 return
             }
 
+            let endpoint = "/api/crawler/start"
+            let body = {}
+
+            if (inputMode === "search") {
+                const searchKeywords = keywords.split(/[,\n]/).map(k => k.trim()).filter(k => k)
+                if (searchKeywords.length === 0) {
+                    setLogs((prev) => [...prev, "[ERROR] No keywords provided"])
+                    // Reset to detail tab after error
+                    setTimeout(() => setActiveTab("detail"), 2000)
+                    return
+                }
+                body = {
+                    domain_count: domainCount,
+                    keywords: searchKeywords,
+                }
+            } else {
+                // Manual mode
+                const domains = manualDomains.split(/[,\n]/).map(d => d.trim()).filter(d => d)
+                if (domains.length === 0) {
+                    setLogs((prev) => [...prev, "[ERROR] No domains provided"])
+                    setTimeout(() => setActiveTab("detail"), 2000)
+                    return
+                }
+                endpoint = "/api/crawler/manual"
+                body = {
+                    domains: domains
+                }
+            }
+
             // Start crawler
-            const res = await fetch(`${API_BASE}/api/crawler/start`, {
+            const res = await fetch(`${API_BASE}${endpoint}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    domain_count: domainCount,
-                    keywords: keywordList,
-                }),
+                body: JSON.stringify(body),
             })
 
             if (!res.ok) {
@@ -305,7 +339,7 @@ export default function CrawlingModal({
                     // Show notification
                     if ("Notification" in window && Notification.permission === "granted") {
                         const notification = new Notification("Generation Complete", {
-                            body: `Successfully generated ${domainCount} domains`,
+                            body: `Successfully generated domains`,
                             icon: "/favicon.ico"
                         })
 
@@ -330,7 +364,7 @@ export default function CrawlingModal({
                         const parsedSummary = JSON.parse(summaryJson)
                         setSummary(parsedSummary)
                         setIsCompleted(true)
-                        setLogs((prev) => [...prev, "", `[INFO] Generation completed! This will automatically continue in ${countdown} seconds...`])
+                        setLogs((prev) => [...prev, "", `[INFO] Crawling completed! This will automatically continue in ${countdown} seconds...`])
                     } catch (e) {
                         console.error("Failed to parse summary:", e)
                     }
@@ -445,143 +479,185 @@ export default function CrawlingModal({
                     {/* Tab 1: Crawling Detail */}
                     {activeTab === "detail" && (
                         <div className="space-y-4">
-                            {/* Domain Count */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Jumlah Domain Generate</label>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => setDomainCount((c) => Math.max(1, c - 1))}
-                                    >
-                                        -
-                                    </Button>
-                                    <Input
-                                        type="number"
-                                        value={domainCount}
-                                        onChange={(e) => setDomainCount(Math.max(1, parseInt(e.target.value) || 1))}
-                                        className="w-24 text-center"
-                                    />
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => setDomainCount((c) => c + 1)}
-                                    >
-                                        +
-                                    </Button>
-                                </div>
-                            </div>
+                            <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as InputMode)} className="w-full">
+                                <TabsList className="grid w-full grid-cols-2 mb-4">
+                                    <TabsTrigger value="search">Search Keywords</TabsTrigger>
+                                    <TabsTrigger value="manual">Manual Input</TabsTrigger>
+                                </TabsList>
 
-                            {/* Keywords */}
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-sm font-medium">Keyword</label>
-                                    <div className="flex gap-2">
-                                        {isEditingKeywords ? (
-                                            <Button size="sm" onClick={handleSaveKeywords}>
-                                                Save
+                                <TabsContent value="search" className="space-y-4 mt-0">
+                                    {/* Domain Count */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Jumlah Domain Generate</label>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => setDomainCount((c) => Math.max(1, c - 1))}
+                                            >
+                                                -
                                             </Button>
-                                        ) : (
-                                            <>
-                                                <Button
-                                                    size="sm"
-                                                    className="text-white border-none hover:opacity-90 hover:text-white transition-opacity"
-                                                    style={{
-                                                        background: 'linear-gradient(135deg, #1DC0EB 0%, #1199DA 50%, #0B88D3 100%)'
-                                                    }}
-                                                    onClick={handleOpenKeywordGenerator}
-                                                    disabled={generatingKeywords}
-                                                >
-                                                    <svg
-                                                        width="14"
-                                                        height="14"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        className="mr-1"
-                                                    >
-                                                        <path
-                                                            d="M12 2L16 8L22 12L16 16L12 22L8 16L2 12L8 8L12 2Z"
-                                                            fill="white"
-                                                        />
-                                                        <path
-                                                            d="M12 6L14 10L18 12L14 14L12 18L10 14L6 12L10 10L12 6Z"
-                                                            fill="white"
-                                                            opacity="0.6"
-                                                        />
-                                                    </svg>
-                                                    Keyword Generator
-                                                </Button>
-                                                <Button size="sm" variant="outline" onClick={handleEditKeywords}>
-                                                    Edit
-                                                </Button>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Keyword Generator Input */}
-                                {showKeywordInput && (
-                                    <div className="p-3 border border-primary rounded-md bg-primary/5 space-y-2">
-                                        <label className="text-xs font-medium text-muted-foreground">
-                                            Masukkan keyword dasar untuk generate trending keywords:
-                                        </label>
-                                        <div className="flex gap-2">
                                             <Input
-                                                value={baseKeyword}
-                                                onChange={(e) => setBaseKeyword(e.target.value)}
-                                                placeholder="Contoh: judi online"
-                                                className="flex-1"
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Enter" && !generatingKeywords) {
-                                                        handleGenerateKeywords()
-                                                    }
-                                                }}
-                                                autoFocus
+                                                type="number"
+                                                value={domainCount}
+                                                onChange={(e) => setDomainCount(Math.max(1, parseInt(e.target.value) || 1))}
+                                                className="w-24 text-center"
                                             />
                                             <Button
-                                                size="sm"
-                                                onClick={handleGenerateKeywords}
-                                                disabled={generatingKeywords || !baseKeyword.trim()}
-                                                className="text-white"
-                                                style={{
-                                                    background: 'linear-gradient(135deg, #1DC0EB 0%, #1199DA 50%, #0B88D3 100%)'
-                                                }}
-                                            >
-                                                {generatingKeywords ? "Generating..." : "Generate"}
-                                            </Button>
-                                            <Button
-                                                size="sm"
                                                 variant="outline"
-                                                onClick={() => {
-                                                    setShowKeywordInput(false)
-                                                    setBaseKeyword("")
-                                                }}
-                                                disabled={generatingKeywords}
+                                                size="icon"
+                                                onClick={() => setDomainCount((c) => c + 1)}
                                             >
-                                                Cancel
+                                                +
                                             </Button>
                                         </div>
                                     </div>
-                                )}
 
-                                {isEditingKeywords ? (
-                                    <textarea
-                                        value={tempKeywords}
-                                        onChange={(e) => setTempKeywords(e.target.value)}
-                                        className="w-full p-3 text-sm border border-border rounded-md bg-background resize-none"
-                                        style={{ height: "165px" }}
-                                        placeholder="Masukkan keyword-keyword untuk mencari domain, pisahkan dengan koma atau baris baru"
-                                    />
-                                ) : (
-                                    <div className="p-3 border border-border rounded-md bg-muted/30 text-sm" style={{ height: "170px", overflowY: "auto" }}>
-                                        {keywords}
+                                    {/* Keywords */}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-sm font-medium">Keyword</label>
+                                            <div className="flex gap-2">
+                                                {isEditingKeywords ? (
+                                                    <Button size="sm" onClick={handleSaveKeywords}>
+                                                        Save
+                                                    </Button>
+                                                ) : (
+                                                    <>
+                                                        <Button
+                                                            size="sm"
+                                                            className="text-white border-none hover:opacity-90 hover:text-white transition-opacity"
+                                                            style={{
+                                                                background: 'linear-gradient(135deg, #1DC0EB 0%, #1199DA 50%, #0B88D3 100%)'
+                                                            }}
+                                                            onClick={handleOpenKeywordGenerator}
+                                                            disabled={generatingKeywords}
+                                                        >
+                                                            <svg
+                                                                width="14"
+                                                                height="14"
+                                                                viewBox="0 0 24 24"
+                                                                fill="none"
+                                                                className="mr-1"
+                                                            >
+                                                                <path
+                                                                    d="M12 2L16 8L22 12L16 16L12 22L8 16L2 12L8 8L12 2Z"
+                                                                    fill="white"
+                                                                />
+                                                                <path
+                                                                    d="M12 6L14 10L18 12L14 14L12 18L10 14L6 12L10 10L12 6Z"
+                                                                    fill="white"
+                                                                    opacity="0.6"
+                                                                />
+                                                            </svg>
+                                                            Keyword Generator
+                                                        </Button>
+                                                        <Button size="sm" variant="outline" onClick={handleEditKeywords}>
+                                                            Edit
+                                                        </Button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Keyword Generator Input */}
+                                        {showKeywordInput && (
+                                            <div className="p-3 border border-primary rounded-md bg-primary/5 space-y-2">
+                                                <label className="text-xs font-medium text-muted-foreground">
+                                                    Masukkan keyword dasar untuk generate trending keywords:
+                                                </label>
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        value={baseKeyword}
+                                                        onChange={(e) => setBaseKeyword(e.target.value)}
+                                                        placeholder="Contoh: judi online"
+                                                        className="flex-1"
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter" && !generatingKeywords) {
+                                                                handleGenerateKeywords()
+                                                            }
+                                                        }}
+                                                        autoFocus
+                                                    />
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={handleGenerateKeywords}
+                                                        disabled={generatingKeywords || !baseKeyword.trim()}
+                                                        className="text-white"
+                                                        style={{
+                                                            background: 'linear-gradient(135deg, #1DC0EB 0%, #1199DA 50%, #0B88D3 100%)'
+                                                        }}
+                                                    >
+                                                        {generatingKeywords ? "Generating..." : "Generate"}
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            setShowKeywordInput(false)
+                                                            setBaseKeyword("")
+                                                        }}
+                                                        disabled={generatingKeywords}
+                                                    >
+                                                        Cancel
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {isEditingKeywords ? (
+                                            <textarea
+                                                value={tempKeywords}
+                                                onChange={(e) => setTempKeywords(e.target.value)}
+                                                className="w-full p-3 text-sm border border-border rounded-md bg-background resize-none"
+                                                style={{ height: "165px" }}
+                                                placeholder="Masukkan keyword-keyword untuk mencari domain, pisahkan dengan koma atau baris baru"
+                                            />
+                                        ) : (
+                                            <div className="p-3 border border-border rounded-md bg-muted/30 text-sm" style={{ height: "170px", overflowY: "auto" }}>
+                                                {keywords}
+                                            </div>
+                                        )}
+
+                                        <div className="text-xs text-muted-foreground">
+                                            {keywordList.length} keywords
+                                        </div>
                                     </div>
-                                )}
+                                </TabsContent>
 
-                                <div className="text-xs text-muted-foreground">
-                                    {keywordList.length} keywords
-                                </div>
-                            </div>
+                                <TabsContent value="manual" className="space-y-4 mt-0">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-sm font-medium">Input Domains Manually</label>
+                                            <div className="text-xs text-muted-foreground">
+                                                One domain per line or comma separated
+                                            </div>
+                                        </div>
+
+                                        <textarea
+                                            value={manualDomains}
+                                            onChange={(e) => setManualDomains(e.target.value)}
+                                            className="w-full p-3 text-sm border border-border rounded-md bg-background resize-none font-mono"
+                                            style={{ height: "240px" }}
+                                            placeholder="example.com&#10;test.com&#10;https://another-domain.net"
+                                        />
+
+                                        <div className="flex justify-between items-center">
+                                            <div className="text-xs text-muted-foreground">
+                                                {manualDomains.split(/[,\n]/).filter(d => d.trim()).length} domains
+                                            </div>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setManualDomains("")}
+                                                disabled={!manualDomains}
+                                            >
+                                                Clear
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
                         </div>
                     )}
 
@@ -644,7 +720,9 @@ export default function CrawlingModal({
                             <Button variant="outline" onClick={handleClose}>
                                 Cancel
                             </Button>
-                            <Button onClick={handleGenerate}>Generate</Button>
+                            <Button onClick={handleGenerate}>
+                                {inputMode === 'search' ? 'Generate' : 'Process Manual Domains'}
+                            </Button>
                         </div>
                     )}
 

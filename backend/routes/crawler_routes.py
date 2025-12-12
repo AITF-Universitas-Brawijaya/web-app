@@ -17,6 +17,9 @@ class CrawlerRequest(BaseModel):
     domain_count: int
     keywords: list[str]
 
+class ManualCrawlerRequest(BaseModel):
+    domains: list[str]
+
 class CrawlerStatus(BaseModel):
     job_id: str
     status: str
@@ -74,6 +77,57 @@ async def start_crawler(request: CrawlerRequest, current_user: dict = Depends(ge
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to start crawler: {str(e)}")
+
+@router.post("/manual")
+async def start_manual_crawler(request: ManualCrawlerRequest, current_user: dict = Depends(get_current_user)):
+    """
+    Start the crawler with a manual list of domains.
+    Requires authentication.
+    """
+    try:
+        if not request.domains or len(request.domains) == 0:
+            raise HTTPException(status_code=400, detail="Domains list cannot be empty")
+        
+        # Generate unique job ID
+        job_id = str(uuid.uuid4())
+        
+        # Path to crawler script
+        crawler_path = os.path.join(os.path.dirname(__file__), "..", "domain-generator", "crawler.py")
+        
+        # Prepare domains string (comma separate)
+        domains_str = ','.join(request.domains)
+        username = current_user.get("username", "unknown")
+        
+        # Use bash wrapper to activate conda environment before running crawler
+        # Pass domains via -d argument
+        cmd = (
+            f"source /home/ubuntu/miniconda3/etc/profile.d/conda.sh && "
+            f"conda activate prd6 && "
+            f"cd {os.path.dirname(crawler_path)} && "
+            f"python3 -u crawler.py -d '{domains_str}' -u '{username}'"
+        )
+        
+        # Start crawler process asynchronously
+        process = await asyncio.create_subprocess_exec(
+            "/bin/bash",
+            "-c",
+            cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+            env={**os.environ, "PYTHONUNBUFFERED": "1"}
+        )
+        
+        # Store process
+        active_processes[job_id] = process
+        
+        return {
+            "job_id": job_id,
+            "status": "started",
+            "message": f"Manual crawler started with {len(request.domains)} domains"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to start manual crawler: {str(e)}")
 
 @router.get("/logs/{job_id}")
 async def stream_logs(job_id: str):

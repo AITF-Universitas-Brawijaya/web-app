@@ -509,21 +509,32 @@ def save_to_database(all_results, keyword, username='system'):
                     screenshot_filename = result['id']
                     image_path = f"domain-generator/output/img/{screenshot_filename}.png" if result.get('screenshot_status') == 'success' else None
                     
-                    # Insert into generated_domains table and let database auto-increment id_domain
-                    insert_result = conn.execute(text("""
-                        INSERT INTO generated_domains (url, title, domain, image_path)
-                        VALUES (:url, :title, :domain, :image_path)
-                        RETURNING id_domain
-                    """), {
-                        "url": result.get('url', ''),
-                        "title": result.get('title', '')[:255],  # Limit to 255 chars
-                        "domain": result.get('domain', ''),
-                        "image_path": image_path
-                    })
+                    # Check if domain already exists in generated_domains
+                    existing_id = conn.execute(text("SELECT id_domain FROM generated_domains WHERE domain = :domain"), {"domain": result.get('domain', '')}).fetchone()
                     
-                    id_domain = insert_result.fetchone()[0]
+                    if existing_id:
+                        id_domain = existing_id[0]
+                        print(f"[DATABASE] Domain already exists with id_domain={id_domain}. Using existing ID.", flush=True)
+                        # Optionally update the image_path if it's new
+                        if image_path:
+                            conn.execute(text("UPDATE generated_domains SET image_path = :image_path WHERE id_domain = :id_domain"), 
+                                        {"image_path": image_path, "id_domain": id_domain})
+                    else:
+                        # Insert into generated_domains and let database auto-increment id_domain
+                        insert_result = conn.execute(text("""
+                            INSERT INTO generated_domains (url, title, domain, image_path)
+                            VALUES (:url, :title, :domain, :image_path)
+                            RETURNING id_domain
+                        """), {
+                            "url": result.get('url', ''),
+                            "title": result.get('title', '')[:255],  # Limit to 255 chars
+                            "domain": result.get('domain', ''),
+                            "image_path": image_path
+                        })
+                        id_domain = insert_result.fetchone()[0]
+                        print(f"[DATABASE] Inserted into generated_domains with id_domain={id_domain}", flush=True)
+                    
                     saved_count += 1
-                    print(f"[DATABASE] Inserted into generated_domains with id_domain={id_domain}", flush=True)
                     
                     # Prepare detection data if available
                     id_detection = None
@@ -596,49 +607,76 @@ def save_to_database(all_results, keyword, username='system'):
                         detection_saved_count += 1
                         print(f"[DATABASE] Inserted into object_detection", flush=True)
                     
-                    # Insert into results table with created_by tracking
-                    conn.execute(text("""
-                        INSERT INTO results (
-                            id_domain,
-                            id_detection,
-                            url,
-                            keywords,
-                            image_final_path,
-                            label_final,
-                            final_confidence,
-                            status,
-                            created_by,
-                            created_at,
-                            modified_by,
-                            modified_at
-                        ) VALUES (
-                            :id_domain,
-                            :id_detection,
-                            :url,
-                            :keywords,
-                            :image_final_path,
-                            :label_final,
-                            :final_confidence,
-                            'unverified',
-                            :created_by,
-                            now(),
-                            :modified_by,
-                            now()
-                        )
-                        ON CONFLICT (id_domain) DO NOTHING
-                    """), {
+                    # Insert or update results table with created_by tracking
+                    # properties for results
+                    results_params = {
                         "id_domain": id_domain,
                         "id_detection": id_detection,
                         "url": result.get('url', ''),
                         "keywords": keyword,
                         "image_final_path": image_detected_path or image_path,
-                        "label_final": label_final,
+                        "label_final": label,
                         "final_confidence": final_confidence,
                         "created_by": username,
                         "modified_by": username
-                    })
-                    results_saved_count += 1
-                    print(f"[DATABASE] Inserted into results", flush=True)
+                    }
+                    
+                    # Check if result for this domain already exists
+                    existing_result = conn.execute(text("SELECT 1 FROM results WHERE id_domain = :id_domain"), {"id_domain": id_domain}).fetchone()
+                    
+                    try:
+                        with conn.begin_nested():
+                            if existing_result:
+                                # UPDATE
+                                conn.execute(text("""
+                                    UPDATE results SET
+                                        id_detection = :id_detection,
+                                        url = :url,
+                                        keywords = :keywords,
+                                        image_final_path = :image_final_path,
+                                        label_final = :label_final,
+                                        final_confidence = :final_confidence,
+                                        modified_by = :modified_by,
+                                        modified_at = now()
+                                    WHERE id_domain = :id_domain
+                                """), results_params)
+                                print(f"[DATABASE] Updated existing result for id_domain={id_domain}", flush=True)
+                            else:
+                                # INSERT
+                                conn.execute(text("""
+                                    INSERT INTO results (
+                                        id_domain,
+                                        id_detection,
+                                        url,
+                                        keywords,
+                                        image_final_path,
+                                        label_final,
+                                        final_confidence,
+                                        status,
+                                        created_by,
+                                        created_at,
+                                        modified_by,
+                                        modified_at
+                                    ) VALUES (
+                                        :id_domain,
+                                        :id_detection,
+                                        :url,
+                                        :keywords,
+                                        :image_final_path,
+                                        :label_final,
+                                        :final_confidence,
+                                        'unverified',
+                                        :created_by,
+                                        now(),
+                                        :modified_by,
+                                        now()
+                                    )
+                                """), results_params)
+                                print(f"[DATABASE] Inserted into results", flush=True)
+                            
+                            results_saved_count += 1
+                    except Exception as e:
+                         print(f"[WARN] Failed to update/insert results table: {e}", flush=True)
                     
                     # Add audit log entry for domain creation
                     conn.execute(text("""
@@ -683,6 +721,7 @@ def main():
     parser.add_argument('-n', '--domain-count', type=int, default=10, help='Number of domains to generate')
     parser.add_argument('-k', '--keywords', type=str, help='Comma-separated list of keywords')
     parser.add_argument('-u', '--username', type=str, default='system', help='Username for created_by tracking')
+    parser.add_argument('-d', '--domains', type=str, help='Comma-separated list of domains to process manually (skips search)')
     args = parser.parse_args()
     
     # Track start time
@@ -696,23 +735,41 @@ def main():
     print(f"[INIT] Loaded {len(SEEN_DOMAINS)} existing domains, {len(BLOCKED_DOMAINS)} blocked domains, {len(blocked_keywords)} blocked keywords", flush=True)
     
     # Get keywords - either from args, last keywords, or stdin
-    if args.keywords:
+    # If manual domains are provided, we don't need keywords for search, but we need a value for the variable
+    if args.domains:
+        keywords = ["manual_entry"]
+    elif args.keywords:
         keywords = [k.strip() for k in args.keywords.split(',') if k.strip()]
     else:
         # Try to load last keywords first
         last_keywords = load_last_keywords()
         if last_keywords:
             print(f"[INIT] Last used keywords: {', '.join(last_keywords)}", flush=True)
-            use_last = input("Use these keywords? (y/n): ").lower().strip()
-            if use_last == 'y':
-                keywords = last_keywords
-            else:
+            try:
+                # Use a timeout or non-blocking method if possible, or just default to input
+                # In automated environment, this might block, so we should be careful.
+                # If we are in a non-interactive shell (pipe), input() raises EOFError.
+                if sys.stdin.isatty():
+                    use_last = input("Use these keywords? (y/n): ").lower().strip()
+                    if use_last == 'y':
+                        keywords = last_keywords
+                    else:
+                        keyword_input = input("Masukkan keyword (pisahkan dengan koma): ")
+                        keywords = [k.strip() for k in keyword_input.split(',') if k.strip()]
+                else:
+                    # Non-interactive, default to using last keywords or failing
+                    print("[INFO] Non-interactive mode detected. Using last keywords.", flush=True)
+                    keywords = last_keywords
+            except EOFError:
+                 keywords = last_keywords
+        else:
+            if sys.stdin.isatty():
                 keyword_input = input("Masukkan keyword (pisahkan dengan koma): ")
                 keywords = [k.strip() for k in keyword_input.split(',') if k.strip()]
-        else:
-            keyword_input = input("Masukkan keyword (pisahkan dengan koma): ")
-            keywords = [k.strip() for k in keyword_input.split(',') if k.strip()]
-    
+            else:
+                 print("[ERROR] No keywords provided and non-interactive mode", flush=True)
+                 return
+
     if not keywords:
         print("[ERROR] No keywords provided", flush=True)
         return
@@ -722,24 +779,56 @@ def main():
     global MAX_RESULT
     MAX_RESULT = target_domains
     
-    print(f"[CONFIG] Keywords: {', '.join(keywords)}", flush=True)
-    print(f"[CONFIG] Target domains: {target_domains}", flush=True)
+    # Get search results or use manual domains
+    results = []
     
-    # Combine all keywords for search and add blocked keywords with minus operator
-    query = ' OR '.join(keywords)
-    if blocked_keywords:
-        query += ' ' + ' '.join(f'-{kw}' for kw in blocked_keywords)
-    print(f"[SEARCH] Starting search with query: {keywords} + blocked domains", flush=True)
-    
-    # Get search results
-    print("[SEARCH] Fetching search results from DuckDuckGo...", flush=True)
-    results = DDGS().text(query, max_results=target_domains * 5)  # Get more results to handle filtering
-    
-    if not results:
-        print("[ERROR] No search results found", flush=True)
-        return
-    
-    print(f"[SEARCH] Found {len(results)} search results", flush=True)
+    if args.domains:
+        print("[MODE] Manual domain entry mode", flush=True)
+        # Process manual domains
+        manual_domains = [d.strip() for d in args.domains.split(',') if d.strip()]
+        for domain in manual_domains:
+            # Basic cleanup - remove protocol if present to get clean domain, but keep full URL for fetching
+            clean_domain = extract_domain(domain)
+            if clean_domain == "unknown":
+                # Maybe the user didn't put http/https, try to deduce
+                clean_domain = domain
+                url = f"https://{domain}"
+            else:
+                url = domain
+                if not url.startswith('http'):
+                    url = f"https://{url}"
+            
+            results.append({
+                "title": f"Manual Entry: {clean_domain}",
+                "href": url,
+                "body": "Manual entry"
+            })
+            
+        print(f"[MANUAL] Loaded {len(results)} domains for processing", flush=True)
+        # Override target domains to match input length if in manual mode
+        target_domains = len(results)
+        MAX_RESULT = target_domains
+        
+    else:
+        # SEARCH MODE
+        print(f"[CONFIG] Keywords: {', '.join(keywords)}", flush=True)
+        print(f"[CONFIG] Target domains: {target_domains}", flush=True)
+        
+        # Combine all keywords for search and add blocked keywords with minus operator
+        query = ' OR '.join(keywords)
+        if blocked_keywords:
+            query += ' ' + ' '.join(f'-{kw}' for kw in blocked_keywords)
+        print(f"[SEARCH] Starting search with query: {keywords} + blocked domains", flush=True)
+        
+        # Get search results
+        print("[SEARCH] Fetching search results from DuckDuckGo...", flush=True)
+        results = DDGS().text(query, max_results=target_domains * 5)  # Get more results to handle filtering
+        
+        if not results:
+            print("[ERROR] No search results found", flush=True)
+            return
+        
+        print(f"[SEARCH] Found {len(results)} search results", flush=True)
     
     # Get last ID and start from next
     last_id = get_last_id()
@@ -768,8 +857,11 @@ def main():
             continue
         
         if is_domain_duplicate(domain):
-            print(f"[FILTER] Skipped duplicate domain: {domain}", flush=True)
-            continue
+            if args.domains:
+                print(f"[FILTER] Domain {domain} is duplicate but allowing in MANUAL mode", flush=True)
+            else:
+                print(f"[FILTER] Skipped duplicate domain: {domain}", flush=True)
+                continue
         
         # All checks passed - this is a valid domain
         filtered_no_duplicates.append(r)
