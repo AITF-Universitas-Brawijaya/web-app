@@ -5,12 +5,15 @@ const nextConfig: NextConfig = {
   output: 'standalone',
 
   // Use Next.js rewrites to proxy API requests to the Python backend
-  // identifying as Nginx replacement
   async rewrites() {
+    // Use backend container name for server-side requests (Docker network)
+    // Empty NEXT_PUBLIC_API_URL means browser will use relative path /api/*
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://backend:8000';
+
     return [
       {
         source: '/api/:path*',
-        destination: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/:path*',
+        destination: `${apiUrl}/api/:path*`,
       },
     ];
   },
