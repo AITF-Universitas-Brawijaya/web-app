@@ -475,21 +475,21 @@ export default function CrawlingModal({
 
 
                 {/* Tab Content */}
-                <div className="flex-1 overflow-y-auto pt-4" style={{ minHeight: "330px", maxHeight: "330px" }}>
+                <div className="flex-1 overflow-y-auto" style={{ minHeight: "354px", maxHeight: "354px" }}>
                     {/* Tab 1: Crawling Detail */}
                     {activeTab === "detail" && (
                         <div className="space-y-4">
                             <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as InputMode)} className="w-full">
-                                <TabsList className="grid w-full grid-cols-2 mb-4">
-                                    <TabsTrigger value="search">Search Keywords</TabsTrigger>
-                                    <TabsTrigger value="manual">Manual Input</TabsTrigger>
+                                <TabsList className="grid w-full grid-cols-2 mb-5">
+                                    <TabsTrigger value="search">Search by Keywords</TabsTrigger>
+                                    <TabsTrigger value="manual">Domain Input</TabsTrigger>
                                 </TabsList>
 
                                 <TabsContent value="search" className="space-y-4 mt-0">
                                     {/* Domain Count */}
-                                    <div className="space-y-2">
+                                    <div className="grid w-full items-center grid-cols-2 mb-5">
                                         <label className="text-sm font-medium">Jumlah Domain Generate</label>
-                                        <div className="flex items-center gap-2 mt-1">
+                                        <div className="flex justify-end gap-2 mt-1">
                                             <Button
                                                 variant="outline"
                                                 size="icon"
@@ -610,7 +610,7 @@ export default function CrawlingModal({
                                                 value={tempKeywords}
                                                 onChange={(e) => setTempKeywords(e.target.value)}
                                                 className="w-full p-3 text-sm border border-border rounded-md bg-background resize-none"
-                                                style={{ height: "165px" }}
+                                                style={{ height: "125px" }}
                                                 placeholder="Masukkan keyword-keyword untuk mencari domain, pisahkan dengan koma atau baris baru"
                                             />
                                         ) : (
@@ -619,13 +619,25 @@ export default function CrawlingModal({
                                             </div>
                                         )}
 
-                                        <div className="text-xs text-muted-foreground">
-                                            {keywordList.length} keywords
+                                        <div className="flex justify-between items-center">
+                                            <div className="text-xs text-muted-foreground">
+                                                {keywordList.length} keywords
+                                            </div>
+                                            {isEditingKeywords && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setTempKeywords("")}
+                                                    disabled={!tempKeywords}
+                                                >
+                                                    Clear
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 </TabsContent>
 
-                                <TabsContent value="manual" className="space-y-4 mt-0">
+                                <TabsContent value="manual" className="space-y-4 mt-2">
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
                                             <label className="text-sm font-medium">Input Domains Manually</label>
@@ -638,7 +650,7 @@ export default function CrawlingModal({
                                             value={manualDomains}
                                             onChange={(e) => setManualDomains(e.target.value)}
                                             className="w-full p-3 text-sm border border-border rounded-md bg-background resize-none font-mono"
-                                            style={{ height: "240px" }}
+                                            style={{ height: "215px" }}
                                             placeholder="example.com&#10;test.com&#10;https://another-domain.net"
                                         />
 
@@ -646,14 +658,55 @@ export default function CrawlingModal({
                                             <div className="text-xs text-muted-foreground">
                                                 {manualDomains.split(/[,\n]/).filter(d => d.trim()).length} domains
                                             </div>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setManualDomains("")}
-                                                disabled={!manualDomains}
-                                            >
-                                                Clear
-                                            </Button>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="file"
+                                                    id="domain-file-upload"
+                                                    accept=".txt,.csv"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0]
+                                                        if (file) {
+                                                            const reader = new FileReader()
+                                                            reader.onload = (event) => {
+                                                                const content = event.target?.result as string
+                                                                setManualDomains(content)
+                                                            }
+                                                            reader.readAsText(file)
+                                                        }
+                                                        // Reset input value to allow uploading the same file again
+                                                        e.target.value = ""
+                                                    }}
+                                                />
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => document.getElementById("domain-file-upload")?.click()}
+                                                >
+                                                    <svg
+                                                        width="14"
+                                                        height="14"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        strokeWidth="2"
+                                                        className="mr-1"
+                                                    >
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                        <polyline points="17 8 12 3 7 8" />
+                                                        <line x1="12" y1="3" x2="12" y2="15" />
+                                                    </svg>
+                                                    Upload File
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setManualDomains("")}
+                                                    disabled={!manualDomains}
+                                                >
+                                                    Clear
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
                                 </TabsContent>
@@ -721,7 +774,7 @@ export default function CrawlingModal({
                                 Cancel
                             </Button>
                             <Button onClick={handleGenerate}>
-                                {inputMode === 'search' ? 'Generate' : 'Process Manual Domains'}
+                                {inputMode === 'search' ? 'Generate' : 'Process Domains'}
                             </Button>
                         </div>
                     )}

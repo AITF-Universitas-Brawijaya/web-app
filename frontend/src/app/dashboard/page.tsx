@@ -40,7 +40,7 @@ const TAB_ORDER = [
 type TabKey = (typeof TAB_ORDER)[number]["key"]
 
 export default function PRDDashboardPage() {
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const [activeTab, setActiveTab] = useState<TabKey>("home")
   const [search, setSearch] = useState("")
   const [sortCol, setSortCol] = useState<"tanggal" | "kepercayaan" | "lastModified" | "modifiedBy">("tanggal")
@@ -53,6 +53,11 @@ export default function PRDDashboardPage() {
   const [manualDomainInput, setManualDomainInput] = useState("")
   const [addingManual, setAddingManual] = useState(false)
   const [compactMode, setCompactMode] = useState(false)
+
+  // Bulk delete states
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const { data, error, isLoading, mutate } = useSWR<LinkRecord[]>("/api/data?v=2", fetcher, {
     refreshInterval: 4000,
@@ -155,6 +160,54 @@ export default function PRDDashboardPage() {
     }
   }
 
+  // Bulk delete handlers
+  function toggleSelectionMode() {
+    setSelectionMode(!selectionMode)
+    setSelectedIds(new Set())
+  }
+
+  function toggleSelectItem(id: number) {
+    const newSelected = new Set(selectedIds)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
+    } else {
+      newSelected.add(id)
+    }
+    setSelectedIds(newSelected)
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === pageItems.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(pageItems.map(item => item.id)))
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (selectedIds.size === 0) return
+
+    const confirmed = confirm(`Are you sure you want to delete ${selectedIds.size} domain(s)? This action cannot be undone.`)
+    if (!confirmed) return
+
+    setIsDeleting(true)
+    try {
+      const { apiPost } = await import("@/lib/api")
+      await apiPost("/api/data/bulk-delete", { ids: Array.from(selectedIds) })
+
+      // Reset selection
+      setSelectedIds(new Set())
+      setSelectionMode(false)
+
+      // Refresh data
+      mutate()
+    } catch (err: any) {
+      alert(err.message || "Failed to delete domains")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <ProtectedRoute>
       <div className="flex h-screen">
@@ -196,6 +249,61 @@ export default function PRDDashboardPage() {
                       onChange={(e) => setSearch(e.target.value)}
                       className="pl-8 h-8 text-sm bg-transparent border-gray-400 text-gray-300 placeholder:text-gray-400 focus-visible:bg-white focus-visible:text-foreground focus-visible:border-ring dark:focus-visible:bg-background dark:focus-visible:text-foreground"
                     />
+
+                    {/* Admin-only: Select Mode Button */}
+                    {user?.role === "administrator" && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className={`h-8 px-3 border-none hover:opacity-90 transition-opacity ${selectionMode
+                            ? 'bg-red-500 text-white hover:text-white'
+                            : 'bg-white dark:bg-gray-100 text-gray-700 hover:text-gray-700'
+                            }`}
+                          onClick={toggleSelectionMode}
+                          title={selectionMode ? "Exit Selection Mode" : "Select Mode"}
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            className="mr-1"
+                          >
+                            <polyline points="9 11 12 14 22 4" />
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                          </svg>
+                          {selectionMode ? 'Exit' : 'Select'}
+                        </Button>
+
+                        {selectionMode && selectedIds.size > 0 && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="h-8 px-3"
+                            onClick={handleBulkDelete}
+                            disabled={isDeleting}
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              className="mr-1"
+                            >
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                            {isDeleting ? 'Deleting...' : `Delete (${selectedIds.size})`}
+                          </Button>
+                        )}
+                      </>
+                    )}
+
                     <Button
                       size="sm"
                       variant="outline"
@@ -260,6 +368,10 @@ export default function PRDDashboardPage() {
                   sortCol={sortCol}
                   sortOrder={sortOrder}
                   compactMode={compactMode}
+                  selectionMode={selectionMode}
+                  selectedIds={selectedIds}
+                  onToggleSelect={toggleSelectItem}
+                  onToggleSelectAll={toggleSelectAll}
                   onSort={(col: "tanggal" | "kepercayaan" | "lastModified" | "modifiedBy") => {
                     if (sortCol === col) {
                       setSortOrder(sortOrder === "asc" ? "desc" : "asc")

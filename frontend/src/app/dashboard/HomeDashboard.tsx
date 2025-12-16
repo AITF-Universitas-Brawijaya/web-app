@@ -233,23 +233,23 @@ export default function SummaryDashboard({ data, onGoToAll }: SummaryProps) {
             {/* KPI Cards*/}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-8 gap-4 mb-4">
                 <Card className="p-4">
-                    <p className="text-sm text-muted-foreground">Total domain</p>
-                    <p className="text-3xl font-bold">{data.length}</p>
+                    <p className="text-sm text-muted-foreground">Total Domains</p>
+                    <p className="text-2xl font-bold">{data.length}</p>
                 </Card>
 
                 <Card className="p-4">
-                    <p className="text-sm text-muted-foreground">Terverifikasi</p>
-                    <p className="text-3xl font-bold">{verified}</p>
+                    <p className="text-sm text-muted-foreground">Verified</p>
+                    <p className="text-2xl font-bold">{verified}</p>
                 </Card>
 
                 <Card className="p-4">
-                    <p className="text-sm text-muted-foreground">False positive</p>
-                    <p className="text-3xl font-bold">{falsePositive}</p>
+                    <p className="text-sm text-muted-foreground">False Positive</p>
+                    <p className="text-2xl font-bold">{falsePositive}</p>
                 </Card>
 
                 <Card className="p-4">
-                    <p className="text-sm text-muted-foreground">Belum terverifikasi</p>
-                    <p className="text-3xl font-bold">{unverified}</p>
+                    <p className="text-sm text-muted-foreground">Unverified</p>
+                    <p className="text-2xl font-bold">{unverified}</p>
                 </Card>
                 <Card className="p-4">
                     <p className="text-sm text-muted-foreground mb-2">Generator Service</p>
@@ -271,7 +271,7 @@ export default function SummaryDashboard({ data, onGoToAll }: SummaryProps) {
                     <p className="text-sm text-muted-foreground mb-2">Detection Service</p>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-                        <p className="text-xl font-bold">Tidak Aktif</p>
+                        <p className="text-xl font-bold">Off</p>
                     </div>
                 </Card>
 
