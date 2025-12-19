@@ -11,7 +11,7 @@ Create a `.env` file in the `backend/` directory with the following variables:
 DATABASE_URL=sqlite:///./test.db
 
 # RunPod API Configuration
-RUNPOD_API_URL=https://l7i1ghaqgdha36-3000.proxy.runpod.net
+SERVICE_API_URL=https://l7i1ghaqgdha36-3000.proxy.runpod.net
 
 # JWT Secret (generate using: python generate_hash.py)
 SECRET_KEY=your-secret-key-here
@@ -22,7 +22,7 @@ SECRET_KEY=your-secret-key-here
 | Variable | Description | Default Value |
 |----------|-------------|---------------|
 | `DATABASE_URL` | Database connection string | `sqlite:///./test.db` |
-| `RUNPOD_API_URL` | Base URL for RunPod API | `https://l7i1ghaqgdha36-3000.proxy.runpod.net` |
+| `SERVICE_API_URL` | Base URL for RunPod API | `https://l7i1ghaqgdha36-3000.proxy.runpod.net` |
 | `SECRET_KEY` | JWT secret key for authentication | Required |
 
 ## Frontend Configuration
@@ -34,7 +34,7 @@ Create a `.env.local` file in the `frontend/` directory with the following varia
 NEXT_PUBLIC_API_URL=http://localhost:8000
 
 # RunPod API URL (used by Next.js API routes)
-RUNPOD_API_URL=https://l7i1ghaqgdha36-3000.proxy.runpod.net
+SERVICE_API_URL=https://l7i1ghaqgdha36-3000.proxy.runpod.net
 ```
 
 ### Frontend Environment Variables
@@ -42,7 +42,7 @@ RUNPOD_API_URL=https://l7i1ghaqgdha36-3000.proxy.runpod.net
 | Variable | Description | Default Value |
 |----------|-------------|---------------|
 | `NEXT_PUBLIC_API_URL` | Backend API base URL | `http://localhost:8000` |
-| `RUNPOD_API_URL` | RunPod API base URL (server-side only) | `https://l7i1ghaqgdha36-3000.proxy.runpod.net` |
+| `SERVICE_API_URL` | RunPod API base URL (server-side only) | `https://l7i1ghaqgdha36-3000.proxy.runpod.net` |
 
 ## Setup Instructions
 
@@ -85,13 +85,13 @@ When using Docker, environment variables can be set in the `docker-compose.yml` 
 services:
   backend:
     environment:
-      - RUNPOD_API_URL=https://your-runpod-url.proxy.runpod.net
+      - SERVICE_API_URL=https://your-runpod-url.proxy.runpod.net
       - DATABASE_URL=sqlite:///./test.db
       - SECRET_KEY=your-secret-key
   
   frontend:
     environment:
-      - RUNPOD_API_URL=https://your-runpod-url.proxy.runpod.net
+      - SERVICE_API_URL=https://your-runpod-url.proxy.runpod.net
       - NEXT_PUBLIC_API_URL=http://backend:8000
 ```
 
@@ -110,13 +110,13 @@ services:
 The following files now use environment variables instead of hardcoded URLs:
 
 ### Backend
-- `backend/routes/crawler_routes.py` - Uses `RUNPOD_API_URL` for `/process` and `/process-links` endpoints
-- `backend/routes/runpod_chat.py` - Uses `RUNPOD_API_URL` for `/chat` endpoint
+- `backend/routes/crawler_routes.py` - Uses `SERVICE_API_URL` for `/process` and `/process-links` endpoints
+- `backend/routes/runpod_chat.py` - Uses `SERVICE_API_URL` for `/chat` endpoint
 
 ### Frontend
-- `frontend/src/app/api/runpod-chat/route.ts` - Uses `RUNPOD_API_URL` for chat proxy
-- `frontend/src/app/api/runpod-process/route.ts` - Uses `RUNPOD_API_URL` for process proxy
-- `frontend/src/app/api/health-check/route.ts` - Uses `RUNPOD_API_URL` for health check proxy
+- `frontend/src/app/api/runpod-chat/route.ts` - Uses `SERVICE_API_URL` for chat proxy
+- `frontend/src/app/api/runpod-process/route.ts` - Uses `SERVICE_API_URL` for process proxy
+- `frontend/src/app/api/health-check/route.ts` - Uses `SERVICE_API_URL` for health check proxy
 
 ## Troubleshooting
 

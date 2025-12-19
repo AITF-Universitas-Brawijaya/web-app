@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 export async function GET() {
     try {
         // Call RunPod health check API
-        const runpodBaseUrl = process.env.RUNPOD_API_URL || 'https://l7i1ghaqgdha36-3000.proxy.runpod.net'
+        const runpodBaseUrl = process.env.SERVICE_API_URL || 'https://l7i1ghaqgdha36-3000.proxy.runpod.net'
         const response = await fetch(`${runpodBaseUrl}/health/services`, {
             method: 'GET',
             headers: {

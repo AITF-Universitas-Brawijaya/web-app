@@ -151,7 +151,7 @@ prototype-dashboard-chatbot/
 DATABASE_URL=postgresql://user:password@postgres:5432/dbname
 
 # RunPod API Configuration
-RUNPOD_API_URL=https://your-runpod-instance.proxy.runpod.net
+SERVICE_API_URL=https://your-runpod-instance.proxy.runpod.net
 
 # Server Configuration
 BACKEND_PORT=8000

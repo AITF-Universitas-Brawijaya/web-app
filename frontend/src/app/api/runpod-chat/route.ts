@@ -13,12 +13,13 @@ export async function POST(request: NextRequest) {
         }
 
         // Call RunPod API
-        const runpodBaseUrl = process.env.RUNPOD_API_URL || 'https://l7i1ghaqgdha36-3000.proxy.runpod.net'
+        const runpodBaseUrl = process.env.SERVICE_API_URL || 'https://l7i1ghaqgdha36-3000.proxy.runpod.net'
+        const apiKey = process.env.SERVICE_API_KEY || ''
         const response = await fetch(`${runpodBaseUrl}/chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-API-Key': 'tim6-secret-key-2025'
+                'X-API-Key': apiKey
             },
             body: JSON.stringify({
                 query: body.query,
