@@ -1,0 +1,38 @@
+# PRD Analyst - Combined Python Dependencies
+# For native deployment with Miniconda
+
+# Web Framework & API
+fastapi==0.124.4
+uvicorn==0.38.0
+python-multipart==0.0.6
+pydantic==2.12.3
+pydantic-settings==2.10.1
+
+# Database
+sqlalchemy==2.0.36
+psycopg2-binary==2.9.11
+
+# HTTP Clients
+httpx==0.28.1
+httpx-sse==0.4.3
+aiohttp==3.9.1
+requests==2.32.5
+urllib3>=2.5.0
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Environment & Configuration
+python-dotenv==1.1.0
+
+# Web Scraping & Parsing
+beautifulsoup4==4.14.3
+lxml
+playwright==1.57.0
+
+# Search Engine
+ddgs==9.10.0
+
+# Image Processing
+Pillow==10.1.0

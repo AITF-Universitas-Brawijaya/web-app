@@ -97,7 +97,7 @@ export default function CrawlingModal({
     const [loadingHealth, setLoadingHealth] = useState(false)
 
     const logsEndRef = useRef<HTMLDivElement | null>(null)
-    const eventSourceRef = useRef<EventSource | null>(null)
+    const abortControllerRef = useRef<AbortController | null>(null)
     const timerRef = useRef<NodeJS.Timeout | null>(null)
 
     // Auto-scroll logs to bottom
@@ -124,8 +124,8 @@ export default function CrawlingModal({
     // Cleanup on unmount
     useEffect(() => {
         return () => {
-            if (eventSourceRef.current) {
-                eventSourceRef.current.close()
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort()
             }
             if (timerRef.current) {
                 clearInterval(timerRef.current)
@@ -433,69 +433,112 @@ export default function CrawlingModal({
             const data = await res.json()
             setJobId(data.job_id)
 
-            // Start streaming logs
-            const eventSource = new EventSource(`${API_BASE}/api/crawler/logs/${data.job_id}`)
-            eventSourceRef.current = eventSource
+            // Start streaming logs using fetch + ReadableStream to avoid browser buffering
+            const controller = new AbortController()
+            abortControllerRef.current = controller
 
-            eventSource.onmessage = (event) => {
-                const line = event.data
+            try {
+                const response = await fetch(`${API_BASE}/api/crawler/logs/${data.job_id}`, {
+                    signal: controller.signal
+                })
 
-                if (line === "[DONE]") {
-                    eventSource.close()
-                    eventSourceRef.current = null
-
-                    // Show notification
-                    if ("Notification" in window && Notification.permission === "granted") {
-                        const notification = new Notification("Generation Complete", {
-                            body: `Successfully generated domains`,
-                            icon: "/favicon.ico"
-                        })
-
-                        notification.onclick = () => {
-                            window.focus()
-                            setIsMinimized(false)
-                        }
-                    }
-
-                    // Refresh dashboard data
-                    if (onComplete) {
-                        onComplete()
-                    }
-
-                    return
+                if (!response.ok) {
+                    throw new Error(`Failed to connect to log stream: ${response.statusText}`)
                 }
 
-                // Parse summary if present
-                if (line.startsWith("[SUMMARY]")) {
-                    const summaryJson = line.replace("[SUMMARY]", "").trim()
-                    try {
-                        const parsedSummary = JSON.parse(summaryJson)
-                        setSummary(parsedSummary)
-                        setIsCompleted(true)
-                        setLogs((prev: string[]) => [...prev, "", `[INFO] Crawling completed! This will automatically continue in ${countdown} seconds...`])
-
-                        // Send keyword to RunPod API if we have generated domains and used keywords
-                        if (parsedSummary.domains_generated && parsedSummary.domains_generated.success > 0 && usedKeywords.length > 0) {
-                            // Send the first keyword to RunPod with domain count
-                            sendKeywordsToRunPod(usedKeywords[0], domainCount)
-                        }
-                    } catch (e) {
-                        console.error("Failed to parse summary:", e)
-                    }
+                if (!response.body) {
+                    throw new Error("ReadableStream not supported")
                 }
 
-                // Add log line
-                setLogs((prev: string[]) => [...prev, line])
-            }
+                const reader = response.body.getReader()
+                const decoder = new TextDecoder()
+                let buffer = ""
 
-            eventSource.onerror = (error) => {
-                console.error("EventSource error:", error)
-                eventSource.close()
-                eventSourceRef.current = null
-                setLogs((prev) => [...prev, "[ERROR] Connection lost"])
+                while (true) {
+                    const { done, value } = await reader.read()
+
+                    if (done) {
+                        break
+                    }
+
+                    const chunk = decoder.decode(value, { stream: true })
+                    buffer += chunk
+
+                    const parts = buffer.split("\n\n")
+                    // Keep the last part in buffer as it might be incomplete
+                    buffer = parts.pop() || ""
+
+                    for (const part of parts) {
+                        const lines = part.split("\n")
+                        for (const line of lines) {
+                            if (line.startsWith("data: ")) {
+                                const message = line.slice(6)
+
+                                if (message === "[DONE]") {
+                                    handleStreamComplete()
+                                    return
+                                }
+
+                                // Parse summary if present
+                                if (message.startsWith("[SUMMARY]")) {
+                                    const summaryJson = message.replace("[SUMMARY]", "").trim()
+                                    try {
+                                        const parsedSummary = JSON.parse(summaryJson)
+                                        setSummary(parsedSummary)
+                                        setIsCompleted(true)
+                                        setLogs((prev: string[]) => [...prev, "", `[INFO] Crawling completed! This will automatically continue in ${countdown} seconds...`])
+
+                                        // Send keyword to RunPod API if we have generated domains and used keywords
+                                        if (parsedSummary.domains_generated && parsedSummary.domains_generated.success > 0 && usedKeywords.length > 0) {
+                                            // Send the first keyword to RunPod with domain count
+                                            sendKeywordsToRunPod(usedKeywords[0], domainCount)
+                                        }
+                                    } catch (e) {
+                                        console.error("Failed to parse summary:", e)
+                                    }
+                                }
+
+                                // Add log line
+                                setLogs((prev: string[]) => [...prev, message])
+                            }
+                        }
+                    }
+                }
+            } catch (err: any) {
+                if (err.name !== 'AbortError') {
+                    console.error("Stream error:", err)
+                    setLogs((prev) => [...prev, "[ERROR] Connection lost"])
+                }
+            } finally {
+                abortControllerRef.current = null
             }
         } catch (err) {
             setLogs((prev) => [...prev, `[ERROR] ${err instanceof Error ? err.message : "Unknown error"}`])
+        }
+    }
+
+    function handleStreamComplete() {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort()
+            abortControllerRef.current = null
+        }
+
+        // Show notification
+        if ("Notification" in window && Notification.permission === "granted") {
+            const notification = new Notification("Generation Complete", {
+                body: `Successfully generated domains`,
+                icon: "/favicon.ico"
+            })
+
+            notification.onclick = () => {
+                window.focus()
+                setIsMinimized(false)
+            }
+        }
+
+        // Refresh dashboard data
+        if (onComplete) {
+            onComplete()
         }
     }
 
@@ -512,9 +555,9 @@ export default function CrawlingModal({
                 headers: token ? { "Authorization": `Bearer ${token}` } : {},
             })
 
-            if (eventSourceRef.current) {
-                eventSourceRef.current.close()
-                eventSourceRef.current = null
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort()
+                abortControllerRef.current = null
             }
 
             setLogs((prev) => [...prev, "[CANCELLED] Generation process cancelled by user"])
