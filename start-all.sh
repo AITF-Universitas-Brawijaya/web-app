@@ -48,11 +48,10 @@ fi
 print_success "PostgreSQL is running"
 echo ""
 
-# 2. Start Integrasi Service (Port 7000)
-print_info "Starting Integrasi Service (port 7000)..."
+# 2. Start Integrasi Service (Port 5000)
+print_info "Starting Integrasi Service (port 5000)..."
 set -a
 source .env 2>/dev/null || true
-source integrasi-service/.env 2>/dev/null || true
 set +a
 
 cd integrasi-service
@@ -85,10 +84,10 @@ else
 fi
 echo ""
 
-# 4. Start Frontend (Port 3001)
-print_info "Starting Frontend (port 3001)..."
+# 4. Start Frontend (Port 3000)
+print_info "Starting Frontend (port 3000)..."
 cd frontend
-PORT=3001 nohup npm run dev > ../logs/frontend.log 2>&1 &
+PORT=3000 nohup npm run dev -- -H 0.0.0.0 > ../logs/frontend.log 2>&1 &
 FRONTEND_PID=$!
 cd ..
 
@@ -115,12 +114,12 @@ echo "=========================================="
 echo ""
 echo "Services:"
 echo "  • PostgreSQL:         localhost:5432"
-echo "  • Integrasi Service:  http://localhost:7000"
-echo "  • Backend API:        http://localhost:8000"
-echo "  • Frontend:           http://localhost:3001"
+echo "  • Integrasi Service:  http://localhost:5000"
+echo "  • Backend API:        http://0.0.0.0:8000"
+echo "  • Frontend:           http://0.0.0.0:3000"
 echo ""
 echo "Access the application:"
-echo "  Dashboard:  http://localhost:3001"
+echo "  Dashboard:  http://0.0.0.0:3000"
 echo "  API Docs:   http://localhost:8000/docs"
 echo ""
 echo "View logs:"

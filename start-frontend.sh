@@ -4,7 +4,7 @@
 set -e
 
 echo "========================================="
-echo "Starting Frontend (Port 3001)"
+echo "Starting Frontend (Port 3000)"
 echo "========================================="
 
 # Navigate to frontend directory
@@ -16,10 +16,17 @@ if [ ! -d "node_modules" ]; then
     npm install
 fi
 
+# Load environment variables
+set -a
+if [ -f ../.env ]; then
+    source ../.env
+fi
+set +a
+
 # Start the frontend in development mode
-echo "→ Starting Frontend on port 3001..."
-echo "→ Dashboard: http://localhost:3001"
+echo "→ Starting Frontend on port 3000..."
+echo "→ Dashboard: http://localhost:3000"
 echo "→ Backend API: http://localhost:8000"
 echo ""
 
-PORT=3001 npm run dev
+PORT=3000 npm run dev -- -H 0.0.0.0

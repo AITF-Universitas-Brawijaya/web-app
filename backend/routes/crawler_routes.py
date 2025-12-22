@@ -71,7 +71,7 @@ async def run_runpod_crawler(
     import httpx
     
     summary = None
-    runpod_base_url = os.getenv("SERVICE_API_URL", "http://localhost:3000")
+    runpod_base_url = os.getenv("SERVICE_API_URL", "http://localhost:5000")
     runpod_url = f"{runpod_base_url}/process"
 
     try:
@@ -168,7 +168,7 @@ async def run_runpod_manual_crawler(
     import httpx
     
     summary = None
-    runpod_base_url = os.getenv("SERVICE_API_URL", "http://localhost:3000")
+    runpod_base_url = os.getenv("SERVICE_API_URL", "http://localhost:5000")
     runpod_url = f"{runpod_base_url}/process-links"
 
     try:

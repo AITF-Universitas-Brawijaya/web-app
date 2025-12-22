@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Start Integrasi Service (Port 7000)
+# Start Integrasi Service (Port 5000)
 
-echo "Starting Integrasi Service on port 7000..."
+echo "Starting Integrasi Service on port 5000..."
 
 # Get script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -17,7 +17,6 @@ conda activate prd6
 # Load environment variables
 set -a
 source .env 2>/dev/null || true
-source integrasi-service/.env 2>/dev/null || true
 set +a
 
 # Start service

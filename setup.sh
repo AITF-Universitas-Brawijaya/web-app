@@ -54,15 +54,55 @@ sudo apt install -y \
     wget curl git \
     build-essential \
     libpq-dev \
-    python3-dev
+    python3-dev \
+    nginx
 
 print_success "System dependencies installed"
 echo ""
 
 # ==========================================
-# 2. Install Miniconda
+# 2. Configure Nginx Reverse Proxy
 # ==========================================
-print_info "Step 2: Installing Miniconda..."
+print_info "Step 2: Configuring Nginx Reverse Proxy..."
+
+# Create Nginx configuration
+sudo bash -c 'cat > /etc/nginx/sites-available/web-app <<EOF
+server {
+    listen 80;
+    server_name _;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+    }
+}
+EOF'
+
+# Enable the site
+sudo ln -sf /etc/nginx/sites-available/web-app /etc/nginx/sites-enabled/
+
+# Remove default site if it exists
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# Test and restart Nginx
+if sudo nginx -t; then
+    sudo systemctl restart nginx
+    sudo systemctl enable nginx
+    print_success "Nginx configured successfully (Port 80 -> 3000)"
+else
+    print_error "Nginx configuration failed"
+fi
+echo ""
+
+
+# ==========================================
+# 3. Install Miniconda
+# ==========================================
+print_info "Step 3: Installing Miniconda..."
 
 MINICONDA_DIR="$HOME/miniconda3"
 
@@ -220,54 +260,48 @@ NODE_ENV=production
 
 # API Configuration
 FRONTEND_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=
+BACKEND_URL=http://localhost:8000
+BACKEND_LOG_URL=http://localhost:8000/api/crawler/log
 
-# Service API Configuration (Local Integrasi Service)
-SERVICE_API_URL=http://localhost:7000
-
-# Database Configuration (Native PostgreSQL)
-DB_URL=postgresql://postgres:postgres@localhost:5432/prd
-
-# JWT Secret
-JWT_SECRET_KEY=prd-analyst-secret-key-2025-native-deployment
-EOF
-    print_success ".env file created"
-else
-    print_info ".env file already exists"
-fi
-
-# Create integrasi-service/.env if not exists
-if [ ! -f "integrasi-service/.env" ]; then
-    print_info "Creating integrasi-service/.env file..."
-    cat > integrasi-service/.env << 'EOF'
 # Database Configuration
+DB_URL=postgresql://postgres:postgres@localhost:5432/prd
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=prd
 DB_USER=postgres
 DB_PASSWORD=postgres
-DB_URL=postgresql://postgres:postgres@localhost:5432/prd
 
-# Backend Configuration
-BACKEND_HOST=localhost
-BACKEND_PORT=8000
-BACKEND_URL=http://localhost:8000
-BACKEND_LOG_URL=http://localhost:8000/api/crawler/log
-EOF
-    print_success "integrasi-service/.env file created"
-else
-    print_info "integrasi-service/.env file already exists"
-fi
+# JWT Secret (SHA256 of 'prd-analyst-secret-key-2025-native-deployment')
+# ini jwt secret development, kalau production ganti dengan generate baru
+JWT_SECRET_KEY=e153b6639ec7155f5c74ed3acb6fe285195d25db407b20210594d700b69ab3c0
 
-# Create frontend/.env.local if not exists
-if [ ! -f "frontend/.env.local" ]; then
-    print_info "Creating frontend/.env.local file..."
-    cat > frontend/.env.local << 'EOF'
-NEXT_PUBLIC_API_URL=http://localhost:8000
-SERVICE_API_URL=http://localhost:7000
+# Service API Configuration
+SERVICE_API_URL=http://localhost:5000
+
+# Internal Service Configuration
+SCRAPE_SERVICE_HOST=localhost
+SCRAPE_SERVICE_PORT=7000
+
+REASONING_SERVICE_HOST=localhost
+REASONING_SERVICE_PORT=8001
+REASONING_SERVICE_URL=http://localhost:8001/v1
+
+CHAT_SERVICE_HOST=localhost
+CHAT_SERVICE_PORT=8002
+CHAT_SERVICE_URL=http://localhost:8002
+
+OBJ_DETECTION_SERVICE_HOST=localhost
+OBJ_DETECTION_SERVICE_PORT=9090
+OBJ_DETECTION_URL=http://localhost:9090/predict
+
+# External/Integration Configuration
+SCRAPER_API_URL=http://localhost:7000/api/scrape
+VLLM_MODEL_NAME=aitfindonesia/KomdigiUB-8B-Instruct-PRD3
 EOF
-    print_success "frontend/.env.local file created"
+    print_success ".env file created"
 else
-    print_info "frontend/.env.local file already exists"
+    print_info ".env file already exists"
 fi
 
 echo ""
@@ -311,11 +345,12 @@ echo "   ./start-all.sh"
 echo ""
 echo "3. Or start services individually:"
 echo "   ./start-integrasi-service.sh  # Port 7000"
-echo "   ./start-backend.sh             # Port 8000"
-echo "   ./start-frontend.sh            # Port 3001"
+echo "   ./start-backend.sh            # Port 8000"
+echo "   ./start-frontend.sh           # Port 3000"
 echo ""
 echo "4. Access the application:"
-echo "   Frontend:  http://localhost:3001"
+echo "   Public:    http://<public-ip>   (via Nginx)"
+echo "   Frontend:  http://localhost:3000"
 echo "   Backend:   http://localhost:8000"
 echo "   API Docs:  http://localhost:8000/docs"
 echo ""

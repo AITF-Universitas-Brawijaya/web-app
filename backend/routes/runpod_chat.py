@@ -19,7 +19,7 @@ def runpod_chat_proxy(request: RunPodChatRequest):
     Proxy endpoint for RunPod chat API to avoid CORS issues
     """
     try:
-        runpod_base_url = os.getenv("SERVICE_API_URL", "http://localhost:3000")
+        runpod_base_url = os.getenv("SERVICE_API_URL", "http://localhost:5000")
         response = requests.post(
             f"{runpod_base_url}/chat",
             headers={

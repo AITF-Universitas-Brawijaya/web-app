@@ -6,7 +6,7 @@ echo "Stopping All Services"
 echo "========================================="
 
 echo "→ Stopping Frontend..."
-lsof -ti:3001 | xargs kill -9 2>/dev/null || echo "  Frontend not running"
+lsof -ti:3000 | xargs kill -9 2>/dev/null || echo "  Frontend not running"
 
 echo "→ Stopping Backend..."
 lsof -ti:8000 | xargs kill -9 2>/dev/null || echo "  Backend not running"

@@ -7,11 +7,11 @@ import traceback
 
 import db
 from routes import data_routes
-from routes import chat_routes, chat_history_routes, history_routes, update_routes, text_analyze_routes, image_analyze_routes, law_rag_routes, crawler_routes
+from routes import chat_routes, chat_history_routes, history_routes, update_routes, text_analyze_routes, law_rag_routes, crawler_routes
 from routes import auth_routes, audit_routes, admin_routes, notes_routes, image_routes, manual_domain_routes, feedback_routes, keyword_routes, announcement_routes, runpod_chat
 
 
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000").split(",")
 
@@ -55,7 +55,6 @@ app.include_router(history_routes.router)
 app.include_router(chat_routes.router)
 app.include_router(chat_history_routes.router)
 app.include_router(text_analyze_routes.router)
-app.include_router(image_analyze_routes.router)
 app.include_router(law_rag_routes.router)
 app.include_router(crawler_routes.router, prefix="/api/crawler", tags=["crawler"])
 app.include_router(admin_routes.router)

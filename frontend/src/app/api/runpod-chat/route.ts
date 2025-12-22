@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Call RunPod API
-        const runpodBaseUrl = process.env.SERVICE_API_URL || 'http://localhost:7000'
+        const runpodBaseUrl = process.env.SERVICE_API_URL || 'http://localhost:5000'
         const response = await fetch(`${runpodBaseUrl}/chat`, {
             method: 'POST',
             headers: {
