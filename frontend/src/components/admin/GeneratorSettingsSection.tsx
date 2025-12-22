@@ -9,11 +9,13 @@ export default function GeneratorSettingsSection() {
     const [blockedDomains, setBlockedDomains] = useState("")
     const [blockedKeywords, setBlockedKeywords] = useState("")
     const [serpApiKey, setSerpApiKey] = useState("")
+    const [batchSize, setBatchSize] = useState("10")
     const [quota, setQuota] = useState<{ used: number, limit: number } | null>(null)
     const [loading, setLoading] = useState(false)
     const [loadingDomains, setLoadingDomains] = useState(true)
     const [loadingKeywords, setLoadingKeywords] = useState(true)
     const [loadingSerpApi, setLoadingSerpApi] = useState(true)
+    const [loadingBatchSize, setLoadingBatchSize] = useState(true)
 
     useEffect(() => {
         loadSettings()
@@ -21,15 +23,17 @@ export default function GeneratorSettingsSection() {
 
     const loadSettings = async () => {
         try {
-            const [domainsData, keywordsData, serpApiData] = await Promise.all([
+            const [domainsData, keywordsData, serpApiData, batchSizeData] = await Promise.all([
                 apiGet("/api/admin/generator/blocked-domains"),
                 apiGet("/api/admin/generator/blocked-keywords"),
                 apiGet("/api/admin/generator/serpapi-key"),
+                apiGet("/api/admin/generator/batch-size"),
             ])
 
             setBlockedDomains(domainsData.value || "")
             setBlockedKeywords(keywordsData.value || "")
             setSerpApiKey(serpApiData.value || "")
+            setBatchSize(batchSizeData.value || "10")
             setQuota(serpApiData.quota || null)
         } catch (err: any) {
             console.error("Failed to load settings:", err)
@@ -37,6 +41,7 @@ export default function GeneratorSettingsSection() {
             setLoadingDomains(false)
             setLoadingKeywords(false)
             setLoadingSerpApi(false)
+            setLoadingBatchSize(false)
         }
     }
 
@@ -72,6 +77,18 @@ export default function GeneratorSettingsSection() {
             alert("SerpAPI key saved successfully")
         } catch (err: any) {
             alert(`Failed to save SerpAPI key: ${err.message}`)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleSaveBatchSize = async () => {
+        setLoading(true)
+        try {
+            await apiPost("/api/admin/generator/batch-size", { value: batchSize })
+            alert("Batch size saved successfully")
+        } catch (err: any) {
+            alert(`Failed to save batch size: ${err.message}`)
         } finally {
             setLoading(false)
         }
@@ -172,6 +189,38 @@ export default function GeneratorSettingsSection() {
                                 className="mt-2"
                             >
                                 {loading ? "Saving..." : "Save SerpAPI Key"}
+                            </Button>
+                        </>
+                    )}
+                </div>
+
+                {/* Batch Size */}
+                <div>
+                    <label className="text-sm font-medium mb-2 block">
+                        Batch Size (Domains per Batch)
+                    </label>
+                    {loadingBatchSize ? (
+                        <div className="text-sm text-muted-foreground">Loading...</div>
+                    ) : (
+                        <>
+                            <input
+                                type="number"
+                                min="1"
+                                max="100"
+                                className="w-full p-3 border rounded-md text-sm mb-2"
+                                value={batchSize}
+                                onChange={(e) => setBatchSize(e.target.value)}
+                                placeholder="10"
+                            />
+                            <div className="text-xs text-muted-foreground mb-2">
+                                Number of domains to generate in each batch. Default is 10 domains per batch.
+                            </div>
+                            <Button
+                                onClick={handleSaveBatchSize}
+                                disabled={loading}
+                                className="mt-2"
+                            >
+                                {loading ? "Saving..." : "Save Batch Size"}
                             </Button>
                         </>
                     )}

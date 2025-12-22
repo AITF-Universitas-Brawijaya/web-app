@@ -529,6 +529,96 @@ async def update_serpapi_key(
         raise HTTPException(status_code=500, detail=f"Failed to update SerpAPI key: {str(e)}")
 
 
+@router.get("/generator/batch-size")
+async def get_batch_size(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_role("administrator"))
+):
+    """
+    Get batch size setting (number of domains per batch).
+    Only accessible by administrators.
+    """
+    try:
+        query = text("""
+            SELECT setting_value, updated_by, updated_at
+            FROM generator_settings
+            WHERE setting_key = 'batch_size'
+        """)
+        
+        result = db.execute(query).fetchone()
+        
+        if result:
+            row_dict = dict(result._mapping)
+            return {
+                "value": row_dict["setting_value"],
+                "updated_by": row_dict["updated_by"],
+                "updated_at": row_dict["updated_at"].isoformat() if row_dict["updated_at"] else None
+            }
+        else:
+            return {"value": "10", "updated_by": None, "updated_at": None}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch batch size: {str(e)}")
+
+
+@router.post("/generator/batch-size")
+async def update_batch_size(
+    settings_data: GeneratorSettingsUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_role("administrator"))
+):
+    """
+    Update batch size setting (number of domains per batch).
+    Only accessible by administrators.
+    """
+    try:
+        username = current_user.get("username")
+        batch_size = settings_data.value
+        
+        # Validate batch size is a positive integer
+        try:
+            batch_size_int = int(batch_size)
+            if batch_size_int <= 0:
+                raise ValueError("Batch size must be positive")
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail="Batch size must be a positive integer"
+            )
+        
+        query = text("""
+            INSERT INTO generator_settings (setting_key, setting_value, updated_by, updated_at)
+            VALUES ('batch_size', :value, :username, now())
+            ON CONFLICT (setting_key) DO UPDATE SET
+                setting_value = EXCLUDED.setting_value,
+                updated_by = EXCLUDED.updated_by,
+                updated_at = EXCLUDED.updated_at
+            RETURNING setting_value, updated_by, updated_at
+        """)
+        
+        result = db.execute(query, {
+            "value": batch_size,
+            "username": username
+        })
+        db.commit()
+        
+        row = result.fetchone()
+        row_dict = dict(row._mapping)
+        
+        return {
+            "ok": True,
+            "value": row_dict["setting_value"],
+            "updated_by": row_dict["updated_by"],
+            "updated_at": row_dict["updated_at"].isoformat() if row_dict["updated_at"] else None
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update batch size: {str(e)}")
+
+
 
 # ============================================================
 # Domain Management Endpoints
