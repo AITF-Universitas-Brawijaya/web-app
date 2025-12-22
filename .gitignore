@@ -13,44 +13,68 @@ frontend/coverage/
 frontend/.turbo/
 frontend/.pnp*
 frontend/*.tsbuildinfo
-frontend/next-env.d.ts
+# frontend/next-env.d.ts
 frontend/.vercel/
-frontend/.env*
-frontend/.env*.local
+### Global Environment Files ###
+.env
+.env.local
+.env.*.local
+.env.test
+.env.production
+.env.development
 
-### Backend - Python (FastAPI) ###
-# Virtualenv
-backend/.venv/
-backend/venv/
-backend/ENV/
-backend/env/
+# Backend specific env
+backend/.env
+backend/.env.*
 
-# Python bytecode / cache
-backend/__pycache__/
+# Frontend specific env
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+frontend/.env.development
+
+# Integrasi Service env
+integrasi-service/.env
+integrasi-service/.env.*
+
+### Integrasi Service Outputs ###
+integrasi-service/domain-generator/output/
+integrasi-service/domain-generator/last_id.txt
+integrasi-service/domain-generator/last_keywords.txt
+integrasi-service/domain-generator/all_domains.txt
+integrasi-service/domain-generator/summary.json
+integrasi-service/domain-generator/*.json
+integrasi-service/domain-generator/img/
+
+### Python / Conda ###
+venv/
+env/
+.venv/
+miniconda3/
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Distribution / packaging
-backend/.Python
-backend/build/
-backend/develop-eggs/
-backend/dist/
-backend/downloads/
-
-# Environment files
-backend/.env*
-backend/.env.*.local
-
-### General ###
-# Misc
-*.pem
-
-# Log files
+### Logs ###
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+backend/logs/
+integrasi-service/logs/
+
+### Database ###
+# Automated backups
+# database/backup_data.sql
+# database/backup_schema.sql
+# Manual backups
+# database/*.sql
+# !database/init-schema.sql
+# !database/init-data.sql
+# !database/migrations/*.sql
+
 
 # Others
 archives/
@@ -75,10 +99,10 @@ postgres_data/
 screenshots/
 
 # Docker environment files
-.env
-.env.docker
-.env.docker.local
-.env.local
+# .env
+# .env.docker
+# .env.docker.local
+# .env.local
 
 ### IDE & Editors ###
 # VSCode
@@ -227,3 +251,5 @@ dist
 # Temporary folders
 tmp/
 temp/
+
+main-api/

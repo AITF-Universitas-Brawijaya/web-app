@@ -6,7 +6,7 @@ Pengawasan Ruang Digital (PRD) Analyst is a comprehensive monitoring and analysi
 
 - **Dashboard Monitoring** - Real-time overview of detected gambling sites with statistics and analytics
 - **AI-Powered Classification** - Automated content analysis using KomdigiUB-8B
-- **Domain Generator** - Intelligent keyword-based domain discovery via RunPod API integration
+- **Domain Generator** - Intelligent keyword-based domain discovery via local service integration
 - **Service Health Monitoring** - Real-time status tracking of all backend services
 - **Interactive Chatbot** - AI assistant for content analysis and verification
 - **Data Management** - Comprehensive CRUD operations with filtering, sorting, and search
@@ -15,54 +15,30 @@ Pengawasan Ruang Digital (PRD) Analyst is a comprehensive monitoring and analysi
 
 ## Documentation
 
-**[Docker Setup](docs/DOCKER.md)** - Complete Docker-based deployment guide with docker-compose
+**[Panduan Sistem (Bahasa Indonesia)](docs/PANDUAN_SISTEM.md)** - Panduan lengkap instalasi dan penggunaan (Terbaru)
 
-**[Quick Start Guide](docs/DOCKER-QUICKSTART.md)** - Quick reference for common Docker commands
+**[Quick Start Guide](docs/QUICK-START.md)** - Quick reference for native deployment (English)
 
-## Quick Start
+**[Native Deployment Guide](docs/NATIVE-DEPLOYMENT.md)** - Complete guide for native deployment (English)
 
-### Docker Deployment (Recommended)
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd prototype-dashboard-chatbot
-
-# Configure environment variables
-cp env.docker.template .env.docker
-# Edit .env.docker with your configuration
-
-# Start all services with Docker
-./docker-dev.sh start
-
-# Access the application
-# Frontend: http://localhost
-# Backend API: http://localhost/api
-# API Docs: http://localhost/api/docs
-```
-
-See [docs/DOCKER.md](docs/DOCKER.md) for complete Docker setup instructions.
-
-### Manual Deployment
-
-For VPS/RunPod deployment without Docker, see archived guides in `archives/vps-deployment/GUIDES.md`.
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────┐
-│         Docker Container Network            │
+│         Native Services (No Docker)         │
 ├─────────────────────────────────────────────┤
 │                                             │
-│  Nginx (Port 80) - Reverse Proxy            │
-│      ├─ /api/ → Backend (Port 8000)         │
-│      └─ /     → Frontend (Port 3000)        │
+│  Integrasi Service (Port 3000)              │
+│      ├─ Domain Generator                    │
+│      ├─ AI Chat Service                     │
+│      └─ Health Monitoring                   │
 │                                             │
-│  Backend (FastAPI)                          │
+│  Backend API (Port 8000)                    │
 │      ├─ REST API Endpoints                  │
-│      └─ RunPod API Integration              │
+│      └─ Local Service Integration           │
 │                                             │
-│  Frontend (Next.js)                         │
+│  Frontend (Port 3001)                       │
 │      ├─ Dashboard UI                        │
 │      ├─ Data Management                     │
 │      └─ Real-time Monitoring                │
@@ -71,11 +47,6 @@ For VPS/RunPod deployment without Docker, see archived guides in `archives/vps-d
 │      └─ Persistent Data Storage             │
 │                                             │
 └─────────────────────────────────────────────┘
-         ↓                    
-      RunPod Services
-      - Domain Crawler
-      - Health Check
-      - KomdigiUB-8B
 ```
 
 ## Project Structure
@@ -142,45 +113,25 @@ prototype-dashboard-chatbot/
 - **Git** - Version control
 - **Pod Container** - Containerization platform
 
-## Environment Variables
-
-### Backend (.env or .env.docker)
-
-```bash
-# Database Configuration
-DATABASE_URL=postgresql://user:password@postgres:5432/dbname
-
-# RunPod API Configuration
-SERVICE_API_URL=https://your-runpod-instance.proxy.runpod.net
-
-# Server Configuration
-BACKEND_PORT=8000
-FRONTEND_URL=http://localhost:3000
-```
-
-### Frontend
-
-Frontend environment variables are configured via Next.js and proxied through the backend to avoid CORS issues.
-
 ## Service Health Monitoring
 
 The dashboard includes real-time health monitoring for all services:
 
-- **Database** - PostgreSQL connection status
-- **KomdigiUB-8B** - AI service availability
-- **RunPod API** - External crawler service status
-- **Screenshot Service** - Selenium/Chrome driver status
+- Scrape Service
+- Reasoning Service
+- Vision Service
+- ChatAI Service
 
 Health checks run every 10 seconds and display service status on the home dashboard.
 
-## RunPod API Integration
+## Integrasi Service
 
-The system integrates with RunPod for domain crawling:
+The system uses a local Integrasi Service (Port 7000) for domain crawling and AI processing:
 
 **Endpoint**: `POST /process`
 - Accepts keyword and domain count parameters
 - Returns streaming logs of the crawling process
-- Automatically updates database with discovered domains
+- Automatically updates database with discovered domains (including base64 screenshots)
 
 **Endpoint**: `GET /health/services`
 - Returns status of all backend services
@@ -189,40 +140,36 @@ The system integrates with RunPod for domain crawling:
 ## Database Schema
 
 The PostgreSQL database includes tables for:
-- **websites** - Detected gambling sites with metadata
-- **announcements** - System announcements and updates
-- **screenshots** - Visual evidence storage (base64 encoded)
-- **logs** - System activity logs
+- **generated_domains** - Discovered domains with metadata and base64 screenshots
+- **results** - Analysis results including detection and reasoning
+- **object_detection** - Vision model outputs
+- **reasoning** - AI reasoning outputs
+- **announcements** - System announcements
+- **audit_log** - System activity logs
+- **chat_history** - User chat history
 
-See `database/init.sql` for complete schema definition.
+See `database/init-schema.sql` for complete schema definition.
 
 ## Troubleshooting
 
-### Docker Issues
+### Service Issues
 
 ```bash
-# Check container status
-docker-compose ps
+# Check status of all services
+./start-all.sh  # Will warn if ports are in use
 
 # View logs
-docker-compose logs -f [service_name]
-
-# Restart services
-./docker-dev.sh restart
-
-# Clean rebuild
-./docker-dev.sh clean
-./docker-dev.sh start
+tail -f logs/*.log
 ```
 
 ### Database Connection Issues
 
 ```bash
 # Check PostgreSQL is running
-docker-compose ps postgres
+sudo systemctl status postgresql
 
-# Access database directly
-docker-compose exec postgres psql -U prd_user -d prd_database
+# Test connection
+PGPASSWORD=postgres psql -U postgres -h localhost -d prd -c "SELECT 1;"
 ```
 
 ### Frontend Build Issues
@@ -231,15 +178,15 @@ docker-compose exec postgres psql -U prd_user -d prd_database
 # Clear Next.js cache
 cd frontend
 rm -rf .next node_modules
-pnpm install
-pnpm run build
+npm install
+npm run dev
 ```
 
 ## Development Workflow
 
 1. **Make changes** to frontend or backend code
-2. **Test locally** using Docker: `./docker-dev.sh restart`
-3. **Check logs** for errors: `docker-compose logs -f`
+2. **Test locally** using `./start-all.sh`
+3. **Check logs** for errors: `tail -f logs/*.log`
 4. **Commit changes** with descriptive messages
 5. **Push to repository** for deployment
 
