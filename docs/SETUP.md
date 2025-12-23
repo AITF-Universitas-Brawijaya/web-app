@@ -9,7 +9,7 @@ Complete setup guide for native deployment using Miniconda environment.
 Run the setup script to install everything automatically:
 
 ```bash
-./setup.sh
+./setup-runpod.sh
 ```
 
 This will:
@@ -31,7 +31,7 @@ After setup completes:
 conda activate prd6
 
 # Start all services
-./start-all.sh
+./start-runpod.sh
 ```
 
 ## Services

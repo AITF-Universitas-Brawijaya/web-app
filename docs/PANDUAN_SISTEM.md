@@ -16,7 +16,7 @@ Sistem ini dirancang untuk berjalan di lingkungan Linux (Ubuntu) menggunakan Min
 2.  **Jalankan script setup otomatis:**
     Script ini akan menginstal dependencies sistem, Miniconda, membuat environment `prd6`, menginstal library Python/Node.js, dan menyiapkan database.
     ```bash
-    ./setup.sh
+    ./setup-runpod.sh
     ```
     *Tunggu hingga proses selesai.*
 
@@ -33,7 +33,7 @@ Anda dapat menjalankan semua layanan sekaligus menggunakan script yang tersedia.
 
 ### Menjalankan Semua Layanan
 ```bash
-./start-all.sh
+./start-runpod.sh
 ```
 Perintah ini akan menjalankan:
 *   PostgreSQL Database
@@ -182,7 +182,7 @@ Gunakan perintah `tail` untuk memantau aktivitas:
     *   Jika membandel, cari proses yang menggunakan port: `lsof -i :8000` lalu kill PID-nya.
 
 2.  **Environment Python Error**:
-    *   Pastikan Anda sudah menjalankan instalasi dengan benar via `./setup.sh`.
+    *   Pastikan Anda sudah menjalankan instalasi dengan benar via `./setup-runpod.sh`.
     *   Coba aktifkan environment manual: `conda activate prd6`.
 
 3.  **Crawler Tidak Menyimpan Gambar**:

@@ -173,17 +173,32 @@ print_info "Step 6: Setting up PostgreSQL database..."
 PG_DATA_DIR="/workspace/postgresql/data"
 sudo mkdir -p "$PG_DATA_DIR"
 
-    # Initialize PostgreSQL database if not already initialized
-    # Check if directory is empty or contains PG_VERSION
-    if [ ! -f "$PG_DATA_DIR/PG_VERSION" ] && [ -z "$(ls -A $PG_DATA_DIR)" ]; then
-        print_info "Initializing PostgreSQL database..."
+    # Initialize PostgreSQL database
+    # Check if a valid database exists (PG_VERSION file)
+    if [ -f "$PG_DATA_DIR/PG_VERSION" ]; then
+        print_info "PostgreSQL database already initialized (PG_VERSION found)."
+        # Ensure ownership is correct
         sudo chown -R postgres:postgres "$PG_DATA_DIR"
-        sudo su - postgres -c "/usr/lib/postgresql/*/bin/initdb -D $PG_DATA_DIR"
-        print_success "PostgreSQL database initialized"
     else
-        print_info "PostgreSQL database directory not empty or already initialized. Skipping initdb."
-        # Ensure ownership is correct even if we don't init
+        print_info "PostgreSQL data directory needs initialization..."
+        
+        # If directory exists but no PG_VERSION, it might contain trash/partial data
+        # User requested to wipe and recreate in this case to avoid 'directory not empty' error
+        if [ -d "$PG_DATA_DIR" ]; then
+            print_warning "Wiping $PG_DATA_DIR to ensure clean initialization..."
+            sudo rm -rf "$PG_DATA_DIR"
+            sudo mkdir -p "$PG_DATA_DIR"
+        fi
+
+        # Set ownership and initialize
+        print_info "Running initdb..."
         sudo chown -R postgres:postgres "$PG_DATA_DIR"
+        if sudo su - postgres -c "/usr/lib/postgresql/*/bin/initdb -D $PG_DATA_DIR"; then
+            print_success "PostgreSQL database initialized"
+        else
+            print_error "Failed to initialize PostgreSQL database"
+            exit 1
+        fi
     fi
 
 # Configure PostgreSQL for password authentication
@@ -375,52 +390,7 @@ chmod +x start-*.sh stop-all.sh 2>/dev/null || true
 print_success "Scripts are executable"
 echo ""
 
-# ==========================================
-# 11. Create RunPod-specific startup script
-# ==========================================
-print_info "Step 11: Creating RunPod startup script..."
 
-cat > start-runpod.sh << 'EOFSCRIPT'
-#!/bin/bash
-
-# Start all services for RunPod
-echo "Starting PRD Analyst on RunPod..."
-
-# Source conda
-eval "$($HOME/miniconda3/bin/conda shell.bash hook)"
-
-# Start PostgreSQL if not running
-if ! pgrep -x postgres > /dev/null; then
-    echo "Starting PostgreSQL..."
-    sudo su - postgres -c "/usr/lib/postgresql/*/bin/pg_ctl -D /workspace/postgresql/data -l /workspace/postgresql/logfile start"
-    sleep 3
-fi
-
-# Start services
-echo "Starting services..."
-./start-integrasi-service.sh &
-sleep 2
-./start-backend.sh &
-sleep 2
-./start-frontend.sh &
-
-echo ""
-echo "✓ All services started!"
-echo ""
-echo "Access your application at:"
-if [ -n "$RUNPOD_POD_ID" ]; then
-    echo "  https://${RUNPOD_POD_ID}-3000.proxy.runpod.net"
-else
-    echo "  http://localhost:3000"
-fi
-echo ""
-echo "To stop all services, run: ./stop-all.sh"
-EOFSCRIPT
-
-chmod +x start-runpod.sh
-
-print_success "RunPod startup script created"
-echo ""
 
 # ==========================================
 # Setup Complete

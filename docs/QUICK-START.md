@@ -4,7 +4,7 @@
 
 ### All Services at Once
 ```bash
-./start-all.sh
+./start-runpod.sh
 ```
 
 ### Individual Services

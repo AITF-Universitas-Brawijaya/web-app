@@ -156,7 +156,7 @@ See `database/init-schema.sql` for complete schema definition.
 
 ```bash
 # Check status of all services
-./start-all.sh  # Will warn if ports are in use
+./start-runpod.sh  # Will warn if ports are in use
 
 # View logs
 tail -f logs/*.log
@@ -185,7 +185,7 @@ npm run dev
 ## Development Workflow
 
 1. **Make changes** to frontend or backend code
-2. **Test locally** using `./start-all.sh`
+2. **Test locally** using `./start-runpod.sh`
 3. **Check logs** for errors: `tail -f logs/*.log`
 4. **Commit changes** with descriptive messages
 5. **Push to repository** for deployment
