@@ -300,14 +300,14 @@ echo ""
 # ==========================================
 print_info "Step 8: Setting up environment files..."
 
-# Detect RunPod public URL if available
-RUNPOD_PUBLIC_URL="${RUNPOD_POD_ID:+https://${RUNPOD_POD_ID}-3000.proxy.runpod.net}"
-if [ -z "$RUNPOD_PUBLIC_URL" ]; then
-    RUNPOD_PUBLIC_URL="http://localhost:3000"
-    print_warning "RUNPOD_POD_ID not found, using localhost"
-else
-    print_success "Detected RunPod URL: $RUNPOD_PUBLIC_URL"
-fi
+# # Detect RunPod public URL if available
+# RUNPOD_PUBLIC_URL="${RUNPOD_POD_ID:+https://${RUNPOD_POD_ID}-3000.proxy.runpod.net}"
+# if [ -z "$RUNPOD_PUBLIC_URL" ]; then
+#     RUNPOD_PUBLIC_URL="http://localhost:3000"
+#     print_warning "RUNPOD_POD_ID not found, using localhost"
+# else
+#     print_success "Detected RunPod URL: $RUNPOD_PUBLIC_URL"
+# fi
 
 # Create .env if not exists
 if [ ! -f ".env" ]; then
@@ -317,13 +317,15 @@ if [ ! -f ".env" ]; then
 NODE_ENV=production
 
 # RunPod Configuration
-RUNPOD_POD_ID=${RUNPOD_POD_ID:-}
-PUBLIC_URL=${RUNPOD_PUBLIC_URL}
+RUNPOD_POD_ID=
+PUBLIC_URL=
 
 # API Configuration
 FRONTEND_URL=http://localhost:3000
+FRONTEND_PORT=3000
 NEXT_PUBLIC_API_URL=
 BACKEND_URL=http://localhost:8000
+BACKEND_PORT=8000
 BACKEND_LOG_URL=http://localhost:8000/api/crawler/log
 
 # Database Configuration
@@ -340,6 +342,7 @@ JWT_SECRET_KEY=e153b6639ec7155f5c74ed3acb6fe285195d25db407b20210594d700b69ab3c0
 
 # Service API Configuration
 SERVICE_API_URL=http://localhost:5000
+SERVICE_API_PORT=5000
 
 # Internal Service Configuration
 SCRAPE_SERVICE_HOST=localhost

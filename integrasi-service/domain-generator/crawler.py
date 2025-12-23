@@ -49,8 +49,6 @@ OUTPUT_IMG_DIR = os.path.join(OUTPUT_DIR, "img")
 LAST_ID_FILE = os.path.join(OUTPUT_DIR, "last_id.txt")
 ALL_DOMAINS_FILE = os.path.join(OUTPUT_DIR, "all_domains.txt")
 LAST_KEYWORDS_FILE = os.path.join(OUTPUT_DIR, "last_keywords.txt")
-BLOCKED_KEYWORDS_FILE = os.path.join(os.path.dirname(__file__), "blocked_keywords.txt")
-BLOCKED_DOMAINS_FILE = os.path.join(OUTPUT_DIR, "..", "blocked_domains.txt")  # Relative to crawler root
 
 # Database configuration
 DATABASE_URL = os.getenv("DB_URL", "postgresql://postgres:postgres@localhost:5432/prd")

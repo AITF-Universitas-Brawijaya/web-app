@@ -8,19 +8,25 @@ Sistem ini dirancang untuk berjalan di lingkungan Linux (Ubuntu) menggunakan Min
 
 ### Langkah-langkah Setup:
 
-1.  **Pastikan Anda berada di direktori project:**
+1.  **Update dan Upgrade Package:**
+    ```bash
+    sudo apt update && sudo apt upgrade -y
+    ```
+    *Reboot jika dibutuhkan*
+
+2.  **Pastikan Anda berada di direktori project:**
     ```bash
     cd /home/ubuntu/web-app
     ```
 
-2.  **Jalankan script setup otomatis:**
+3.  **Jalankan script setup otomatis:**
     Script ini akan menginstal dependencies sistem, Miniconda, membuat environment `prd6`, menginstal library Python/Node.js, dan menyiapkan database.
     ```bash
     ./setup-runpod.sh
     ```
     *Tunggu hingga proses selesai.*
 
-3.  **Reload shell configuration:**
+4.  **Reload shell configuration:**
     Setelah setup selesai, jalankan perintah ini untuk mengaktifkan conda di shell saat ini:
     ```bash
     source ~/.bashrc
@@ -37,23 +43,21 @@ Anda dapat menjalankan semua layanan sekaligus menggunakan script yang tersedia.
 ```
 Perintah ini akan menjalankan:
 *   PostgreSQL Database
-*   Integrasi Service (Port 7000)
-*   Backend API (Port 8000)
-*   Frontend Dashboard (Port 3001)
+*   Integrasi Service (Default Port 5000)
+*   Backend API (Default Port 8000)
+*   Frontend Dashboard (Default Port 3000)
 *   Backup Service Otomatis (Setiap 5 menit)
 
-### Menjalankan Layanan Secara Terpisah (Opsional)
-Jika Anda perlu menjalankan layanan satu per satu untuk debugging:
+### Jika ada masalah mengenai start PostgreSQL
 
-1.  **Aktifkan Conda Environment:**
-    ```bash
-    conda activate prd6
-    ```
+Jika terdapat masalah pada start PostgreSQL (/workspace/postgresql/data), lakukan langkah berikut:
 
-2.  **Jalankan Script:**
-    *   **Integrasi Service:** `./start-integrasi-service.sh`
-    *   **Backend API:** `./start-backend.sh`
-    *   **Frontend:** `./start-frontend.sh`
+```bash
+sudo rm -rf /workspace/postgresql/data
+sudo mkdir -p /workspace/postgresql/data
+
+./setup-runpod.sh # setup ulang
+```
 
 ## 3. Menghentikan Sistem
 
@@ -62,20 +66,11 @@ Untuk mematikan semua layanan yang berjalan di background:
 ./stop-all.sh
 ```
 
-## 4. Akses Aplikasi
-
-Setelah sistem berjalan, Anda dapat mengakses:
-
-*   **Dashboard Utama:** [http://localhost:3001](http://localhost:3001)
-*   **Backend API Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
-*   **Integrasi Service:** [http://localhost:7000](http://localhost:7000)
-
-## 5. Manajemen Database
+## 4. Manajemen Database
 
 ### Lokasi Data
 *   Schema Database: `database/backup_schema.sql`
 *   Data Database: `database/backup_data.sql`
-*   Migrasi: `database/migrations/`
 
 ### Backup Otomatis
 Sistem menjalankan backup otomatis setiap 5 menit ke file `database/backup_data.sql` dan `database/backup_schema.sql`.
@@ -91,11 +86,11 @@ Untuk mereset database ke kondisi backup terakhir atau file tertentu:
 1.  **Pastikan PostgreSQL berjalan.**
 2.  **Jalankan perintah restore:**
     ```bash
-    # Contoh restore dari migrasi tertentu
-    PGPASSWORD=postgres psql -U postgres -h localhost -d prd -f database/migrations/backup-before-cleanup-20251222-094036.sql
+    # Contoh restore dari backup_data.sql
+    PGPASSWORD=postgres psql -U postgres -h localhost -d prd -f database/backup_data.sql
     ```
 
-## 7. Manajemen Password Admin
+## 5. Manajemen Password Admin
 
 Sistem menyediakan script khusus untuk mengubah password admin dengan aman menggunakan bcrypt hashing.
 
@@ -119,11 +114,6 @@ Anda juga bisa langsung memberikan password baru sebagai argumen:
 
 ```bash
 conda run -n prd6 python change_admin_password.py <password_baru>
-```
-
-**Contoh:**
-```bash
-conda run -n prd6 python change_admin_password.py secret123
 ```
 
 ### Mendapatkan Hash Password dari Database
@@ -151,7 +141,7 @@ ORDER BY id;
 - **Konfirmasi:** Mode interaktif meminta konfirmasi password untuk menghindari typo
 - **Password Masking:** Input password tidak terlihat di terminal (menggunakan getpass)
 
-## 8. Troubleshooting & Log
+## 6. Troubleshooting & Log
 
 Jika terjadi masalah, Anda dapat memeriksa log yang tersimpan di folder `logs/`.
 
@@ -189,7 +179,7 @@ Gunakan perintah `tail` untuk memantau aktivitas:
     *   Pastikan folder `integrasi-service/domain-generator/output/img` ada dan memiliki izin tulis.
     *   Sistem sekarang menyimpan gambar sebagai **Base64** di database, bukan hanya file fisik.
 
-## 9. Pembaruan Dependensi
+## 7. Pembaruan Dependensi
 
 Jika ada perubahan pada `requirements.txt` atau `package.json`:
 

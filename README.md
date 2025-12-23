@@ -15,35 +15,30 @@ Pengawasan Ruang Digital (PRD) Analyst is a comprehensive monitoring and analysi
 
 ## Documentation
 
-**[Panduan Sistem (Bahasa Indonesia)](docs/PANDUAN_SISTEM.md)** - Panduan lengkap instalasi dan penggunaan (Terbaru)
-
-**[Quick Start Guide](docs/QUICK-START.md)** - Quick reference for native deployment (English)
-
-**[Native Deployment Guide](docs/NATIVE-DEPLOYMENT.md)** - Complete guide for native deployment (English)
-
+**[Panduan Sistem (Bahasa Indonesia)](docs/PANDUAN_SISTEM.md)** - Panduan lengkap instalasi dan penggunaan
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────┐
-│         Native Services (No Docker)         │
+│         Native Services (No systemd)        │
 ├─────────────────────────────────────────────┤
 │                                             │
-│  Integrasi Service (Port 3000)              │
+│  Integrasi Service (Default Port 5000)      │
 │      ├─ Domain Generator                    │
 │      ├─ AI Chat Service                     │
 │      └─ Health Monitoring                   │
 │                                             │
-│  Backend API (Port 8000)                    │
+│  Backend API (Default Port 8000)            │
 │      ├─ REST API Endpoints                  │
 │      └─ Local Service Integration           │
 │                                             │
-│  Frontend (Port 3001)                       │
+│  Frontend (Default Port 3000)               │
 │      ├─ Dashboard UI                        │
 │      ├─ Data Management                     │
 │      └─ Real-time Monitoring                │
 │                                             │
-│  PostgreSQL (Port 5432)                     │
+│  PostgreSQL (Default Port 5432)             │
 │      └─ Persistent Data Storage             │
 │                                             │
 └─────────────────────────────────────────────┘
@@ -53,7 +48,7 @@ Pengawasan Ruang Digital (PRD) Analyst is a comprehensive monitoring and analysi
 
 ```
 web-app/
-├── frontend/                      # Next.js application (Port 3001)
+├── frontend/                      # Next.js application (Default Port 3000)
 │   ├── src/
 │   │   ├── app/                  # App router pages
 │   │   │   ├── dashboard/        # Main dashboard page
@@ -68,7 +63,7 @@ web-app/
 │   ├── .env.local                # Frontend environment config
 │   └── package.json
 │
-├── backend/                       # FastAPI application (Port 8000)
+├── backend/                       # FastAPI application (Default Port 8000)
 │   ├── routes/                   # API route handlers
 │   │   ├── announcements.py      # Announcement endpoints
 │   │   ├── auth.py               # Authentication endpoints
@@ -82,12 +77,10 @@ web-app/
 │   ├── main.py                   # Application entry point
 │   └── requirements.txt
 │
-├── integrasi-service/             # Integration service (Port 5000)
+├── integrasi-service/             # Integration service (Default Port 5000)
 │   ├── domain-generator/         # Domain discovery module
-│   │   ├── crawler.py            # Web crawler with screenshot capture
-│   │   ├── keyword_generator.py  # Keyword generation logic
-│   │   └── db_handler.py         # Database operations
-│   ├── docs/                     # Service documentation
+│   │   ├── output/               # Output directory for screenshots
+│   │   └── crawler.py            # Web crawler with screenshot capture
 │   ├── test/                     # Test files and examples
 │   └── main_api.py               # FastAPI service entry point
 │
@@ -103,11 +96,7 @@ web-app/
 │   └── integrasi.log             # Integration service logs
 │
 ├── docs/                          # Documentation files
-│   ├── PANDUAN_SISTEM.md         # Complete system guide (Indonesian)
-│   └── QUICK-START.md            # Quick start guide (English)
-│
-├── archives/                      # Legacy files and archived code
-│   └── vps-deployment/           # Old deployment scripts
+│   └── PANDUAN_SISTEM.md         # Complete system guide (Indonesian)
 │
 ├── .env                           # Root environment configuration
 ├── .env.example                   # Environment template
@@ -147,23 +136,17 @@ web-app/
 - **Git** - Version control
 - **Pod Container** - Containerization platform
 
-## Service Health Monitoring
-
-The dashboard includes real-time health monitoring for all services:
-
-- Scrape Service
-- Reasoning Service
-- Vision Service
-- ChatAI Service
-
-Health checks run every 10 seconds and display service status on the home dashboard.
-
 ## Integrasi Service
 
-The system uses a local Integrasi Service (Port 7000) for domain crawling and AI processing:
+The system uses a local Integrasi Service (Default Port 5000) for domain crawling and AI processing:
 
 **Endpoint**: `POST /process`
 - Accepts keyword and domain count parameters
+- Returns streaming logs of the crawling process
+- Automatically updates database with discovered domains (including base64 screenshots)
+
+**Endpoint**: `POST /process-links`
+- Accepts list of links
 - Returns streaming logs of the crawling process
 - Automatically updates database with discovered domains (including base64 screenshots)
 
@@ -184,46 +167,11 @@ The PostgreSQL database includes tables for:
 
 See `database/init-schema.sql` for complete schema definition.
 
-## Troubleshooting
+## Contributor
 
-### Service Issues
-
-```bash
-# Check status of all services
-./start-runpod.sh  # Will warn if ports are in use
-
-# View logs
-tail -f logs/*.log
-```
-
-### Database Connection Issues
-
-```bash
-# Check PostgreSQL is running
-sudo systemctl status postgresql
-
-# Test connection
-PGPASSWORD=postgres psql -U postgres -h localhost -d prd -c "SELECT 1;"
-```
-
-### Frontend Build Issues
-
-```bash
-# Clear Next.js cache
-cd frontend
-rm -rf .next node_modules
-npm install
-npm run dev
-```
-
-## Development Workflow
-
-1. **Make changes** to frontend or backend code
-2. **Test locally** using `./start-runpod.sh`
-3. **Check logs** for errors: `tail -f logs/*.log`
-4. **Commit changes** with descriptive messages
-5. **Push to repository** for deployment
+- Team PRD AITF x UB 2025 (Batch 1)
+- lanjutkan ..
 
 ## License
 
-Internal project for Universitas Brawijaya - AITF 2025
+Internal project for AITF (Artificial Intelligence Talent Factory)
