@@ -47,10 +47,10 @@ echo ""
 print_info "Step 1: Installing system dependencies..."
 
 # Update package list
-apt-get update -qq
+sudo apt-get update -qq
 
-# Install dependencies without sudo (RunPod usually runs as root)
-apt-get install -y -qq \
+# Install dependencies
+sudo apt-get install -y -qq \
     postgresql postgresql-contrib \
     wget curl git \
     build-essential \
@@ -70,11 +70,11 @@ print_info "Step 2: Installing Node.js..."
 
 if ! command -v npm &> /dev/null; then
     print_info "Installing Node.js from NodeSource..."
-    mkdir -p /etc/apt/keyrings
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-    apt-get update -qq
-    apt-get install -y -qq nodejs
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq nodejs
     print_success "Node.js $(node -v) and npm $(npm -v) installed"
 else
     print_info "npm already installed: $(npm -v)"
@@ -88,7 +88,7 @@ echo ""
 # ==========================================
 print_info "Step 3: Installing Miniconda..."
 
-MINICONDA_DIR="/opt/miniconda3"
+MINICONDA_DIR="$HOME/miniconda3"
 
 if [ -d "$MINICONDA_DIR" ]; then
     print_info "Miniconda already installed at $MINICONDA_DIR"
@@ -171,13 +171,13 @@ print_info "Step 6: Setting up PostgreSQL database..."
 
 # Create PostgreSQL data directory if not exists
 PG_DATA_DIR="/workspace/postgresql/data"
-mkdir -p "$PG_DATA_DIR"
+sudo mkdir -p "$PG_DATA_DIR"
 
 # Initialize PostgreSQL database if not already initialized
 if [ ! -f "$PG_DATA_DIR/PG_VERSION" ]; then
     print_info "Initializing PostgreSQL database..."
-    chown -R postgres:postgres "$PG_DATA_DIR"
-    su - postgres -c "/usr/lib/postgresql/*/bin/initdb -D $PG_DATA_DIR"
+    sudo chown -R postgres:postgres "$PG_DATA_DIR"
+    sudo su - postgres -c "/usr/lib/postgresql/*/bin/initdb -D $PG_DATA_DIR"
     print_success "PostgreSQL database initialized"
 else
     print_info "PostgreSQL database already initialized"
@@ -185,7 +185,7 @@ fi
 
 # Configure PostgreSQL for password authentication
 print_info "Configuring PostgreSQL authentication..."
-cat > "$PG_DATA_DIR/pg_hba.conf" <<EOF
+sudo tee "$PG_DATA_DIR/pg_hba.conf" > /dev/null <<EOF
 # TYPE  DATABASE        USER            ADDRESS                 METHOD
 local   all             all                                     md5
 host    all             all             127.0.0.1/32            md5
@@ -194,7 +194,7 @@ host    all             all             0.0.0.0/0               md5
 EOF
 
 # Configure PostgreSQL to listen on all interfaces
-cat > "$PG_DATA_DIR/postgresql.conf" <<EOF
+sudo tee "$PG_DATA_DIR/postgresql.conf" > /dev/null <<EOF
 listen_addresses = '*'
 port = 5432
 max_connections = 100
@@ -203,17 +203,17 @@ EOF
 
 # Start PostgreSQL in background
 print_info "Starting PostgreSQL..."
-su - postgres -c "/usr/lib/postgresql/*/bin/pg_ctl -D $PG_DATA_DIR -l /workspace/postgresql/logfile start" || print_warning "PostgreSQL may already be running"
+sudo su - postgres -c "/usr/lib/postgresql/*/bin/pg_ctl -D $PG_DATA_DIR -l /workspace/postgresql/logfile start" || print_warning "PostgreSQL may already be running"
 
 # Wait for PostgreSQL to start
 sleep 3
 
 # Set postgres user password
 print_info "Setting PostgreSQL password..."
-su - postgres -c "psql -c \"ALTER USER postgres WITH PASSWORD 'postgres';\"" 2>/dev/null || true
+sudo su - postgres -c "psql -c \"ALTER USER postgres WITH PASSWORD 'postgres';\"" 2>/dev/null || true
 
 # Create database if not exists
-su - postgres -c "psql -c \"CREATE DATABASE prd;\"" 2>/dev/null || print_info "Database 'prd' already exists"
+sudo su - postgres -c "psql -c \"CREATE DATABASE prd;\"" 2>/dev/null || print_info "Database 'prd' already exists"
 
 # Verify connection
 if PGPASSWORD=postgres psql -U postgres -h localhost -c "SELECT 1;" > /dev/null 2>&1; then
@@ -221,7 +221,7 @@ if PGPASSWORD=postgres psql -U postgres -h localhost -c "SELECT 1;" > /dev/null 
 else
     print_error "PostgreSQL connection test failed"
     print_info "Trying to restart PostgreSQL..."
-    su - postgres -c "/usr/lib/postgresql/*/bin/pg_ctl -D $PG_DATA_DIR restart"
+    sudo su - postgres -c "/usr/lib/postgresql/*/bin/pg_ctl -D $PG_DATA_DIR restart"
     sleep 3
 fi
 
@@ -384,12 +384,12 @@ cat > start-runpod.sh << 'EOFSCRIPT'
 echo "Starting PRD Analyst on RunPod..."
 
 # Source conda
-eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
+eval "$($HOME/miniconda3/bin/conda shell.bash hook)"
 
 # Start PostgreSQL if not running
 if ! pgrep -x postgres > /dev/null; then
     echo "Starting PostgreSQL..."
-    su - postgres -c "/usr/lib/postgresql/*/bin/pg_ctl -D /workspace/postgresql/data -l /workspace/postgresql/logfile start"
+    sudo su - postgres -c "/usr/lib/postgresql/*/bin/pg_ctl -D /workspace/postgresql/data -l /workspace/postgresql/logfile start"
     sleep 3
 fi
 
@@ -458,9 +458,9 @@ echo "5. Stop all services:"
 echo "   ./stop-all.sh"
 echo ""
 echo "6. PostgreSQL management:"
-echo "   Start:  su - postgres -c '/usr/lib/postgresql/*/bin/pg_ctl -D /workspace/postgresql/data start'"
-echo "   Stop:   su - postgres -c '/usr/lib/postgresql/*/bin/pg_ctl -D /workspace/postgresql/data stop'"
-echo "   Status: su - postgres -c '/usr/lib/postgresql/*/bin/pg_ctl -D /workspace/postgresql/data status'"
+echo "   Start:  sudo su - postgres -c '/usr/lib/postgresql/*/bin/pg_ctl -D /workspace/postgresql/data start'"
+echo "   Stop:   sudo su - postgres -c '/usr/lib/postgresql/*/bin/pg_ctl -D /workspace/postgresql/data stop'"
+echo "   Status: sudo su - postgres -c '/usr/lib/postgresql/*/bin/pg_ctl -D /workspace/postgresql/data status'"
 echo ""
 print_warning "Note: This setup is optimized for RunPod and does not use systemd or Nginx"
 echo ""
