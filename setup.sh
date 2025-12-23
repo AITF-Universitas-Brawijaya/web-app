@@ -50,12 +50,25 @@ print_info "Step 1: Installing system dependencies..."
 sudo apt update
 sudo apt install -y \
     postgresql postgresql-contrib \
-    nodejs \
     wget curl git \
     build-essential \
     libpq-dev \
     python3-dev \
-    nginx
+    nginx \
+    ca-certificates gnupg
+
+# Install Node.js from NodeSource (includes npm)
+if ! command -v npm &> /dev/null; then
+    print_info "Installing Node.js from NodeSource..."
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+    sudo apt update
+    sudo apt install -y nodejs
+    print_success "Node.js $(node -v) and npm $(npm -v) installed"
+else
+    print_info "npm already installed: $(npm -v)"
+fi
 
 print_success "System dependencies installed"
 echo ""
@@ -119,8 +132,17 @@ else
     print_success "Miniconda installed"
 fi
 
-# Initialize conda for bash
+# Initialize conda for bash (current session)
 eval "$("$MINICONDA_DIR/bin/conda" shell.bash hook)"
+
+# Add conda to ~/.bashrc if not already there
+if ! grep -q "conda initialize" ~/.bashrc 2>/dev/null; then
+    print_info "Adding conda to ~/.bashrc..."
+    "$MINICONDA_DIR/bin/conda" init bash
+    print_success "Conda added to ~/.bashrc"
+else
+    print_info "Conda already configured in ~/.bashrc"
+fi
 
 print_success "Miniconda ready"
 echo ""
@@ -137,7 +159,13 @@ if conda env list | grep -q "prd6"; then
 fi
 
 print_info "Creating new prd6 environment with Python 3.12..."
-# Accept conda TOS and use conda-forge
+
+# Accept Anaconda Terms of Service for default channels
+print_info "Accepting Conda Terms of Service..."
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main 2>/dev/null || true
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r 2>/dev/null || true
+
+# Configure conda channels
 conda config --set channel_priority flexible
 conda config --add channels conda-forge
 conda config --set auto_activate_base false
@@ -174,23 +202,40 @@ print_info "Step 5: Setting up PostgreSQL database..."
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
 
-# Check if PostgreSQL is already configured with md5 authentication
-print_info "Checking PostgreSQL authentication..."
-if grep -q "local.*all.*postgres.*peer" /etc/postgresql/*/main/pg_hba.conf 2>/dev/null; then
-    print_info "Configuring PostgreSQL for password authentication..."
+# Always reset password using peer authentication (which always works with sudo)
+print_info "Setting PostgreSQL password..."
+sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';" 2>/dev/null || true
+
+# Create database if not exists
+sudo -u postgres psql -c "CREATE DATABASE prd;" 2>/dev/null || print_info "Database 'prd' already exists"
+
+# Configure pg_hba.conf for md5 password authentication
+print_info "Configuring PostgreSQL for password authentication..."
+PG_HBA_FILE=$(sudo find /etc/postgresql -name "pg_hba.conf" 2>/dev/null | head -n 1)
+
+if [ -n "$PG_HBA_FILE" ]; then
+    # Replace peer and scram-sha-256 with md5 for local connections
+    sudo sed -i 's/peer/md5/g' "$PG_HBA_FILE" 2>/dev/null || true
+    sudo sed -i 's/scram-sha-256/md5/g' "$PG_HBA_FILE" 2>/dev/null || true
     
-    # Set password and create database while still using peer authentication
-    sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';" 2>/dev/null || true
-    sudo -u postgres psql -c "CREATE DATABASE prd;" 2>/dev/null || print_info "Database 'prd' already exists"
-    
-    # Now switch to md5 authentication
-    sudo sed -i 's/peer/md5/g' /etc/postgresql/*/main/pg_hba.conf 2>/dev/null || true
+    # Restart PostgreSQL to apply changes
     sudo systemctl restart postgresql
-    print_success "PostgreSQL configured with password authentication"
+    
+    # Wait for PostgreSQL to be ready
+    sleep 2
+    
+    # Verify connection works
+    if PGPASSWORD=postgres psql -U postgres -h localhost -c "SELECT 1;" >/dev/null 2>&1; then
+        print_success "PostgreSQL password authentication configured successfully"
+    else
+        print_error "PostgreSQL connection test failed. Trying alternative fix..."
+        # Force reset password again after config change
+        sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';" 2>/dev/null || true
+        sudo systemctl restart postgresql
+        sleep 2
+    fi
 else
-    print_info "PostgreSQL already configured with password authentication"
-    # Database and user should already exist, but check anyway
-    PGPASSWORD=postgres psql -U postgres -h localhost -c "CREATE DATABASE prd;" 2>/dev/null || print_info "Database 'prd' already exists"
+    print_error "Could not find pg_hba.conf"
 fi
 
 print_success "PostgreSQL database ready"
@@ -335,10 +380,15 @@ echo "=========================================="
 print_success "Setup completed successfully!"
 echo "=========================================="
 echo ""
+echo -e "${YELLOW}IMPORTANT: Run this command first to enable conda:${NC}"
+echo -e "${GREEN}   source ~/.bashrc${NC}"
+echo ""
+echo "   Or open a new terminal window."
+echo ""
 echo "Next steps:"
 echo ""
-echo "1. Activate conda environment:"
-echo "   conda activate prd6"
+echo "1. Reload shell configuration:"
+echo "   source ~/.bashrc"
 echo ""
 echo "2. Start all services:"
 echo "   ./start-all.sh"
