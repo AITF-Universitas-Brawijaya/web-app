@@ -173,21 +173,24 @@ print_info "Step 6: Setting up PostgreSQL database..."
 PG_DATA_DIR="/workspace/postgresql/data"
 sudo mkdir -p "$PG_DATA_DIR"
 
-# Initialize PostgreSQL database if not already initialized
-if [ ! -f "$PG_DATA_DIR/PG_VERSION" ]; then
-    print_info "Initializing PostgreSQL database..."
-    sudo chown -R postgres:postgres "$PG_DATA_DIR"
-    sudo su - postgres -c "/usr/lib/postgresql/*/bin/initdb -D $PG_DATA_DIR"
-    print_success "PostgreSQL database initialized"
-else
-    print_info "PostgreSQL database already initialized"
-fi
+    # Initialize PostgreSQL database if not already initialized
+    # Check if directory is empty or contains PG_VERSION
+    if [ ! -f "$PG_DATA_DIR/PG_VERSION" ] && [ -z "$(ls -A $PG_DATA_DIR)" ]; then
+        print_info "Initializing PostgreSQL database..."
+        sudo chown -R postgres:postgres "$PG_DATA_DIR"
+        sudo su - postgres -c "/usr/lib/postgresql/*/bin/initdb -D $PG_DATA_DIR"
+        print_success "PostgreSQL database initialized"
+    else
+        print_info "PostgreSQL database directory not empty or already initialized. Skipping initdb."
+        # Ensure ownership is correct even if we don't init
+        sudo chown -R postgres:postgres "$PG_DATA_DIR"
+    fi
 
 # Configure PostgreSQL for password authentication
 print_info "Configuring PostgreSQL authentication..."
 sudo tee "$PG_DATA_DIR/pg_hba.conf" > /dev/null <<EOF
 # TYPE  DATABASE        USER            ADDRESS                 METHOD
-local   all             all                                     md5
+local   all             all                                     trust
 host    all             all             127.0.0.1/32            md5
 host    all             all             ::1/128                 md5
 host    all             all             0.0.0.0/0               md5
